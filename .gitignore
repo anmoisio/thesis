@@ -1,0 +1,12 @@
+opinnayteohjeet
+aaltologo-master-*
+*.xmpi
+*.aux
+*.fls
+*.log
+*.fdb_latexmk
+*.out
+*.pdf
+*.gz
+*.toc
+*.xmpdata

@@ -1,0 +1,267 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% This is licensed under the terms of the MIT license below.                 %%
+%%                                                                            %%
+%% Written by Luis R.J. Costa.                                                %%
+%% Currently developed at the Learning Services of Aalto University School of %%
+%% Electrical Engineering by Luis R.J. Costa since May 2017.                  %%
+%%                                                                            %%
+%% Copyright 2017-2018, by Luis R.J. Costa, luis.costa@aalto.fi,              %%
+%% Copyright 2017-2018 Swedish translations in aaltothesis.cls by Elisabeth   %%
+%% Nyberg, elisabeth.nyberg@aalto.fi and Henrik Wallén,                       %%
+%% henrik.wallen@aalto.fi.                                                    %%
+%% Copyright 2017-2018 Finnish documentation in the template opinnatepohja.tex%%
+%% by Perttu Puska, perttu.puska@aalto.fi, and Luis R.J. Costa.               %%
+%% Copyright 2018 English template thesistemplate.tex by Luis R.J. Costa.     %%
+%% Copyright 2018 Swedish template kandidatarbetsbotten.tex by Henrik Wallen. %%
+%%                                                                            %%
+%% Permission is hereby granted, free of charge, to any person obtaining a    %%
+%% copy of this software and associated documentation files (the "Software"), %%
+%% to deal in the Software without restriction, including without limitation  %%
+%% the rights to use, copy, modify, merge, publish, distribute, sublicense,   %%
+%% and/or sell copies of the Software, and to permit persons to whom the      %%
+%% Software is furnished to do so, subject to the following conditions:       %%
+%% The above copyright notice and this permission notice shall be included in %%
+%% all copies or substantial portions of the Software.                        %%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR %%
+%% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   %%
+%% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    %%
+%% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER %%
+%% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    %%
+%% FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        %%
+%% DEALINGS IN THE SOFTWARE.                                                  %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% spellcheck-off
+
+\documentclass[english, 12pt, a4paper, elec, utf8, a-1b, online]{aaltothesis}
+%\documentclass[english, 12pt, a4paper, elec, utf8, a-1b]{aaltothesis}
+%\documentclass[english, 12pt, a4paper, elec, dvips, online]{aaltothesis}
+
+%% Use the following options in the \documentclass macro above:
+%% your school: arts, biz, chem, elec, eng, sci
+%% the character encoding scheme used by your editor: utf8, latin1
+%% thesis language: english, finnish, swedish
+%% make an archiveable PDF/A-1b or PDF/A-2b compliant file: a-1b, a-2b
+%%                    (with pdflatex, a normal pdf containing metadata is
+%%                     produced without the a-*b option)
+%% typeset in symmetric layout and blue hypertext for online publication: online
+%%            (no option is the default, resulting in a wide margin on the
+%%             binding side of the page and black hypertext)
+%% two-sided printing: twoside (default is one-sided printing)
+
+\usepackage{graphicx}
+
+%% Math fonts, symbols, and formatting; these are usually needed
+\usepackage{amsfonts,amssymb,amsbsy,amsmath}
+
+%% Change the school field to specify your school if the automatically set name
+%% is wrong
+% \university{aalto-yliopisto}
+% \school{Sähkötekniikan korkeakoulu}
+
+\degreeprogram{Computer, Communication and Information Sciences}
+\major{Signal, Speech and Language Processing}
+\code{ELEC3031}
+\univdegree{MSc}
+\thesisauthor{Anssi Moisio}
+
+%% A possible "and" in the title should not be the last word in the line, it
+%% begins the next line.
+%% Specify the title again without the linebreak characters in the optional
+%% argument in box brackets. This is done because the title is part of the 
+%% metadata in the pdf/a file, and the metadata cannot contain linebreaks.
+\thesistitle{Title of the thesis}
+%\thesistitle[Title of the thesis]{Title of\\ the thesis}
+
+\place{Espoo}
+\date{}
+
+%% Thesis supervisor
+%% Note the "\" character in the title after the period and before the space
+%% and the following character string.
+%% This is because the period is not the end of a sentence after which a
+%% slightly longer space follows, but what is desired is a regular interword
+%% space.
+\supervisor{Prof.\ Mikko Kurimo}
+
+%% Advisor(s)---two at the most---of the thesis.
+\advisor{Dr.}
+
+%% Aaltologo: syntax:
+%% \uselogo{aaltoRed|aaltoBlue|aaltoYellow|aaltoGray|aaltoGrayScale}{?|!|''}
+%% The logo language is set to be the same as the thesis language.
+\uselogo{aaltoRed}{''}
+
+%% The English abstract:
+%% All the details (name, title, etc.) on the abstract page appear as specified
+%% above.
+%% Thesis keywords:
+%% Note! The keywords are separated using the \spc macro
+\keywords{For keywords choose\spc concepts that are\spc central to your\spc thesis}
+
+%% The abstract text. This text is included in the metadata of the pdf file as well
+%% as the abstract page.
+\thesisabstract{abstract here
+}
+
+%% Copyright text. Copyright of a work is with the creator/author of the work
+%% regardless of whether the copyright mark is explicitly in the work or not.
+%% You may, if you wish, publish your work under a Creative Commons license (see
+%% creaticecommons.org), in which case the license text must be visible in the
+%% work. Write here the copyright text you want. It is written into the metadata
+%% of the pdf file as well.
+%% Syntax:
+%% \copyrigthtext{metadata text}{text visible on the page}
+%% 
+%% In the macro below, the text written in the metadata must have a \noexpand
+%% macro before the \copyright special character, and macros (\copyright and
+%% \year here) must be separated by the \ character (space chacter) from the
+%% text that follows. The macros in the argument of the \copyrighttext macro
+%% automatically insert the year and the author's name. (Note! \ThesisAuthor is
+%% an internal macro of the aaltothesis.cls class file).
+%% Of course, the same text could have simply been written as
+%% \copyrighttext{Copyright \noexpand\copyright\ 2018 Eddie Engineer}
+%% {Copyright \copyright{} 2018 Eddie Engineer}
+\copyrighttext{Copyright \noexpand\copyright\ \number\year\ \ThesisAuthor}
+{Copyright \copyright{} \number\year{} \ThesisAuthor}
+
+%% You can prevent LaTeX from writing into the xmpdata file (it contains all the 
+%% metadata to be written into the pdf file) by setting the writexmpdata switch
+%% to 'false'. This allows you to write the metadata in the correct format
+%% directly into the file thesistemplate.xmpdata.
+%\setboolean{writexmpdatafile}{false}
+
+%% All that is printed on paper starts here
+\begin{document}
+
+%% Create the coverpage
+\makecoverpage
+
+%% Typeset the copyright text.
+%% If you wish, you may leave out the copyright text from the human-readable
+%% page of the pdf file. This may seem like a attractive idea for the printed
+%% document especially if "Copyright (c) yyyy Eddie Engineer" is the only text
+%% on the page. However, the recommendation is to print this copyright text.
+\makecopyrightpage
+
+%% Note that when writting your thesis in English, place the English abstract
+%% first followed by the possible Finnish or Swedish abstract.
+
+%% Abstract text
+%% The text in the \thesisabstract macro is stored in the macro \abstractext, so
+%% you can use the text metadata abstract directly as follows:
+\begin{abstractpage}[english]
+	\abstracttext{}
+\end{abstractpage}
+
+\newpage
+%% Abstract in Finnish.
+\thesistitle{Opinnäyteen otsikko}
+\supervisor{Prof.}
+\advisor{TkT}
+\degreeprogram{Tieto-, tietoliikenne- ja informaatiotekniikka}
+\major{Signaalin-, puheen- ja kielenkäsittely}
+%% The keywords need not be separated by \spc now.
+\keywords{}
+%% Abstract text
+\begin{abstractpage}[finnish]
+  tiivistelmä tähän
+\end{abstractpage}
+
+%% Preface
+%% This section is optional. Remove it if you do not want a preface.
+\mysection{Preface}
+preface here
+
+\vspace{5cm}
+Otaniemi, 31.8.2018
+
+% \vspace{5mm}
+% {\hfill Eddie E.\ A.\ Engineer \hspace{1cm}}
+
+\newpage
+\thesistableofcontents
+
+
+%% Symbols and abbreviations
+\mysection{Symbols and abbreviations}
+
+\subsection*{Symbols}
+
+% \begin{tabular}{ll}
+% $\mathbf{B}$  & magnetic flux density  \\
+% $c$              & speed of light in vacuum $\approx 3\times10^8$ [m/s]\\
+% $\omega_{\mathrm{D}}$    & Debye frequency \\
+% $\omega_{\mathrm{latt}}$ & average phonon frequency of lattice \\
+% $\uparrow$       & electron spin direction up\\
+% $\downarrow$     & electron spin direction down
+% \end{tabular}
+
+\subsection*{Operators}
+
+% \begin{tabular}{ll}
+% $\nabla \times \mathbf{A}$              & curl of vectorin $\mathbf{A}$\\
+% $\displaystyle\frac{\mbox{d}}{\mbox{d} t}$ & derivative with respect to 
+% variable $t$\\[3mm]
+% $\displaystyle\frac{\partial}{\partial t}$  & partial derivative with respect 
+% to variable $t$ \\[3mm]
+% $\sum_i $                       & sum over index $i$\\
+% $\mathbf{A} \cdot \mathbf{B}$    & dot product of vectors $\mathbf{A}$ and 
+% $\mathbf{B}$
+% \end{tabular}
+
+\subsection*{Abbreviations}
+
+% \begin{tabular}{ll}
+% AC         & alternating current \\
+% APLAC      & an object-oriented analog circuit simulator and design tool \\
+%            & (originally Analysis Program for Linear Active Circuits) \\
+% BCS        & Bardeen-Cooper-Schrieffer \\ %% dash between the names
+% DC         & direct current \\
+% TEM        & transverse eletromagnetic
+% \end{tabular}
+
+
+%% \clearpage is similar to \newpage, but it also flushes the floats (figures
+%% and tables).
+\cleardoublepage
+
+%% Text body begins.
+\section{Introduction}
+
+%% Leave page number of the first page empty
+\thispagestyle{empty}
+\clearpage
+\section{Background}
+\subsection*{}
+
+\clearpage
+\section{Research material and methods}
+
+\clearpage
+\section{Results}
+
+\clearpage
+\section{Summary} 
+
+\clearpage
+\thesisbibliography
+
+\begin{thebibliography}{99}
+
+%% Alla pilkun j\"alkeen on pakotettu oikea v\"ali \<v\"alily\"onti>-merkeill\"a.
+% \bibitem{Kauranen} Kauranen,\ I., Mustakallio,\ M. ja Palmgren,\ V.
+%   \textit{Tutkimusraportin kirjoittamisen opas opinn\"aytety\"on
+%     tekij\"oille.}  Espoo, Teknillinen korkeakoulu, 2006.
+
+\end{thebibliography}
+
+%% Appendices
+%% If you don't have appendices, remove \clearpage and \thesisappendix below.
+\clearpage
+
+\thesisappendix
+
+\section{}
+
+\end{document}
