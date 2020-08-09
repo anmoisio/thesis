@@ -54,6 +54,8 @@
 %% Math fonts, symbols, and formatting; these are usually needed
 \usepackage{amsfonts,amssymb,amsbsy,amsmath}
 
+\usepackage{natbib}
+
 %% Change the school field to specify your school if the automatically set name
 %% is wrong
 % \university{aalto-yliopisto}
@@ -239,22 +241,36 @@ Otaniemi, 31.8.2018
 \section{Research material and methods}
 
 \clearpage
+\section{Experiments}
+
+\subsection{Baseline}
+
+The baseline language models and the ASR system is based on the systems developed by \citet{enarvi2017automatic}. 
+
+
+
+\clearpage
 \section{Results}
 
 \clearpage
 \section{Summary} 
 
-\clearpage
-\thesisbibliography
 
-\begin{thebibliography}{99}
+\clearpage
+\bibliographystyle{apalike}
+\bibliography{references}
+
+
+% \thesisbibliography
+
+% \begin{thebibliography}{99}
 
 %% Alla pilkun j\"alkeen on pakotettu oikea v\"ali \<v\"alily\"onti>-merkeill\"a.
 % \bibitem{Kauranen} Kauranen,\ I., Mustakallio,\ M. ja Palmgren,\ V.
 %   \textit{Tutkimusraportin kirjoittamisen opas opinn\"aytety\"on
 %     tekij\"oille.}  Espoo, Teknillinen korkeakoulu, 2006.
 
-\end{thebibliography}
+% \end{thebibliography}
 
 %% Appendices
 %% If you don't have appendices, remove \clearpage and \thesisappendix below.

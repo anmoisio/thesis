@@ -10,3 +10,5 @@ aaltologo-master-*
 *.gz
 *.toc
 *.xmpdata
+*.bbl
+*.blg
