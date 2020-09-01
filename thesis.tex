@@ -54,6 +54,8 @@
 
   \usepackage{amsfonts, amssymb, amsbsy, amsmath, natbib, graphicx}
 
+  \DeclareMathOperator*{\argmax}{argmax}
+
   % \university{Aalto-yliopisto}
   % \school{Sähkötekniikan korkeakoulu}
   \degreeprogram{Computer, Communication and Information Sciences}
@@ -251,17 +253,35 @@
 \thispagestyle{empty}
 \clearpage
 
-\section{Finnish conversations to text}
+\section{Finnish conversations to text} 
 
-\subsection{Feature extraction}
+  The task of converting speech into text, or "automatic speech recognition", can be divided into four subtasks: feature extraction, acoustic modelling, phoneme-to-grapheme mapping, and language modelling. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors, or observations $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, which are a compressed, discrete representation of the audio signal. 
+  The task is then to find $\argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O})$, where $\boldsymbol{W}$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
+  \begin{equation}\label{asr-bayes}
+    \argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O}) = 
+    \argmax_{\boldsymbol{W}} \frac{P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})} {P(\boldsymbol{O})}
+  \end{equation}
+
+  The probability of the observations ${P(\boldsymbol{O})}$ is not relevant in finding the best transcription for the observations, which leaves the product $P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})$ to be estimated. Here, the former factor is the a priori probability of a word sequence, modelled by a language model. The acoustic model inputs the observations and outputs likelihoods of phoneme sequences, which are mapped to grapheme sequences by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{W})}$.
+
+  The first four sections in this chapter respectively describe the four components of the conventional ASR system. The last section (\ref{section:conv}) discusses the specifics of recognising conversational Finnish.
+
+  %  A language model gives an a priori probability for each word sequence: $P(\boldsymbol{W})$. The estimate $\hat{\boldsymbol{W}}$ of the best transcription given the observations is the most likely sequence 
+
+  % \begin{equation}\label{asr-bayes-argmax}
+  %   \hat{\boldsymbol{W}} = \argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O}) = 
+  %   \argmax_{\boldsymbol{W}} \frac{P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})} {P(\boldsymbol{O})}
+  % \end{equation} 
+
+\subsection{Feature extraction} 
 
   A speech audio signal contains a lot of information that is irrelevant for converting the signal to text. The first step of ASR is to find the features of the signal that contain the information about what is being said. An assumption is made that the speech signal does not change meaningfully in a time frame of about 10 milliseconds, so that the signal can be divided into frames with this time resolution. The frames overlap so that each frame is about 20 or 25 milliseconds, and a tapered window function, such as Hamming, is applied to (i.e., multiplied by) each frame. This window function removes the discontinuities that occur in the borders of frames, and the overlapping compensates for the tapering of the window function so that the distorting effect on the signal statistics is minimised \citet{}. % https://wiki.aalto.fi/display/ITSP/Windowing
   The stationary frames' frequency components can be then computed with the Fourier transform. A commonly used method is to extract the MFCCs by applying a logarithmic mel-scale filterbank to the frequency spectrum, and lastly computing the DCT. The log mel-scale emphasises the lower frequencies emulating the way humans perceive sound, i.e., the way the human inner ear recognises lower frequencies with higher frequency resolution. The DCT decorrelates the coefficients so that the use of diagonal covariance matrices is possible in the subsequent stages of the modelling, namely when using GMMs.
   
   The MFCC method thus assumes that coefficients adjacent in time are independent of each other, which is a false assumption in the case of speech signals. This can be corrected for by adding additional information about how the signal changes in time to the features. 
-  Information about temporal change and change of temporal change is extracted from the MFCCs by calcualting the differences and second-order differences of adjacent coefficients. These features are also called the delta ($\Delta$) and delta-delta ($\Delta\Delta$) features, or speed and acceleration features. The $\Delta$s and $\Delta\Delta$s are simply concatenated with the MFCC vectors, increasing the feature vector length threefold.
+  Information about temporal change and change of temporal change is extracted from the MFCCs by calculating the differences and second-order differences of adjacent coefficients. These features are also called the delta ($\boldsymbol{\Delta}$) and delta-delta ($\boldsymbol{\Delta\Delta}$) features, or speed and acceleration features. The $\boldsymbol{\Delta}$s and $\boldsymbol{\Delta\Delta}$s are concatenated with the MFCC vectors, increasing the feature vector length threefold.
 
-  The cepstral mean and variance normalization is a method for making the model more robust in noisy conditions \citep{viikki1998cepstral}.
+  The cepstral mean and variance normalization is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
 
 \subsection{Acoustic modelling} 
   In the conventional ASR system, used also in this thesis, phonemes are modelled by HMMs, which are then concatenated to model utterances.
@@ -269,7 +289,7 @@
 
   % in Kaldi 
   % http://kaldi-asr.org/doc/hmm.html
-  The typical HMM topology for a phoneme is a left-to-right model (also called the Bakis model) with three emitting states which each have a transition to the next state and a self-loop. The model also includes a fourth non-emitting final state which has no transitions out of it.
+  The typical HMM topology for a phoneme is a left-to-right model, also called the Bakis model, with three emitting states which each have a transition to the next state and a self-loop. The model also includes a fourth non-emitting final state which has no transitions out of it.
 
   % Gaussian mixtures
   A state's emission probabilities are represented by a PDF, typically a GMM whose parameters, i.e. its mean vector $\boldsymbol{\mu}$, covariance matrix $\boldsymbol{\Sigma}$ and mixture weights, are estimated in the model training process. An observed feature vector $\boldsymbol{o}_t$ is emitted from a certain state $i$ with an observation likelihood, which would in the case of a single component Gaussian be
@@ -316,9 +336,7 @@
 
   % WFSTs
 
-
 \subsection{Mapping phonemes to graphemes}
-
 
 \subsection{Statistical language modelling}
 
@@ -328,9 +346,9 @@
 
 \subsubsection{Attention-based neural language models}
 
-\subsection{Spoken and written conversations in Finnish}
+% \citet{dai2019transformer}
 
-tedst \citet{dai2019transformer}
+\subsection{Spoken and written conversations in Finnish} \label{section:conv}
 
 
 
