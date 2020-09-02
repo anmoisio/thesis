@@ -255,14 +255,14 @@
 
 \section{Finnish conversations to text} 
 
-  The task of converting speech into text, or "automatic speech recognition", can be divided into four subtasks: feature extraction, acoustic modelling, phoneme-to-grapheme mapping, and language modelling. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors, or observations $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, which are a compressed, discrete representation of the audio signal. 
+  The task of converting speech into text, or \emph{automatic speech recognition}, can be divided into four subtasks: \emph{feature extraction}, \emph{acoustic modelling}, \emph{phoneme-to-grapheme mapping}, and \emph{language modelling}. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, which are a compressed, discrete representation of the audio signal. 
   The task is then to find $\argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O})$, where $\boldsymbol{W}$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
   \begin{equation}\label{asr-bayes}
     \argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O}) = 
     \argmax_{\boldsymbol{W}} \frac{P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})} {P(\boldsymbol{O})}
   \end{equation}
 
-  The probability of the observations ${P(\boldsymbol{O})}$ is not relevant in finding the best transcription for the observations, which leaves the product $P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})$ to be estimated. Here, the former factor is the a priori probability of a word sequence, modelled by a language model. The acoustic model inputs the observations and outputs likelihoods of phoneme sequences, which are mapped to grapheme sequences by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{W})}$.
+  The probability of the observations ${P(\boldsymbol{O})}$ is not relevant in finding the best transcription for the observations, which leaves the product $P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})$ to be estimated. Here, the former factor is the a priori probabilities of word sequences, modelled by a language model. The acoustic model determines likelihoods of observations given phoneme sequences that are mapped to grapheme sequences by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{W})$.
 
   The first four sections in this chapter respectively describe the four components of the conventional ASR system. The last section (\ref{section:conv}) discusses the specifics of recognising conversational Finnish.
 
@@ -275,7 +275,8 @@
 
 \subsection{Feature extraction} 
 
-  A speech audio signal contains a lot of information that is irrelevant for converting the signal to text. The first step of ASR is to find the features of the signal that contain the information about what is being said. An assumption is made that the speech signal does not change meaningfully in a time frame of about 10 milliseconds, so that the signal can be divided into frames with this time resolution. The frames overlap so that each frame is about 20 or 25 milliseconds, and a tapered window function, such as Hamming, is applied to (i.e., multiplied by) each frame. This window function removes the discontinuities that occur in the borders of frames, and the overlapping compensates for the tapering of the window function so that the distorting effect on the signal statistics is minimised \citet{}. % https://wiki.aalto.fi/display/ITSP/Windowing
+  A speech audio signal contains a lot of information that is irrelevant for converting the signal to text. The first step of ASR is to find the features of the signal that contain the information about what is being said. An assumption is made that the speech signal does not change meaningfully in a time frame of about 10 milliseconds, so that the signal can be divided into frames with this time resolution. The frames overlap so that each frame is about 20 or 25 milliseconds, and a tapered window function, such as Hamming, is applied to (i.e., multiplied by) each frame. This window function removes the discontinuities that occur on the borders of frames, and the overlapping compensates for the tapering of the window function so that the distorting effect on the signal statistics is minimised \citet{}. % https://wiki.aalto.fi/display/ITSP/Windowing
+
   The stationary frames' frequency components can be then computed with the Fourier transform. A commonly used method is to extract the MFCCs by applying a logarithmic mel-scale filterbank to the frequency spectrum, and lastly computing the DCT. The log mel-scale emphasises the lower frequencies emulating the way humans perceive sound, i.e., the way the human inner ear recognises lower frequencies with higher frequency resolution. The DCT decorrelates the coefficients so that the use of diagonal covariance matrices is possible in the subsequent stages of the modelling, namely when using GMMs.
   
   The MFCC method thus assumes that coefficients adjacent in time are independent of each other, which is a false assumption in the case of speech signals. This can be corrected for by adding additional information about how the signal changes in time to the features. 
@@ -284,27 +285,47 @@
   The cepstral mean and variance normalization is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
 
 \subsection{Acoustic modelling} 
-  In the conventional ASR system, used also in this thesis, phonemes are modelled by HMMs, which are then concatenated to model utterances.
-  Hidden Markov models are based on the idea that a system goes through sequences of hidden states which cause observations. Each observation has a probability of being generated by each hidden state, and each hidden state pair has a transition probability $t_{ij}$ that describes how probable it is to move from state $i$ to state $j$. 
 
+\subsubsection{HMM topology for phonemes}
+
+  Estimating the likelihoods of observations given phonemes is achieved by creating a HMM for each phoneme. This way the task becomes to estimate the parameters of the HMMs.
+  % In the conventional ASR system, used also in this thesis, phonemes are modelled by HMMs, which are then concatenated to model utterances.
+  A hidden Markov model consists of a hidden Markov chain, also called regime, and the observation sequence, i.e., feature vectors. Each observation $\boldsymbol{o}_t$ has a probability $b_i(\boldsymbol{o}_t)$ of being generated by a hidden state $i$, and each hidden state pair (an arc from a state another) has a transition probability $a_{ij}$ that describes how probable it is to move from state $i$ to state $j$. 
+  % Gaussian mixtures
+  A state's emission probabilities are represented by a PDF, typically a GMM 
+  \begin{equation}\label{}
+    b_i(\boldsymbol{o}_t) = \sum^{M_j}_{m=1}c_{jm}
+      \mathcal{N}(\boldsymbol{o}_t ; \boldsymbol{\mu}_{jm}, \boldsymbol{\Sigma}_{jm})
+  \end{equation}
+  whose parameters, i.e., its mean vector $\boldsymbol{\mu}$, covariance matrix $\boldsymbol{\Sigma}$ and mixture weights $c_{jm}$, are estimated in the model training process. The Gaussian mixture density is
+  \begin{equation}\label{}
+    \mathcal{N}(\boldsymbol{o} ; \boldsymbol{\mu}, \boldsymbol{\Sigma})
+       = \frac{1}{\sqrt{(2 \pi)^n |\boldsymbol{\Sigma}|}} 
+      e^{-\frac{1}{2}(\boldsymbol{o} - \boldsymbol{\mu})^\top 
+      \boldsymbol{\Sigma}^{-1} 
+      (\boldsymbol{o} - \boldsymbol{\mu})}
+  \end{equation}
   % in Kaldi 
   % http://kaldi-asr.org/doc/hmm.html
   The typical HMM topology for a phoneme is a left-to-right model, also called the Bakis model, with three emitting states which each have a transition to the next state and a self-loop. The model also includes a fourth non-emitting final state which has no transitions out of it.
 
-  % Gaussian mixtures
-  A state's emission probabilities are represented by a PDF, typically a GMM whose parameters, i.e. its mean vector $\boldsymbol{\mu}$, covariance matrix $\boldsymbol{\Sigma}$ and mixture weights, are estimated in the model training process. An observed feature vector $\boldsymbol{o}_t$ is emitted from a certain state $i$ with an observation likelihood, which would in the case of a single component Gaussian be
-
-  \[
-    b_i(\boldsymbol{o}_t) = \frac{1}{\sqrt{(2 \pi)^n |\boldsymbol{\Sigma}_j|}} \\
-      e^{\frac{1}{2}(\boldsymbol{o}_t - \boldsymbol{\mu}_j)^\top \\
-      \boldsymbol{\Sigma}_j^{-1} \\
-      (\boldsymbol{o}_t - \boldsymbol{\mu}_j)}
-  \]
-
-  The monophone models are first trained (with single-component Gaussians?) and the triphone models are initialised with the monophone model set parameters. The number of Gaussians in the triphone models is increased gradually and the parameters are re-estimated.
+\subsubsection{Estimating HMM parameters}
 
   % Baum-Welch algorithm
   The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM paramters. The task is to maximise the likelihood of the means and variances of the HMM given the observations.
+  \begin{equation}\label{}
+    \hat{\boldsymbol{\mu}_j}} = \frac{\sum^T_{t=1}L_j(t)\boldsymbol{o}_t}
+      {\sum^T_{t=1}L_j(t)}
+  \end{equation}
+  The training starts with some trial values of the parameters, for which the likelihood is calculated. 
+
+
+  % Viterbi training
+  An alternative approach to the B-W algorithm is an iterative procedure called Viterbi training, also called Viterbi extraction or Baum-Viterbi algorithm since it involves the Baum re-estimation and the Viterbi algorithm \citep{lember2008adjusted}. In Viterbi training, the HMM parameters and the hidden state sequence, both unknown, are estimated alternately. 
+
+
+  The monophone models are first trained (with single-component Gaussians?) and the triphone models are initialised with the monophone model set parameters. The number of Gaussians in the triphone models is increased gradually and the parameters are re-estimated.
+
 
 
 
@@ -335,6 +356,10 @@
   Speaker adaptive training \citep{povey2008fast}
 
   % WFSTs
+
+\subsubsection{DNN AMs}
+
+\subsubsection{Speaker identification}
 
 \subsection{Mapping phonemes to graphemes}
 
