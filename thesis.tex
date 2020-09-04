@@ -132,6 +132,8 @@
   %% All that is printed on paper starts here
   \begin{document}
 
+  \pagenumbering{roman}
+
   %% Create the coverpage
   \makecoverpage
 
@@ -228,12 +230,15 @@
   AM            & acoustic model \\
   ASR           & automatic speech recognition \\
   CMVN          & cepstral mean and variance normalization \\
+  EM            & expectation maximisation \\
   fMLLR         & feature space maximum likelihood linear regression \\
   GMM           & Gaussian mixture model \\
   HMM           & hidden Markov model \\
   LDA           & linear discriminant analysis \\
   LM            & language model \\
   MFCC          & mel-frequency cepstral coefficient \\
+  ML            & maximum likelihood \\
+  MLLR          & maximum likelihood linear regression \\
   MLLT          & maximum likelihood linear transformation \\
   PDF           & probability density function \\
   SAT           & speaker adaptive training \\
@@ -244,6 +249,8 @@
 %% \clearpage is similar to \newpage, but it also flushes the floats (figures
 %% and tables).
 \cleardoublepage
+\pagenumbering{arabic}
+\setcounter{page}{1}
 
 %% Text body begins.
 \section{Introduction}
@@ -280,7 +287,14 @@
   The stationary frames' frequency components can be then computed with the Fourier transform. A commonly used method is to extract the MFCCs by applying a logarithmic mel-scale filterbank to the frequency spectrum, and lastly computing the DCT. The log mel-scale emphasises the lower frequencies emulating the way humans perceive sound, i.e., the way the human inner ear recognises lower frequencies with higher frequency resolution. The DCT decorrelates the coefficients so that the use of diagonal covariance matrices is possible in the subsequent stages of the modelling, namely when using GMMs.
   
   The MFCC method thus assumes that coefficients adjacent in time are independent of each other, which is a false assumption in the case of speech signals. This can be corrected for by adding additional information about how the signal changes in time to the features. 
-  Information about temporal change and change of temporal change is extracted from the MFCCs by calculating the differences and second-order differences of adjacent coefficients. These features are also called the delta ($\boldsymbol{\Delta}$) and delta-delta ($\boldsymbol{\Delta\Delta}$) features, or speed and acceleration features. The $\boldsymbol{\Delta}$s and $\boldsymbol{\Delta\Delta}$s are concatenated with the MFCC vectors, increasing the feature vector length threefold.
+  Information about temporal change and change of temporal change is extracted from the MFCCs by calculating the differences and second-order differences of adjacent coefficients. These features are also called the delta ($\boldsymbol{\Delta}$) and delta-delta ($\boldsymbol{\Delta\Delta}$), or acceleration, features. 
+  % The $\boldsymbol{\Delta}$s and $\boldsymbol{\Delta\Delta}$s are concatenated with the MFCC vectors, increasing the feature vector length threefold.
+  The delta feature vector $\boldsymbol{\Delta}_t$ corresponding to the MFCC vector $\boldsymbol{c}_t$ (or the time step if that vector) is calculated by subtracting the weighted previous vector(s) from the weighted subsequent vectors and normalising the sum:
+  \begin{equation}
+  \boldsymbol{\Delta}_t = \frac{\sum_{\theta=1}^{\Theta}
+  \theta(\boldsymbol{c}_{t+\theta}-\boldsymbol{c}_{t-\theta})}{2\sum_{\theta=1}^{\Theta}\theta^2}
+  \end{equation}
+  In Kaldi, the default window length $\boldsymbol{\Theta}$ is 2, so the $\boldsymbol{\Delta}$s are computed by multiplying the MFCCs with a sliding window of values $[-2,-1,0,1,2]$ and then normalising by dividing by $2*(1^2 + 2^2)= 10$ \citep{kaldi}. The $\boldsymbol{\Delta\Delta}$s are computed by applying the same method to the $\boldsymbol{\Delta}$ features. The first and last MFCCs are replicated to fill the window \citep{htkbook}.
 
   The cepstral mean and variance normalization is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
 
@@ -318,11 +332,33 @@
   % http://kaldi-asr.org/doc/hmm.html
   The typical HMM topology for a phoneme is a left-to-right model, also called the Bakis model, with three emitting states which each have a transition to the next state and a self-loop. The model also includes a fourth non-emitting final state which has no transitions out of it. After initialising a HMM for each phoneme, the parameters, i.e. means, covariances and mixture weights need to be estimated in the training process.
 
-\subsubsection{Estimating HMM parameters}
+\subsubsection{Estimating HMM parameters and finding the best hidden state sequence}
 
   % Baum-Welch algorithm
-  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM paramters. The task is to maximise the likelihood of the means and variances of the HMM given the observations.
-  The training starts with some trial values of the parameters, for which the likelihood is calculated, given each training example. The likelihood is then maximised by updating the model parameters, using the forward backward algorithm.
+  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM paramters. Maximising the expectedness of the data could be turned around and thought of as minimising how suprising the training data is to the model by modifying the model. Expectation maximisation is a common method of building models given a data set. Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the means and variances of the HMM $M$ given the observations $\boldsymbol{O}$. 
+  The training starts with some trial values of the parameters, for which the likelihood is calculated, given each training example. The likelihood is then maximised by updating the model parameters, using the forward-backward algorithm.
+
+  % Viterbi training
+  An alternative approach to the B-W algorithm is an iterative procedure called Viterbi training
+  % , also called Viterbi extraction or Baum-Viterbi algorithm since it involves the Baum re-estimation and the Viterbi algorithm \citep{lember2008adjusted}
+  . Instead of maximising the likelihood of the model given all the data, in VT the probability of only the most likely hidden sequence is maximised. This results in an approximation of the maximum likelihood estimate computed in the B-W algorithm. The Viterbi training is computationally less expensive than the B-W algorithm.
+  In Viterbi training, the HMM parameters and the most probable hidden state sequence, both unknown, are estimated alternately. After updating the HMM parameters, the training data observations are aligned with the states, and within each state, a further alignment is made to align observations with mixture components. 
+  Using the Viterbi algorithm, the states are aligned with the observation sequence by maximising
+  \begin{equation}
+    \phi_N(T) = \max_i \{ \phi_i(T)a_{iN} \}
+  \end{equation}
+  for $1<i<N$ where
+  \begin{equation}
+    \phi_j(t) = \max_i \{ \phi_i(t-1)a_{ij} \} b_j(\boldsymbol{o}_t)
+  \end{equation}
+  and initially
+  \begin{align}
+    &\phi_1(1) = 1 \\
+    &\phi_j(1) = a_{1j}b_j(\boldsymbol{o}_t).
+  \end{align}
+  for $1<j<N$. Spelled out, this alignment process finds an arc $ij$ for each observation $\boldsymbol{o}_t$ so that the last
+
+  % AS stated in the Kaldi documentation, computed alignment is a sequence of transitions that corresponds to an utterance. 
 
 
   % \begin{equation}\label{}
@@ -330,25 +366,35 @@
   %     {\sum^T_{t=1}L_j(t)}
   % \end{equation}
 
+\subsubsection{Phones in context}
+  Phones of the same phoneme sound different when flanked by different phonemes. For this reason, contextual information is modelled, too, by assigning each triphone a HMM. 
+  The monophone models are first trained
+  % (with single-component Gaussians?)
+  and the triphone models are initialised with the monophone model set parameters. The number of Gaussians in the triphone models is increased gradually and the parameters are re-estimated.
 
-  % Viterbi training
-  An alternative approach to the B-W algorithm is an iterative procedure called Viterbi training
-  % , also called Viterbi extraction or Baum-Viterbi algorithm since it involves the Baum re-estimation and the Viterbi algorithm \citep{lember2008adjusted}
-  . Instead of maximising the likelihood of the model given all the data, in VT the probability of only the most likely hidden sequence is maximised. This results in an approximation of the maximum likelihood estimate computed in the B-W algorithm. The Viterbi training is computationally less expensive than the B-W algorithm.
+  % transition modelling
+  % The transition probabilities from a state to another are essentially the counts of the transitions seen in the training corpus.
+
+\subsubsection{Adaptive training}
+  % alignments % lda + mllt
+  % https://kaldi-asr.org/doc/transform.html
   
-  In Viterbi training, the HMM parameters and the most probable hidden state sequence, both unknown, are estimated alternately. After updating the HMM parameters, the training data observations are aligned with the states, and within each state, a further alignment is made to align observations with mixture components. 
-  A computed alignment is then a sequence of transitions that corresponds to an utterance. 
+  Linear transformations can be applied either in model-space or feature-space \citep{gales1998maximum}. MLLT and LDA transfors are speaker-independent
+
+  fMLLR transform is speaker- or utterance-specific.
+
+  
 
 
-  The monophone models are first trained (with single-component Gaussians?) and the triphone models are initialised with the monophone model set parameters. The number of Gaussians in the triphone models is increased gradually and the parameters are re-estimated.
 
 
 
+ 
 
-  % state tying
-  The states of the phoneme HMMs are can be tied together so that the parameters of the output distributions of those states are shared. This makes the estimation of the parameters more robust because there are more training data occurences, and also makes the total system more compact with fewer parameters \citep{young1992general}. States are clustered based on some metric of similarity.   
+\subsubsection{State tying and phonetic decision trees}
+  % tying
+  The states of the phoneme HMMs are can be tied together so that the parameters of the output distributions of those states are shared. This makes the estimation of the parameters more robust because there are more training data occurences, and also makes the total system more compact with fewer parameters \citep{young1992general}. States are clustered based on some metric of similarity.  
 
-  % phonetic decision trees
   % http://kaldi-asr.org/doc/tree_externals.html
   In tree-based clustering as described by \citet{young1994tree}, the states are divided into branches in a top-down optimisation procedure. Starting from the root node, the question that maximises the likelihood is selected for the node, with the data on each side of the divide being modelled by a single Gaussian.
   In a phonetic decision trees the questions are about the context of the phone, e.g. "Is the phone on the left of the current phone a fricative?". 
@@ -356,18 +402,6 @@
   After the procedure, the leaves of the tree are the state clusters in which the states are tied. In the final stage, leaves can be merged if the likelihood does not decrease more than a threshold value.
 
   After a tree has been constructed for the states of the triphone models, also previously unseen triphones can be synthesised by traversing the tree to the aprropriate leaf node, i.e. cluster, by answering the questions about that triphone's context and using the tied states of that cluster.
-
-
-  % transition modelling
-  The transition probabilities from a state to another are essentially the counts of the transitions seen in the training corpus.
-
-  % alignments % lda + mllt
-  % https://kaldi-asr.org/doc/transform.html
-  Linear transformations can be applied either in model-space or feature-space \citep{gales1998maximum}. MLLT and LDA transfors are speaker-independent
-
-  fMLLR transform is speaker- or utterance-specific.
-
-  
 
   Speaker adaptive training \citep{povey2008fast}
 
@@ -420,11 +454,12 @@ The baseline language models and the ASR system is based on the systems develope
 
 
 \clearpage
+% for counting pages
+\thesisbibliography
+
 \bibliographystyle{apalike}
 \bibliography{references}
 
-
-% \thesisbibliography
 
 % \begin{thebibliography}{99}
 

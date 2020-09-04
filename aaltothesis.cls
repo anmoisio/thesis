@@ -1156,7 +1156,6 @@
 }%
 %
 \newcommand{\thesisappendix}{%
-  \stor@maintxtpag@number%
   \appendix%
   \counterwithin{equation}{section}%
   \renewcommand{\theequation}{\thesection\arabic{equation}}%
@@ -1169,6 +1168,7 @@
 }%
 %
 \newcommand*{\thesisbibliography}{%
+  \stor@maintxtpag@number%
   \phantomsection%
   \addcontentsline{toc}{section}{\refname}%
 }%
