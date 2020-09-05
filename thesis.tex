@@ -286,7 +286,7 @@
 
   The stationary frames' frequency components can be then computed with the Fourier transform. A commonly used method is to extract the MFCCs by applying a logarithmic mel-scale filterbank to the frequency spectrum, and lastly computing the DCT. The log mel-scale emphasises the lower frequencies emulating the way humans perceive sound, i.e., the way the human inner ear recognises lower frequencies with higher frequency resolution. The DCT decorrelates the coefficients so that the use of diagonal covariance matrices is possible in the subsequent stages of the modelling, namely when using GMMs.
   
-  The MFCC method thus assumes that coefficients adjacent in time are independent of each other, which is a false assumption in the case of speech signals. This can be corrected for by adding additional information about how the signal changes in time to the features. 
+  The MFCC method thus assumes that coefficients adjacent in time are independent of each other, which is a false assumption in the case of speech signals. This can be corrected for by adding additional information to the features about how the signal changes in time. 
   Information about temporal change and change of temporal change is extracted from the MFCCs by calculating the differences and second-order differences of adjacent coefficients. These features are also called the delta ($\boldsymbol{\Delta}$) and delta-delta ($\boldsymbol{\Delta\Delta}$), or acceleration, features. 
   % The $\boldsymbol{\Delta}$s and $\boldsymbol{\Delta\Delta}$s are concatenated with the MFCC vectors, increasing the feature vector length threefold.
   The delta feature vector $\boldsymbol{\Delta}_t$ corresponding to the MFCC vector $\boldsymbol{c}_t$ (or the time step if that vector) is calculated by subtracting the weighted previous vector(s) from the weighted subsequent vectors and normalising the sum:
@@ -335,15 +335,62 @@
 \subsubsection{Estimating HMM parameters and finding the best hidden state sequence}
 
   % Baum-Welch algorithm
-  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM paramters. Maximising the expectedness of the data could be turned around and thought of as minimising how suprising the training data is to the model by modifying the model. Expectation maximisation is a common method of building models given a data set. Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the means and variances of the HMM $M$ given the observations $\boldsymbol{O}$. 
-  The training starts with some trial values of the parameters, for which the likelihood is calculated, given each training example. The likelihood is then maximised by updating the model parameters, using the forward-backward algorithm.
+  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM paramters. Maximising the expectedness of the data could be turned around and thought of as minimising how suprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to find the maximum likelihood of a model given a set of data. Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the means and variances of the HMM $M$. 
+  The training starts with some trial values of the parameters 
+
+  \begin{equation}\label{eq:mu_hat}
+    \hat{\boldsymbol{\mu}}_j = \frac{\sum^T_{t=1}L_j(t)\boldsymbol{o}_t}
+      {\sum^T_{t=1}L_j(t)}
+  \end{equation}
+
+  \begin{equation}\label{eq:sigma_hat}
+    \hat{\boldsymbol{\Sigma}}_j = \frac{\sum^T_{t=1}L_j(t)
+      (\boldsymbol{o}_t - \boldsymbol{\mu}_j)
+      (\boldsymbol{o}_t - \boldsymbol{\mu}_j)^\top }
+      {\sum^T_{t=1}L_j(t)}
+  \end{equation}
+
+  % , for which the likelihood is calculated, given each training example.
+  
+  The state occupation probability
+  \begin{equation}\label{eq:occ}
+    L_j(t) = P(x(t)=j|\boldsymbol{O},M),
+  \end{equation}
+  i.e., the probability of being in state $j$ at time $t$, is calculated using using the forward-backward algorithm. The forward probability $\alpha_j(t)$ and backward probability $\beta_j(t)$ are defined as 
+  \begin{align}
+    \alpha_j(t) &= P(\boldsymbol{o}_1,...,\boldsymbol{o}_t,x(t)=j|M)  \label{eq:forward} \\
+    \beta_j(t) &= P(\boldsymbol{o}_{t+1},...,\boldsymbol{o}_T|x(t)=j,M) \label{eq:back}
+  \end{align}
+  Spelled out, $\aplha_j(t)$ is the probability of the partial observation sequence up till time $t$ and that $M$ is in state $j$ at the time step. The backward probability is the probability of the partial observation sequence at the subsequent time steps up till the last vector, given that at the current time the model state is $j$. 
+  The forward probability is a joint probability of the observations and the state, whereas the backward probability of the observations is conditional on the state. This allows for the state occupation probability to be determined by the product of the forward and backward probabilities (from Eqs. \ref{eq:occ} \ref{eq:forward} and \ref{eq:back})
+  \begin{align}\label{}
+    L_j(t) = \frac{ \alpha_j(t) \beta_j(t) }{P(\boldsymbol{O}|M)}
+  \end{align}
+  
+  $\alpha$ and $\beta$ are calculated respectively using the recursions
+  \begin{align}
+    \alpha_j(t) &= \bigg[ \sum^{N-1}_{i=2}\alpha_i(t-1)a_{ij} \bigg] b_j(\boldsymbol{o}_t)
+    \label{eq:alpha_recurs} \\
+    \beta_i(t) &= \sum^{N-1}_{j=2} \beta_j(t+1) a_{ij} b_j(\boldsymbol{o}_{t+1}) 
+    \label{eq:beta_recurs}
+  \end{align}
+  and the initial conditions,
+  \begin{align}
+    \alpha_1(1) &= 1, \; \; \; \; \alpha_j(1) = a_{ij} b_j(\boldsymbol{o}_1) 
+    \label{eq:alpha_init} \\
+    \beta_i(T) &= a_{iN} \label{eq:beta_init}
+  \end{align}
+  for $1<j<N$ and the final conditions
+  \begin{align}
+    \alpha_N(T) &= \sum^{N-1}_{i=2}\alpha_i(T)a_{iN} \label{eq:afinal} \\
+    \beta_1(1) &= \sum^{N-1}_{j=2} a_{1j} b_j(\boldsymbol{o}_1) \beta_j(1) \label{eq:bfinal}
+  \end{align}
+  where the limits of the sums exclude the states $1$ and $N$ because they are non-emitting. The recursion \ref{eq:alpha_recurs} calculates the forward probabilities (of seeing the specified observations and being at the state $j$) by summing all possible forward probabilities for all possible predecessor states $i$ weighted by the transition probability $a_{ij}$.
+
+  From \ref{eq:forward}, \ref{eq:afinal} and \ref{eq:bfinal} it follows that calcualting the forward probability also yields the total likelihood $P(\boldsymbol{O}|M)=\alpha_N(T)$.
 
   % Viterbi training
-  An alternative approach to the B-W algorithm is an iterative procedure called Viterbi training
-  % , also called Viterbi extraction or Baum-Viterbi algorithm since it involves the Baum re-estimation and the Viterbi algorithm \citep{lember2008adjusted}
-  . Instead of maximising the likelihood of the model given all the data, in VT the probability of only the most likely hidden sequence is maximised. This results in an approximation of the maximum likelihood estimate computed in the B-W algorithm. The Viterbi training is computationally less expensive than the B-W algorithm.
-  In Viterbi training, the HMM parameters and the most probable hidden state sequence, both unknown, are estimated alternately. After updating the HMM parameters, the training data observations are aligned with the states, and within each state, a further alignment is made to align observations with mixture components. 
-  Using the Viterbi algorithm, the states are aligned with the observation sequence by maximising
+  An alternative approach to the B-W algorithm is an iterative procedure called Viterbi training, also called Viterbi extraction or Baum-Viterbi algorithm since it involves the Baum re-estimation (Eqs. \label{eq:mu_hat} and \label{eq:sigma_hat}) and the Viterbi algorithm \citep{lember2008adjusted}. Instead of maximising the likelihood of the model given all the data as in Eq. \ref{eq:alpha_recurs}, in VT the probability of only the most likely hidden sequence is maximised
   \begin{equation}
     \phi_N(T) = \max_i \{ \phi_i(T)a_{iN} \}
   \end{equation}
@@ -356,15 +403,17 @@
     &\phi_1(1) = 1 \\
     &\phi_j(1) = a_{1j}b_j(\boldsymbol{o}_t).
   \end{align}
-  for $1<j<N$. Spelled out, this alignment process finds an arc $ij$ for each observation $\boldsymbol{o}_t$ so that the last
+  for $1<j<N$. This alignment process finds an arc $ij$ for each observation $\boldsymbol{o}_t$ so that the last
+
+  This results in an approximation of the maximum likelihood estimate (which was computed in the B-W algorithm). The Viterbi training is computationally less expensive than the B-W algorithm.
+  In Viterbi training, the HMM parameters and the most probable hidden state sequence, both unknown, are estimated alternately. After updating the HMM parameters, the training data observations are aligned with the states, and within each state, a further alignment is made to align observations with mixture components. 
+  % Using the Viterbi algorithm, the states are aligned with the observation sequence by maximising
+
+
 
   % AS stated in the Kaldi documentation, computed alignment is a sequence of transitions that corresponds to an utterance. 
 
 
-  % \begin{equation}\label{}
-  %   \hat{\boldsymbol{\mu}_j}} = \frac{\sum^T_{t=1}L_j(t)\boldsymbol{o}_t}
-  %     {\sum^T_{t=1}L_j(t)}
-  % \end{equation}
 
 \subsubsection{Phones in context}
   Phones of the same phoneme sound different when flanked by different phonemes. For this reason, contextual information is modelled, too, by assigning each triphone a HMM. 
