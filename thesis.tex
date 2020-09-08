@@ -69,7 +69,7 @@
   %% Specify the title again without the linebreak characters in the optional
   %% argument in box brackets. This is done because the title is part of the 
   %% metadata in the pdf/a file, and the metadata cannot contain linebreaks.
-  \thesistitle{Recognising Finnish conversations} % working title
+  \thesistitle{Automatic recognition of conversational speech} % working title
   %\thesistitle[Title of the thesis]{Title of\\ the thesis}
   \place{Espoo}
   \date{}
@@ -199,6 +199,9 @@
   % /examples
   $\boldsymbol{\mu}$                          & mean vector of a GMM \\
   $\boldsymbol{\Sigma}$                       & covariance matrix of a GMM \\
+
+  $P(.)$        & probability \\
+  $p(.|.)$        & likelihood \\
   
   \end{tabular}
 
@@ -221,27 +224,32 @@
   \subsection*{Abbreviations}
 
   \begin{tabular}{ll}
-  % AC         & alternating current \\
-  % APLAC      & an object-oriented analog circuit simulator and design tool \\
-  %            & (originally Analysis Program for Linear Active Circuits) \\
-  % BCS        & Bardeen-Cooper-Schrieffer \\ %% dash between the names
-  % DC         & direct current \\
-  % TEM        & transverse eletromagnetic
   AM            & acoustic model \\
   ASR           & automatic speech recognition \\
+  CER           & character error rate \\
   CMVN          & cepstral mean and variance normalization \\
+  DNN           & deep neural network \\
   EM            & expectation maximisation \\
   fMLLR         & feature space maximum likelihood linear regression \\
+  FST           & finite-state transducer \\
   GMM           & Gaussian mixture model \\
   HMM           & hidden Markov model \\
   LDA           & linear discriminant analysis \\
   LM            & language model \\
+  LSTM          & long short-term memory \\
+  MCE           & minimum classification error \\
   MFCC          & mel-frequency cepstral coefficient \\
   ML            & maximum likelihood \\
   MLLR          & maximum likelihood linear regression \\
   MLLT          & maximum likelihood linear transformation \\
+  MMI           & maximum mutual information \\
+  MPE           & minimum phone error \\
+  NN            & neural network \\
   PDF           & probability density function \\
   SAT           & speaker adaptive training \\
+  TDNN          & time delay neural network \\
+  WER           & word error rate \\
+  WFST          & weighted finite-state transducer \\
   VTLN          & vocal tract length normalization \\
   \end{tabular}
 %%
@@ -262,7 +270,9 @@
 
 \section{Finnish conversations to text} 
 
-  The task of converting speech into text, or \emph{automatic speech recognition}, can be divided into four subtasks: \emph{feature extraction}, \emph{acoustic modelling}, \emph{phoneme-to-grapheme mapping}, and \emph{language modelling}. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, which are a compressed, discrete representation of the audio signal. 
+  The task of converting speech into text, or \emph{automatic speech recognition}, can be divided into
+  % four
+  subtasks: \emph{feature extraction}, \emph{acoustic modelling}, \emph{phoneme-to-grapheme mapping}, and \emph{language modelling}. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, which are a compressed, discrete representation of the audio signal. 
   The task is then to find $\argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O})$, where $\boldsymbol{W}$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
   \begin{equation}\label{asr-bayes}
     \argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O}) = 
@@ -271,7 +281,11 @@
 
   The probability of the observations ${P(\boldsymbol{O})}$ is not relevant in finding the best transcription for the observations, which leaves the product $P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})$ to be estimated. Here, the former factor is the a priori probabilities of word sequences, modelled by a language model. The acoustic model determines likelihoods of observations given phoneme sequences that are mapped to grapheme sequences by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{W})$.
 
-  The first four sections in this chapter respectively describe the four components of the conventional ASR system. The last section (\ref{section:conv}) discusses the specifics of recognising conversational Finnish.
+  The first
+  % four
+  sections of this chapter respectively describe the
+  % four
+  components of the conventional ASR system. Section \ref{section:conv} discusses the specifics of recognising conversational Finnish.
 
   %  A language model gives an a priori probability for each word sequence: $P(\boldsymbol{W})$. The estimate $\hat{\boldsymbol{W}}$ of the best transcription given the observations is the most likely sequence 
 
@@ -300,10 +314,10 @@
 
 \subsection{Acoustic modelling} 
 
-\subsubsection{HMMs for modelling phonemes}
+\subsubsection{Modelling phonemes with hidden Markov models}
 
   Estimating the likelihoods of observations given phonemes is achieved by creating a HMM for each phoneme. This way the task becomes to estimate the parameters of the HMMs.
-  After the HMMs are trained, likelihoods of the HMMs given an observed sequence can be used to map observations to phonemes.
+  After the HMMs are trained, likelihoods of the observed sequences given the phoneme-specific HMMs can be used to map observations to phonemes.
   % In the conventional ASR system, used also in this thesis, phonemes are modelled by HMMs, which are then concatenated to model utterances.
 
   A hidden Markov model consists of a hidden Markov chain, also called regime, and the observation sequence, i.e., feature vectors. Each observation $\boldsymbol{o}_t$ has a probability $b_i(\boldsymbol{o}_t)$ of being generated by a hidden state $i$. In other words, the observation is a probabilistic function of the hidden state. 
@@ -322,7 +336,7 @@
       (\boldsymbol{o} - \boldsymbol{\mu})}
   \end{equation}
 
-  HMMs are used to model sequences, but observations are independent of past observations. Instead, the regime has a memory, although the shortest possible: the probability of being a certain state in the next time step depends only on the current state and not the previous states. This is called the Markov assumption. Each hidden state pair (an arc from a state another) is associated with a transition probability $a_{ij}$ that describes how probable it is to move from state $i$ to state $j$. 
+  HMMs are used to model sequences, but observations are independent of past observations. Instead, the regime has a memory, although the shortest possible: the probability of being a certain state in the next time step depends only on the current state and not the previous states. This is called the Markov assumption. Each hidden state pair (an arc from a state to another) is associated with a transition probability $a_{ij}$ that describes how probable it is to move from state $i$ to state $j$. 
 
   A HMM is defined by ...
 
@@ -332,10 +346,10 @@
   % http://kaldi-asr.org/doc/hmm.html
   The typical HMM topology for a phoneme is a left-to-right model, also called the Bakis model, with three emitting states which each have a transition to the next state and a self-loop. The model also includes a fourth non-emitting final state which has no transitions out of it. After initialising a HMM for each phoneme, the parameters, i.e. means, covariances and mixture weights need to be estimated in the training process.
 
-\subsubsection{Estimating HMM parameters and finding the best hidden state sequence}
+\subsubsection{Training HMMs and finding the best hidden state sequence}
 
   % Baum-Welch algorithm
-  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM paramters. Maximising the expectedness of the data could be turned around and thought of as minimising how suprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to find the maximum likelihood of a model given a set of data. Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the means and variances of the HMM $M$. 
+  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM paramters. Maximising the expectedness of the data could be turned around and thought of as minimising how suprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to find the maximum likelihood of a set of data given a model. Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the means and variances of the HMM $M$. 
   The training starts with some trial values of the parameters 
 
   \begin{equation}\label{eq:mu_hat}
@@ -390,7 +404,7 @@
   From \ref{eq:forward}, \ref{eq:afinal} and \ref{eq:bfinal} it follows that calcualting the forward probability also yields the total likelihood $P(\boldsymbol{O}|M)=\alpha_N(T)$.
 
   % Viterbi training
-  An alternative approach to the B-W algorithm is an iterative procedure called Viterbi training, also called Viterbi extraction or Baum-Viterbi algorithm since it involves the Baum re-estimation (Eqs. \label{eq:mu_hat} and \label{eq:sigma_hat}) and the Viterbi algorithm \citep{lember2008adjusted}. Instead of maximising the likelihood of the model given all the data as in Eq. \ref{eq:alpha_recurs}, in VT the probability of only the most likely hidden sequence is maximised
+  An alternative approach to the B-W algorithm is an iterative procedure called Viterbi training, also called Viterbi extraction or Baum-Viterbi algorithm since it involves the Baum re-estimation (Eqs. \label{eq:mu_hat} and \label{eq:sigma_hat}) and the Viterbi algorithm \citep{lember2008adjusted}. Instead of maximising the likelihood of all the data as in Eq. \ref{eq:alpha_recurs}, in VT the probability of only the most likely hidden sequence is maximised
   \begin{equation}
     \phi_N(T) = \max_i \{ \phi_i(T)a_{iN} \}
   \end{equation}
@@ -405,7 +419,10 @@
   \end{align}
   for $1<j<N$. This alignment process finds an arc $ij$ for each observation $\boldsymbol{o}_t$ so that the last
 
-  This results in an approximation of the maximum likelihood estimate (which was computed in the B-W algorithm). The Viterbi training is computationally less expensive than the B-W algorithm.
+  This results in an approximation of the maximum likelihood estimate (which was computed in the B-W algorithm)
+  % ?
+  .
+  The Viterbi training is computationally less expensive than the B-W algorithm.
   In Viterbi training, the HMM parameters and the most probable hidden state sequence, both unknown, are estimated alternately. After updating the HMM parameters, the training data observations are aligned with the states, and within each state, a further alignment is made to align observations with mixture components. 
   % Using the Viterbi algorithm, the states are aligned with the observation sequence by maximising
 
@@ -424,21 +441,7 @@
   % transition modelling
   % The transition probabilities from a state to another are essentially the counts of the transitions seen in the training corpus.
 
-\subsubsection{Adaptive training}
-  % alignments % lda + mllt
-  % https://kaldi-asr.org/doc/transform.html
-  
-  Linear transformations can be applied either in model-space or feature-space \citep{gales1998maximum}. MLLT and LDA transfors are speaker-independent
 
-  fMLLR transform is speaker- or utterance-specific.
-
-  
-
-
-
-
-
- 
 
 \subsubsection{State tying and phonetic decision trees}
   % tying
@@ -452,17 +455,46 @@
 
   After a tree has been constructed for the states of the triphone models, also previously unseen triphones can be synthesised by traversing the tree to the aprropriate leaf node, i.e. cluster, by answering the questions about that triphone's context and using the tied states of that cluster.
 
-  Speaker adaptive training \citep{povey2008fast}
 
-  % WFSTs
+\subsubsection{Adaptive training}
+  % alignments % lda + mllt
+  % https://kaldi-asr.org/doc/transform.html
+  
+  Linear transformations can be applied either in model-space or feature-space \citep{gales1998maximum}. MLLT and LDA transfors are speaker-independent
 
-\subsubsection{DNN AMs}
+  fMLLR transform is speaker- or utterance-specific.
 
-\subsubsection{Decoding}
+  % Speaker adaptive training \citep{povey2008fast}
+
+
+\subsubsection{Discriminative training}
+
+The maximum likelihood method aims to create a model that predicts the training data by determining a probability distribution over the feature space, i.e., over all possible observations. This is called generative training since the distribution can be sampled for predictions. However, the ability to produce examples of the modelled data is redundant in classification tasks. In discriminative training, instead of maximising the likelihood of the data given a generative model, a model is trained for discriminating between training examples. 
+% Typically?
+Discriminative training is based on an objective function which is minimised or maximised using an optimisation algorithm. The objective function can be simply the difference between the correct classifications (e.g., a phoneme sequence) for a set of examples and the classifications assigned to them by the model. This is called the minimum classification error (MCE) criterion.
+Another type of objective function is the maximum mutual information (MMI) criterion
+\begin{equation} \label{eq:mmi}
+  \mathcal{F}_{\textup{MMI}}(M) = \sum_{r=1}^R \log 
+    \frac{P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})}
+      {\sum P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})}
+\end{equation}
+
+
+
+
+
+
+
+
+\subsubsection{Deep neural networks for acoustic modelling}
 
 \subsubsection{Speaker identification}
 
-\subsection{Mapping phonemes to graphemes}
+
+
+% \subsection{Mapping phonemes to graphemes}
+
+
 
 \subsection{Statistical language modelling}
 
@@ -473,6 +505,11 @@
 \subsubsection{Attention-based neural language models}
 
 % \citet{dai2019transformer}
+
+
+
+\subsection{Weighted finite-state transducers in ASR systems}
+
 
 \subsection{Spoken and written conversations in Finnish} \label{section:conv}
 
