@@ -263,7 +263,6 @@
 %% Text body begins.
 \section{Introduction}
 
-
 %% Leave page number of the first page empty
 \thispagestyle{empty}
 \clearpage
@@ -349,7 +348,7 @@
 \subsubsection{Training HMMs and finding the best hidden state sequence}
 
   % Baum-Welch algorithm
-  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM paramters. Maximising the expectedness of the data could be turned around and thought of as minimising how suprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to find the maximum likelihood of a set of data given a model. Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the means and variances of the HMM $M$. 
+  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM parameters. Maximising the expectedness of the data could be turned around and thought of as minimising how surprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to find the maximum likelihood of a set of data given a model. Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the means and variances of the HMM $M$. 
   The training starts with some trial values of the parameters 
 
   \begin{equation}\label{eq:mu_hat}
@@ -401,7 +400,7 @@
   \end{align}
   where the limits of the sums exclude the states $1$ and $N$ because they are non-emitting. The recursion \ref{eq:alpha_recurs} calculates the forward probabilities (of seeing the specified observations and being at the state $j$) by summing all possible forward probabilities for all possible predecessor states $i$ weighted by the transition probability $a_{ij}$.
 
-  From \ref{eq:forward}, \ref{eq:afinal} and \ref{eq:bfinal} it follows that calcualting the forward probability also yields the total likelihood $P(\boldsymbol{O}|M)=\alpha_N(T)$.
+  From \ref{eq:forward}, \ref{eq:afinal} and \ref{eq:bfinal} it follows that calculating the forward probability also yields the total likelihood $P(\boldsymbol{O}|M)=\alpha_N(T)$.
 
   % Viterbi training
   An alternative approach to the B-W algorithm is an iterative procedure called Viterbi training, also called Viterbi extraction or Baum-Viterbi algorithm since it involves the Baum re-estimation (Eqs. \label{eq:mu_hat} and \label{eq:sigma_hat}) and the Viterbi algorithm \citep{lember2008adjusted}. Instead of maximising the likelihood of all the data as in Eq. \ref{eq:alpha_recurs}, in VT the probability of only the most likely hidden sequence is maximised
@@ -445,7 +444,7 @@
 
 \subsubsection{State tying and phonetic decision trees}
   % tying
-  The states of the phoneme HMMs are can be tied together so that the parameters of the output distributions of those states are shared. This makes the estimation of the parameters more robust because there are more training data occurences, and also makes the total system more compact with fewer parameters \citep{young1992general}. States are clustered based on some metric of similarity.  
+  The states of the phoneme HMMs are can be tied together so that the parameters of the output distributions of those states are shared. This makes the estimation of the parameters more robust because there are more training data occurrences, and also makes the total system more compact with fewer parameters \citep{young1992general}. States are clustered based on some metric of similarity.  
 
   % http://kaldi-asr.org/doc/tree_externals.html
   In tree-based clustering as described by \citet{young1994tree}, the states are divided into branches in a top-down optimisation procedure. Starting from the root node, the question that maximises the likelihood is selected for the node, with the data on each side of the divide being modelled by a single Gaussian.
@@ -453,14 +452,14 @@
 
   After the procedure, the leaves of the tree are the state clusters in which the states are tied. In the final stage, leaves can be merged if the likelihood does not decrease more than a threshold value.
 
-  After a tree has been constructed for the states of the triphone models, also previously unseen triphones can be synthesised by traversing the tree to the aprropriate leaf node, i.e. cluster, by answering the questions about that triphone's context and using the tied states of that cluster.
+  After a tree has been constructed for the states of the triphone models, also previously unseen triphones can be synthesised by traversing the tree to the appropriate leaf node, i.e. cluster, by answering the questions about that triphone's context and using the tied states of that cluster.
 
 
 \subsubsection{Adaptive training}
   % alignments % lda + mllt
   % https://kaldi-asr.org/doc/transform.html
   
-  Linear transformations can be applied either in model-space or feature-space \citep{gales1998maximum}. MLLT and LDA transfors are speaker-independent
+  Linear transformations can be applied either in model-space or feature-space \citep{gales1998maximum}. MLLT and LDA transforms are speaker-independent
 
   fMLLR transform is speaker- or utterance-specific.
 
