@@ -52,7 +52,7 @@
   %%             binding side of the page and black hypertext)
   %% two-sided printing: twoside (default is one-sided printing)
 
-  \usepackage{amsfonts, amssymb, amsbsy, amsmath, natbib, graphicx}
+  \usepackage{amsfonts, amssymb, amsbsy, amsmath, natbib, graphicx, tabstackengine}
 
   \DeclareMathOperator*{\argmax}{argmax}
 
@@ -135,14 +135,14 @@
   \pagenumbering{roman}
 
   %% Create the coverpage
-  \makecoverpage
+  % \makecoverpage
 
   %% Typeset the copyright text.
   %% If you wish, you may leave out the copyright text from the human-readable
   %% page of the pdf file. This may seem like a attractive idea for the printed
   %% document especially if "Copyright (c) yyyy Eddie Engineer" is the only text
   %% on the page. However, the recommendation is to print this copyright text.
-  \makecopyrightpage
+  % \makecopyrightpage
 
   %% Note that when writting your thesis in English, place the English abstract
   %% first followed by the possible Finnish or Swedish abstract.
@@ -150,36 +150,36 @@
   %% Abstract text
   %% The text in the \thesisabstract macro is stored in the macro \abstractext, so
   %% you can use the text metadata abstract directly as follows:
-  \begin{abstractpage}[english]
-    \abstracttext{}
-  \end{abstractpage}
+  % \begin{abstractpage}[english]
+  %   \abstracttext{}
+  % \end{abstractpage}
 
-  \newpage
-  %% Abstract in Finnish.
-  \thesistitle{Opinnäyteen otsikko}
-  \supervisor{Prof.}
-  \advisor{TkT}
-  \degreeprogram{Tieto-, tietoliikenne- ja informaatiotekniikka}
-  \major{Signaalin-, puheen- ja kielenkäsittely}
-  %% The keywords need not be separated by \spc now.
-  \keywords{}
-  %% Abstract text
-  \begin{abstractpage}[finnish]
-    tiivistelmä tähän
-  \end{abstractpage}
+  % \newpage
+  % %% Abstract in Finnish.
+  % \thesistitle{Opinnäyteen otsikko}
+  % \supervisor{Prof.}
+  % \advisor{TkT}
+  % \degreeprogram{Tieto-, tietoliikenne- ja informaatiotekniikka}
+  % \major{Signaalin-, puheen- ja kielenkäsittely}
+  % %% The keywords need not be separated by \spc now.
+  % \keywords{}
+  % %% Abstract text
+  % \begin{abstractpage}[finnish]
+  %   tiivistelmä tähän
+  % \end{abstractpage}
 
-  %% Preface
-  %% This section is optional. Remove it if you do not want a preface.
-  \mysection{Preface}
-  preface here
+  % %% Preface
+  % %% This section is optional. Remove it if you do not want a preface.
+  % \mysection{Preface}
+  % preface here
 
-  \vspace{5cm}
-  Otaniemi, 31.8.2018
+  % \vspace{5cm}
+  % Otaniemi, 31.8.2018
 
-  % \vspace{5mm}
-  % {\hfill Eddie E.\ A.\ Engineer \hspace{1cm}}
+  % % \vspace{5mm}
+  % % {\hfill Eddie E.\ A.\ Engineer \hspace{1cm}}
 
-  \newpage
+  % \newpage
   \thesistableofcontents
 %%
 
@@ -200,8 +200,10 @@
   $\boldsymbol{\mu}$                          & mean vector of a GMM \\
   $\boldsymbol{\Sigma}$                       & covariance matrix of a GMM \\
 
-  $P(.)$        & probability \\
-  $p(.|.)$        & likelihood \\
+
+  $\boldsymbol{o}_t$    & observation, i.e., feature vector, at time $t$ \\ 
+  $P(.)$              & probability \\
+  $p(.|.)$            & likelihood \\
   
   \end{tabular}
 
@@ -271,7 +273,7 @@
 
   The task of converting speech into text, or \emph{automatic speech recognition}, can be divided into
   % four
-  subtasks: \emph{feature extraction}, \emph{acoustic modelling}, \emph{phoneme-to-grapheme mapping}, and \emph{language modelling}. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, which are a compressed, discrete representation of the audio signal. 
+  subtasks: \emph{feature extraction}, \emph{acoustic modelling}, \emph{phoneme-to-grapheme mapping}, and \emph{language modelling}. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, which are a compressed representation of the audio signal. 
   The task is then to find $\argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O})$, where $\boldsymbol{W}$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
   \begin{equation}\label{asr-bayes}
     \argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O}) = 
@@ -348,7 +350,8 @@
 \subsubsection{Training HMMs and finding the best hidden state sequence}
 
   % Baum-Welch algorithm
-  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM parameters. Maximising the expectedness of the data could be turned around and thought of as minimising how surprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to find the maximum likelihood of a set of data given a model. Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the means and variances of the HMM $M$. 
+  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM parameters. Maximising the expectedness of the data could be turned around and thought of as minimising how surprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to find the maximum likelihood of a set of data given a model. Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the means and variances of the HMM $M$. If the HMM had only one state $j$, the maximum likelihood estimate $\hat{\boldsymbol{\mu}}_j$ would simply be the average of the observations, and $\hat{\boldsymbol{\Sigma}}_j$, too, could be determined directly, using the covariance definition. In practice, there are many states and the parameters need to be estimated iteratively. However, the initial parameter values can be taken from simple statistics of the observations. The observations are divided equally 
+
   The training starts with some trial values of the parameters 
 
   \begin{equation}\label{eq:mu_hat}
@@ -458,7 +461,15 @@
 \subsubsection{Adaptive training}
   % alignments % lda + mllt
   % https://kaldi-asr.org/doc/transform.html
+
+  Each speaker has a distinct voice, which should be taken into account when training and using a general, speaker-independent ASR system. This can be done by representing each speaker's voice as a transform in the feature space. For each speaker, each feature vector is transformed by multiplying it by a matrix that encodes information about how the voice differs from the general speaker. The transform can be done when testing the final model (speaker adaptation, discussed in section \ref{adaptation}) and in the training process. The latter is called adaptive training.
   
+  First, a transform is generated for each speaker. 
+
+  % The Kaldi program 'transform-feats' is used to multiply the feature vectors with transform matrices
+
+  An affine transform applied by appending a 1 to the feature vector, and multiplying it with the linear transform $\boldsymbol{A}$ concatenated with the constant offset (bias) $\boldsymbol{b}$: $\bracketVectorstack{  \boldsymbol{A} ; \boldsymbol{b}} \bracketVectorstack{\boldsymbol{o} \\ 1}$
+
   Linear transformations can be applied either in model-space or feature-space \citep{gales1998maximum}. MLLT and LDA transforms are speaker-independent
 
   fMLLR transform is speaker- or utterance-specific.
