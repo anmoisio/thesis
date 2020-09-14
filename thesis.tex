@@ -275,7 +275,7 @@
   % four
   subtasks: \emph{feature extraction}, \emph{acoustic modelling}, \emph{phoneme-to-grapheme mapping}, and \emph{language modelling}. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, which are a compressed representation of the audio signal. 
   The task is then to find $\argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O})$, where $\boldsymbol{W}$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
-  \begin{equation}\label{asr-bayes}
+  \begin{equation}\label{eq:asr-bayes}
     \argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O}) = 
     \argmax_{\boldsymbol{W}} \frac{P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})} {P(\boldsymbol{O})}
   \end{equation}
@@ -299,12 +299,16 @@
 
   A speech audio signal contains a lot of information that is irrelevant for converting the signal to text. The first step of ASR is to find the features of the signal that contain the information about what is being said. An assumption is made that the speech signal does not change meaningfully in a time frame of about 10 milliseconds, so that the signal can be divided into frames with this time resolution. The frames overlap so that each frame is about 20 or 25 milliseconds, and a tapered window function, such as Hamming, is applied to (i.e., multiplied by) each frame. This window function removes the discontinuities that occur on the borders of frames, and the overlapping compensates for the tapering of the window function so that the distorting effect on the signal statistics is minimised \citet{}. % https://wiki.aalto.fi/display/ITSP/Windowing
 
-  The stationary frames' frequency components can be then computed with the Fourier transform. A commonly used method is to extract the MFCCs by applying a logarithmic mel-scale filterbank to the frequency spectrum, and lastly computing the DCT. The log mel-scale emphasises the lower frequencies emulating the way humans perceive sound, i.e., the way the human inner ear recognises lower frequencies with higher frequency resolution. The DCT decorrelates the coefficients so that the use of diagonal covariance matrices is possible in the subsequent stages of the modelling, namely when using GMMs.
+  The stationary frames' frequency components can be then computed with the Fourier transform. A commonly used method is to extract the MFCCs by applying a logarithmic mel-scale filterbank to the frequency spectrum, and lastly computing the DCT. The log mel-scale emphasises the lower frequencies emulating the way humans perceive sound, i.e., the way the human inner ear recognises lower frequencies with higher frequency resolution. The DCT decorrelates the coefficients so that the use of diagonal covariance matrices is possible in the subsequent stages of the modelling, namely when using GMMs to model the HMM state emissions (Section \ref{phoneme_hmm}). The use of diagonal covariance matrices reduces the number of free parameters.
   
-  The MFCC method thus assumes that coefficients adjacent in time are independent of each other, which is a false assumption in the case of speech signals. This can be corrected for by adding additional information to the features about how the signal changes in time. 
-  Information about temporal change and change of temporal change is extracted from the MFCCs by calculating the differences and second-order differences of adjacent coefficients. These features are also called the delta ($\boldsymbol{\Delta}$) and delta-delta ($\boldsymbol{\Delta\Delta}$), or acceleration, features. 
+  % ?
+  % The MFCC method thus assumes that coefficients adjacent in time are independent of each other, which is a false assumption in the case of speech signals.
+  % \?
+  An MFCC vector encodes only the stationary frequency features of a frame. However, a speech signal varies in time, and this variation carries meaning about which phones are uttered.
+  Thus, it is useful to add information to the feature vectors about how the signal changes in time. 
+  Information about temporal change and about change of temporal change is extracted from the MFCCs by calculating the differences and second-order differences of adjacent coefficients. These features are called the delta ($\boldsymbol{\Delta}$) and delta-delta ($\boldsymbol{\Delta\Delta}$), or acceleration, features. 
   % The $\boldsymbol{\Delta}$s and $\boldsymbol{\Delta\Delta}$s are concatenated with the MFCC vectors, increasing the feature vector length threefold.
-  The delta feature vector $\boldsymbol{\Delta}_t$ corresponding to the MFCC vector $\boldsymbol{c}_t$ (or the time step if that vector) is calculated by subtracting the weighted previous vector(s) from the weighted subsequent vectors and normalising the sum:
+  The delta feature vector $\boldsymbol{\Delta}_t$ corresponding to the MFCC vector $\boldsymbol{c}_t$ (or the time step if that vector) is calculated by subtracting the weighted previous vector(s) from the weighted subsequent vector(s) and normalising the sum:
   \begin{equation}
   \boldsymbol{\Delta}_t = \frac{\sum_{\theta=1}^{\Theta}
   \theta(\boldsymbol{c}_{t+\theta}-\boldsymbol{c}_{t-\theta})}{2\sum_{\theta=1}^{\Theta}\theta^2}
@@ -315,20 +319,21 @@
 
 \subsection{Acoustic modelling} 
 
-\subsubsection{Modelling phonemes with hidden Markov models}
+\subsubsection{Modelling phonemes with hidden Markov models} \label{sec:phoneme_hmm}
 
-  Estimating the likelihoods of observations given phonemes is achieved by creating a HMM for each phoneme. This way the task becomes to estimate the parameters of the HMMs.
-  After the HMMs are trained, likelihoods of the observed sequences given the phoneme-specific HMMs can be used to map observations to phonemes.
+  Estimating the likelihoods of observations given phonemes is achieved by creating a HMM for each phoneme. 
+  The phoneme-specific HMMs
+  generate likelihoods of the observed sequences which can be used to map observations to phonemes. This way the task becomes to estimate the parameters of the HMMs so that each of them models the associated phoneme as accurately as possible.
   % In the conventional ASR system, used also in this thesis, phonemes are modelled by HMMs, which are then concatenated to model utterances.
 
-  A hidden Markov model consists of a hidden Markov chain, also called regime, and the observation sequence, i.e., feature vectors. Each observation $\boldsymbol{o}_t$ has a probability $b_i(\boldsymbol{o}_t)$ of being generated by a hidden state $i$. In other words, the observation is a probabilistic function of the hidden state. 
+  A hidden Markov model consists of a hidden Markov chain, also called regime, and the observation sequence, i.e., feature vectors. Each observation $\boldsymbol{o}_t$ has a probability $b_i(\boldsymbol{o}_t)$ of being generated when a hidden state $i$ is entered. In other words, the observation is a probabilistic function of the hidden state. 
   % Gaussian mixtures
-  A state's emission probabilities are represented by a PDF, typically a GMM 
+  A state's emission probabilities are represented by a PDF, typically a mixture of multivariate Gaussian densities
   \begin{equation}\label{}
     b_i(\boldsymbol{o}_t) = \sum^{M_j}_{m=1}c_{jm}
       \mathcal{N}(\boldsymbol{o}_t ; \boldsymbol{\mu}_{jm}, \boldsymbol{\Sigma}_{jm})
   \end{equation}
-  where $\boldsymbol{\mu}$ is the mean vector, $\boldsymbol{\Sigma}$ is the covariance matrix  and $c_{jm}$ is mixture weight for state j. The Gaussian mixture density is
+  where $\boldsymbol{\mu}_{jm}$ is the mean vector, $\boldsymbol{\Sigma}_{jm}$ is the covariance matrix and $c_{jm}$ is mixture weight for mixture component $m$ in state $j$. The Gaussian mixture density is
   \begin{equation}\label{}
     \mathcal{N}(\boldsymbol{o} ; \boldsymbol{\mu}, \boldsymbol{\Sigma})
        = \frac{1}{\sqrt{(2 \pi)^n |\boldsymbol{\Sigma}|}} 
@@ -337,7 +342,9 @@
       (\boldsymbol{o} - \boldsymbol{\mu})}
   \end{equation}
 
-  HMMs are used to model sequences, but observations are independent of past observations. Instead, the regime has a memory, although the shortest possible: the probability of being a certain state in the next time step depends only on the current state and not the previous states. This is called the Markov assumption. Each hidden state pair (an arc from a state to another) is associated with a transition probability $a_{ij}$ that describes how probable it is to move from state $i$ to state $j$. 
+  Because a mixture of Gaussians can assume arbitrary shapes, they can model non-Gaussian phenomena. They can also model 
+
+  HMMs are used to model sequences, but observations are independent of past observations. Instead, the regime has a memory, although the shortest possible: the probability of being a certain state in the next time step depends only on the current state and not the previous states. This independence of the previous transitions is called the Markov assumption. Each hidden state pair (an arc from a state to another) is associated with a transition probability $a_{ij}$ that describes how probable it is to move from state $i$ to state $j$. 
 
   A HMM is defined by ...
 
@@ -345,12 +352,17 @@
 
   % in Kaldi 
   % http://kaldi-asr.org/doc/hmm.html
-  The typical HMM topology for a phoneme is a left-to-right model, also called the Bakis model, with three emitting states which each have a transition to the next state and a self-loop. The model also includes a fourth non-emitting final state which has no transitions out of it. After initialising a HMM for each phoneme, the parameters, i.e. means, covariances and mixture weights need to be estimated in the training process.
+  The typical HMM topology for a phoneme is a left-to-right model, also called the Bakis model, with three emitting states that each have a transition to the next state and a self-loop. The model also includes a fourth non-emitting final state that has no outbound transitions. After initialising a HMM for each phoneme, the parameters, i.e. means, covariances and mixture weights need to be estimated in the process referred to as "training" of the model.
 
 \subsubsection{Training HMMs and finding the best hidden state sequence}
+  ML is one criterium of finding the best HMM parameters; others include the MMI (see Section \ref{sec:mmi}) and the MAP criteria.
 
   % Baum-Welch algorithm
-  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM parameters. Maximising the expectedness of the data could be turned around and thought of as minimising how surprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to find the maximum likelihood of a set of data given a model. Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the means and variances of the HMM $M$. If the HMM had only one state $j$, the maximum likelihood estimate $\hat{\boldsymbol{\mu}}_j$ would simply be the average of the observations, and $\hat{\boldsymbol{\Sigma}}_j$, too, could be determined directly, using the covariance definition. In practice, there are many states and the parameters need to be estimated iteratively. However, the initial parameter values can be taken from simple statistics of the observations. The observations are divided equally 
+  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM parameters. Maximising the expectedness of the data can be turned around and thought of as minimising how surprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to find the maximum likelihood of a set of data given a model.  Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the parameters of
+  the HMM $M$. % here all HMMs, viterbi: only the best ?
+  If the HMM had only one state $j$, the maximum likelihood estimate $\hat{\boldsymbol{\mu}}_j$ would simply be the average of the observations, and $\hat{\boldsymbol{\Sigma}}_j$, too, could be determined directly, using the covariance definition. In practice, there are many states which is why the parameters need to be estimated numerically, iteratively.
+  % kaldi: gmm-init, HTK: Hinit
+  However, the initial parameter values can be taken from simple statistics of the observations. The observations are divided equally between the states and
 
   The training starts with some trial values of the parameters 
 
@@ -462,7 +474,9 @@
   % alignments % lda + mllt
   % https://kaldi-asr.org/doc/transform.html
 
-  Each speaker has a distinct voice, which should be taken into account when training and using a general, speaker-independent ASR system. This can be done by representing each speaker's voice as a transform in the feature space. For each speaker, each feature vector is transformed by multiplying it by a matrix that encodes information about how the voice differs from the general speaker. The transform can be done when testing the final model (speaker adaptation, discussed in section \ref{adaptation}) and in the training process. The latter is called adaptive training.
+  An ASR system 
+
+  Each speaker has a distinct voice, which should be taken into account when training and using a general, speaker-independent ASR system. This can be done by representing each speaker's voice as a transform in the feature space. For each speaker, each feature vector is transformed by multiplying it by a matrix that encodes information about how the voice differs from the general speaker. The transform can be done when testing the final model (speaker adaptation, discussed in Section \ref{sec:adaptation}) and in the training process. The latter is called adaptive training.
   
   First, a transform is generated for each speaker. 
 
@@ -474,10 +488,13 @@
 
   fMLLR transform is speaker- or utterance-specific.
 
+  % model-space or feature-space 
+  % speaker- or utterance-specific
+
   % Speaker adaptive training \citep{povey2008fast}
 
 
-\subsubsection{Discriminative training}
+\subsubsection{Discriminative training} \label{sec:mmi}
 
 The maximum likelihood method aims to create a model that predicts the training data by determining a probability distribution over the feature space, i.e., over all possible observations. This is called generative training since the distribution can be sampled for predictions. However, the ability to produce examples of the modelled data is redundant in classification tasks. In discriminative training, instead of maximising the likelihood of the data given a generative model, a model is trained for discriminating between training examples. 
 % Typically?
@@ -521,7 +538,7 @@ Another type of objective function is the maximum mutual information (MMI) crite
 \subsection{Weighted finite-state transducers in ASR systems}
 
 
-\subsection{Spoken and written conversations in Finnish} \label{section:conv}
+\subsection{Spoken and written conversations in Finnish} \label{sec:conv}
 
 
 
