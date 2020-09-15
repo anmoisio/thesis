@@ -242,6 +242,7 @@
   MCE           & minimum classification error \\
   MFCC          & mel-frequency cepstral coefficient \\
   ML            & maximum likelihood \\
+  MLE           & maximum likelihood estimation \\
   MLLR          & maximum likelihood linear regression \\
   MLLT          & maximum likelihood linear transformation \\
   MMI           & maximum mutual information \\
@@ -295,6 +296,11 @@
   %   \argmax_{\boldsymbol{W}} \frac{P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})} {P(\boldsymbol{O})}
   % \end{equation} 
 
+\subsection{The Kaldi toolkit}
+
+  Kaldi is a toolkit for automatic speech recognition, used for the ASR experiments in this study. The next few sections of this chapter aim to give an overview of the process of building an ASR system using Kaldi. 
+
+
 \subsection{Feature extraction} 
 
   A speech audio signal contains a lot of information that is irrelevant for converting the signal to text. The first step of ASR is to find the features of the signal that contain the information about what is being said. An assumption is made that the speech signal does not change meaningfully in a time frame of about 10 milliseconds, so that the signal can be divided into frames with this time resolution. The frames overlap so that each frame is about 20 or 25 milliseconds, and a tapered window function, such as Hamming, is applied to (i.e., multiplied by) each frame. This window function removes the discontinuities that occur on the borders of frames, and the overlapping compensates for the tapering of the window function so that the distorting effect on the signal statistics is minimised \citet{}. % https://wiki.aalto.fi/display/ITSP/Windowing
@@ -342,7 +348,7 @@
       (\boldsymbol{o} - \boldsymbol{\mu})}
   \end{equation}
 
-  Because a mixture of Gaussians can assume arbitrary shapes, they can model non-Gaussian phenomena. They can also model 
+  Because a mixture of Gaussians can assume arbitrary shapes, they can model non-Gaussian phenomena. 
 
   HMMs are used to model sequences, but observations are independent of past observations. Instead, the regime has a memory, although the shortest possible: the probability of being a certain state in the next time step depends only on the current state and not the previous states. This independence of the previous transitions is called the Markov assumption. Each hidden state pair (an arc from a state to another) is associated with a transition probability $a_{ij}$ that describes how probable it is to move from state $i$ to state $j$. 
 
@@ -352,31 +358,44 @@
 
   % in Kaldi 
   % http://kaldi-asr.org/doc/hmm.html
-  The typical HMM topology for a phoneme is a left-to-right model, also called the Bakis model, with three emitting states that each have a transition to the next state and a self-loop. The model also includes a fourth non-emitting final state that has no outbound transitions. After initialising a HMM for each phoneme, the parameters, i.e. means, covariances and mixture weights need to be estimated in the process referred to as "training" of the model.
+  The typical HMM topology for a phoneme is a left-to-right model, also called the Bakis model, with three emitting states that each have a transition to the next state and a self-loop. The model also includes a fourth non-emitting final state that has no outbound transitions. However, in the Kaldi chain models (see Section \ref{sec:dnn_am}), the topology is reduced to have only one emitting state due to a lower time resolution used.
+  In Kaldi, the phoneme topology is defined in the lang/topo file.
+  
+  
+  After initialising a HMM for each phoneme, the parameters, i.e. means, covariances and mixture weights need to be estimated in the process referred to as "training" of the model.
 
-\subsubsection{Training HMMs and finding the best hidden state sequence}
+\subsubsection{Finding the best hidden state sequence and training HMMs} \label{sec:hmm_est}
+
+  The speech recognition system is trained in a supervised manner, meaning that the training data consists of a parallel corpus of speech audio and corresponding correct transcription. However, the task of the acoustic model is not as straightforward as finding a label for an input vector\footnote{In End-to-end ASR the whole ASR task is simplified to outputting an arbitrary length grapheme sequence given the sequence of observed features}. The reference transcription can be of arbitrary length but the AM is required to map each observation to a HMM state, generating an equal-length \emph{alignment} of observations and states. The states correspond to phonemes, so an alignment can be mapped to a transcription of the audio.
+
   ML is one criterium of finding the best HMM parameters; others include the MMI (see Section \ref{sec:mmi}) and the MAP criteria.
 
   % Baum-Welch algorithm
-  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM parameters. Maximising the expectedness of the data can be turned around and thought of as minimising how surprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to find the maximum likelihood of a set of data given a model.  Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the parameters of
+  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM parameters. Maximising the expectedness of the data can be turned around and thought of as minimising how surprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to finding a local maximum for the likelihood of a set of data given a model.  Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the parameters of
   the HMM $M$. % here all HMMs, viterbi: only the best ?
-  If the HMM had only one state $j$, the maximum likelihood estimate $\hat{\boldsymbol{\mu}}_j$ would simply be the average of the observations, and $\hat{\boldsymbol{\Sigma}}_j$, too, could be determined directly, using the covariance definition. In practice, there are many states which is why the parameters need to be estimated numerically, iteratively.
-  % kaldi: gmm-init, HTK: Hinit
-  However, the initial parameter values can be taken from simple statistics of the observations. The observations are divided equally between the states and
+  If the HMM had only one state $j$, the maximum likelihood estimate $\hat{\boldsymbol{\mu}}_j$ would simply be the average of the observations, and $\hat{\boldsymbol{\Sigma}}_j$, too, could be determined directly, using the covariance definition.
+  In practice, there are many states which is why the parameters need to be estimated numerically, iteratively. 
+  However, the initial parameter values can be taken from simple statistics of the observations. The observations are divided equally between the states and the means and variances of the states are taken from the average values.
 
-  The training starts with some trial values of the parameters 
-
+  The maximum likelihood estimates for the parameters are 
   \begin{equation}\label{eq:mu_hat}
     \hat{\boldsymbol{\mu}}_j = \frac{\sum^T_{t=1}L_j(t)\boldsymbol{o}_t}
       {\sum^T_{t=1}L_j(t)}
   \end{equation}
-
+  and
   \begin{equation}\label{eq:sigma_hat}
     \hat{\boldsymbol{\Sigma}}_j = \frac{\sum^T_{t=1}L_j(t)
       (\boldsymbol{o}_t - \boldsymbol{\mu}_j)
       (\boldsymbol{o}_t - \boldsymbol{\mu}_j)^\top }
       {\sum^T_{t=1}L_j(t)}
   \end{equation}
+  The numerator and denominator sums are \emph{accumulated} from the observations.
+
+  % kaldi: gmm-init, HTK: Hinit
+
+    % 
+  
+  % The training starts with some trial values of the parameters, for which
 
   % , for which the likelihood is calculated, given each training example.
   
@@ -389,7 +408,7 @@
     \alpha_j(t) &= P(\boldsymbol{o}_1,...,\boldsymbol{o}_t,x(t)=j|M)  \label{eq:forward} \\
     \beta_j(t) &= P(\boldsymbol{o}_{t+1},...,\boldsymbol{o}_T|x(t)=j,M) \label{eq:back}
   \end{align}
-  Spelled out, $\aplha_j(t)$ is the probability of the partial observation sequence up till time $t$ and that $M$ is in state $j$ at the time step. The backward probability is the probability of the partial observation sequence at the subsequent time steps up till the last vector, given that at the current time the model state is $j$. 
+  Spelled out, $\aplha_j(t)$ is the probability of the partial observation sequence up to time $t$ and that $M$ is in state $j$ at the time step. The backward probability is the probability of the partial observation sequence at the subsequent time steps up to the last vector, given that at the current time the model state is $j$. 
   The forward probability is a joint probability of the observations and the state, whereas the backward probability of the observations is conditional on the state. This allows for the state occupation probability to be determined by the product of the forward and backward probabilities (from Eqs. \ref{eq:occ} \ref{eq:forward} and \ref{eq:back})
   \begin{align}\label{}
     L_j(t) = \frac{ \alpha_j(t) \beta_j(t) }{P(\boldsymbol{O}|M)}
@@ -470,9 +489,11 @@
   After a tree has been constructed for the states of the triphone models, also previously unseen triphones can be synthesised by traversing the tree to the appropriate leaf node, i.e. cluster, by answering the questions about that triphone's context and using the tied states of that cluster.
 
 
-\subsubsection{Adaptive training}
+\subsubsection{Adaptive training} \label{sec:adaptive_training}
   % alignments % lda + mllt
   % https://kaldi-asr.org/doc/transform.html
+
+  % acoustic normalisation = feature space
 
   An ASR system 
 
@@ -496,30 +517,41 @@
 
 \subsubsection{Discriminative training} \label{sec:mmi}
 
-The maximum likelihood method aims to create a model that predicts the training data by determining a probability distribution over the feature space, i.e., over all possible observations. This is called generative training since the distribution can be sampled for predictions. However, the ability to produce examples of the modelled data is redundant in classification tasks. In discriminative training, instead of maximising the likelihood of the data given a generative model, a model is trained for discriminating between training examples. 
+% The maximum likelihood method aims to  
 % Typically?
-Discriminative training is based on an objective function which is minimised or maximised using an optimisation algorithm. The objective function can be simply the difference between the correct classifications (e.g., a phoneme sequence) for a set of examples and the classifications assigned to them by the model. This is called the minimum classification error (MCE) criterion.
+% Discriminative training is based on an objective function which is minimised or maximised using an optimisation algorithm.
+
+The MLE method described in Section \ref{sec:hmm_est} aims to maximise the likelihood of the observed sequence given the most probable HMM in VT, or all the possible HMMs in B-W. This method results in a model that predicts the training data by determining a probability distribution over the feature space, i.e., over all possible observations. This is called a generative model since the distribution can be sampled for predictions. However, the ability to produce examples of the modelled data is redundant in classification tasks. Furthermore, the MLE method maximises the likelihood of the observations for all of the competing HMMs independently of each other. The underlying task is to find the HMM that most accurately models the observation sequence, so it makes sense to also try to find the meaningful differences between HMMs.
+% The HMMs competing for being the most accurate model of the observations are not compared to each other.
+In discriminative training, instead of maximising the likelihood of the data given a generative model, a model is trained to discriminate between the classes, which in this case are different phoneme sequences. This way more capacity is used to model the boundaries between different HMMs, instead of using it to model the relations between individual HMMs and alignments. 
+
+The objective function can be simply the difference between the correct classifications (e.g., a phoneme sequence) for a set of examples and the classifications assigned to them by the model. This is called the minimum classification error (MCE) criterion.
 Another type of objective function is the maximum mutual information (MMI) criterion
 \begin{equation} \label{eq:mmi}
   \mathcal{F}_{\textup{MMI}}(M) = \sum_{r=1}^R \log 
     \frac{P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})}
       {\sum P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})}
 \end{equation}
+% equivalent to conditional maximum likelihood 
+% extended b-w
+
+\subsubsection{Mapping phonemes to graphemes}
+
+\subsubsection{Weighted finite-state transducers in Kaldi} \label{sec:wfst}
+
+Weighted finite-state transducers are a type of automaton in which a transition has an input label, an output label, and a weight. A special case of FST is a finite-state acceptor where the input and output labels of a transition are equal. FSTs, having both input and output labels, map an input sequence to an output sequence when a path is taken through it. FSTs are used in Kaldi, for example, to map a phoneme sequence to a grapheme sequence, in the file LG.fst. FSAs are used in Kaldi to encode a grammar or a language model, in the file G.fst. 
 
 
 
 
 
+\subsubsection{Deep neural networks for acoustic modelling} \label{sec:dnn_am}
+
+\subsubsection{Speaker identification} \label{sec:spk_id}
+
+Section \ref{sec:adaptive_training} discussed the differences between speakers and how the differences are modelled in adaptive training. 
 
 
-
-\subsubsection{Deep neural networks for acoustic modelling}
-
-\subsubsection{Speaker identification}
-
-
-
-% \subsection{Mapping phonemes to graphemes}
 
 
 
@@ -535,7 +567,7 @@ Another type of objective function is the maximum mutual information (MMI) crite
 
 
 
-\subsection{Weighted finite-state transducers in ASR systems}
+
 
 
 \subsection{Spoken and written conversations in Finnish} \label{sec:conv}
