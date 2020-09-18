@@ -197,6 +197,7 @@
   % $\uparrow$       & electron spin direction up\\
   % $\downarrow$     & electron spin direction down \\
   % /examples
+  $\boldsymbol{\Delta}$                       & delta feature vector \\
   $\boldsymbol{\mu}$                          & mean vector of a GMM \\
   $\boldsymbol{\Sigma}$                       & covariance matrix of a GMM \\
 
@@ -207,7 +208,7 @@
   
   \end{tabular}
 
-  \subsection*{Operators}
+  % \subsection*{Operators}
 
   % \begin{tabular}{ll}
   % examples
@@ -233,8 +234,10 @@
   DNN           & deep neural network \\
   EM            & expectation maximisation \\
   fMLLR         & feature space maximum likelihood linear regression \\
+  FSA           & finite-state acceptor \\
   FST           & finite-state transducer \\
   GMM           & Gaussian mixture model \\
+  GRU           & gated recurrent unit \\
   HMM           & hidden Markov model \\
   LDA           & linear discriminant analysis \\
   LM            & language model \\
@@ -242,13 +245,16 @@
   MCE           & minimum classification error \\
   MFCC          & mel-frequency cepstral coefficient \\
   ML            & maximum likelihood \\
-  MLE           & maximum likelihood estimation \\
+  MLE           & maximum likelihood estimate \\
   MLLR          & maximum likelihood linear regression \\
   MLLT          & maximum likelihood linear transformation \\
   MMI           & maximum mutual information \\
   MPE           & minimum phone error \\
   NN            & neural network \\
+  NNLM          & neural network language model \\
   PDF           & probability density function \\
+  PPL           & perplexity \\
+  RNN           & recurrent neural network \\
   SAT           & speaker adaptive training \\
   TDNN          & time delay neural network \\
   WER           & word error rate \\
@@ -275,26 +281,55 @@
   The task of converting speech into text, or \emph{automatic speech recognition}, can be divided into
   % four
   subtasks: \emph{feature extraction}, \emph{acoustic modelling}, \emph{phoneme-to-grapheme mapping}, and \emph{language modelling}. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, which are a compressed representation of the audio signal. 
-  The task is then to find $\argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O})$, where $\boldsymbol{W}$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
+  The task is then to find $\argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O})$, where $\boldsymbol{w}$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
   \begin{equation}\label{eq:asr-bayes}
-    \argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O}) = 
-    \argmax_{\boldsymbol{W}} \frac{P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})} {P(\boldsymbol{O})}
+    \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
+    \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
   \end{equation}
 
-  The probability of the observations ${P(\boldsymbol{O})}$ is not relevant in finding the best transcription for the observations, which leaves the product $P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})$ to be estimated. Here, the former factor is the a priori probabilities of word sequences, modelled by a language model. The acoustic model determines likelihoods of observations given phoneme sequences that are mapped to grapheme sequences by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{W})$.
+  The probability of the observations ${P(\boldsymbol{O})}$ is not relevant in finding the best transcription for the observations, which leaves the product $P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})$ to be estimated. Here, the former factor is the a priori probabilities of word sequences, modelled by language models, discussed in Section \ref{sec:lm}. The acoustic model determines likelihoods of observations given phoneme sequences that are mapped to grapheme sequences by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{w})$. Acoustic modelling is discussed in Section \ref{sec:am}.
+  % The first
+  % % four
+  % sections of this chapter respectively describe the
+  % % four
+  % components of the conventional ASR system.
+  Section \ref{sec:conv} discusses the specifics of recognising conversational Finnish.
 
-  The first
-  % four
-  sections of this chapter respectively describe the
-  % four
-  components of the conventional ASR system. Section \ref{section:conv} discusses the specifics of recognising conversational Finnish.
-
-  %  A language model gives an a priori probability for each word sequence: $P(\boldsymbol{W})$. The estimate $\hat{\boldsymbol{W}}$ of the best transcription given the observations is the most likely sequence 
+  %  A language model gives an a priori probability for each word sequence: $P(\boldsymbol{w})$. The estimate $\hat{\boldsymbol{w}}$ of the best transcription given the observations is the most likely sequence 
 
   % \begin{equation}\label{asr-bayes-argmax}
-  %   \hat{\boldsymbol{W}} = \argmax_{\boldsymbol{W}} P(\boldsymbol{W}|\boldsymbol{O}) = 
-  %   \argmax_{\boldsymbol{W}} \frac{P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})} {P(\boldsymbol{O})}
+  %   \hat{\boldsymbol{w}} = \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
+  %   \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
   % \end{equation} 
+
+\subsection{Statistical language modelling} \label{sec:lm} 
+
+  In statistical, probabilistic language modelling, the probability distribution $P(\boldsymbol{w})$ over word sequences is estimated based on information drawn from a training corpus. The probability of a word sequence is typically the product of the probability of the constituent words in the context
+  \begin{equation}\label{eq:lm}
+    P(w_t|\textup{context}) = \prod 
+  \end{equation}
+  What constitutes the context depends on the method.
+
+\subsubsection{n-gram language models}
+
+  % An n-gram language model bases the prediction of the last token in a sequence of $n$ tokens on statistics gathered from a training corpus. 
+  The task is to calculate the probability distribution over the vocabulary for the prediction of the word after $n-1$ previous words (i.e., the context).
+  A simple method to accomplish is to count the frequency of each word in the context:
+  \begin{equation}\label{eq:ngram}
+    P(w_i|w_{i-(n-1)},...,w_{i-1}) = \frac{\textup{count}(w_{i-(n-1)},...,w_{i-1}, w_i)}{\textup{count}(w_{i-(n-1)},...,w_{i-1}}
+  \end{equation}
+
+  To improve the predictions, \emph{smoothing} can be applied to the simple occurrence counts by redistributing probability mass from the most common n-grams to the less common ones, i.e., \emph{discounting} the most frequent n-grams. Alternatively, or in addition, the information of lower-order n-grams ((n-1)-grams,...,unigrams) can be used if there is an insufficient number examples of the n-grams of the desired order; the model can \emph{backoff} to the lower orders. The lower-order n-gram scores can also be \emph{interpolated} with the scores of the n-grams of the nominal order $n$. 
+  
+  Kneaser-Ney smoothing is a commonly used method, where 
+
+
+\subsubsection{Recurrent neural language models}
+
+\subsubsection{Attention-based neural language models}
+
+  % \citet{dai2019transformer}
+
 
 \subsection{The Kaldi toolkit}
 
@@ -323,7 +358,7 @@
 
   The cepstral mean and variance normalization is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
 
-\subsection{Acoustic modelling} 
+\subsection{Acoustic modelling} \label{sec:am}
 
 \subsubsection{Modelling phonemes with hidden Markov models} \label{sec:phoneme_hmm}
 
@@ -464,7 +499,6 @@
   % AS stated in the Kaldi documentation, computed alignment is a sequence of transitions that corresponds to an utterance. 
 
 
-
 \subsubsection{Phones in context}
   Phones of the same phoneme sound different when flanked by different phonemes. For this reason, contextual information is modelled, too, by assigning each triphone a HMM. 
   The monophone models are first trained
@@ -517,30 +551,39 @@
 
 \subsubsection{Discriminative training} \label{sec:mmi}
 
-% The maximum likelihood method aims to  
-% Typically?
-% Discriminative training is based on an objective function which is minimised or maximised using an optimisation algorithm.
+  % The maximum likelihood method aims to  
+  % Typically?
+  % Discriminative training is based on an objective function which is minimised or maximised using an optimisation algorithm.
 
-The MLE method described in Section \ref{sec:hmm_est} aims to maximise the likelihood of the observed sequence given the most probable HMM in VT, or all the possible HMMs in B-W. This method results in a model that predicts the training data by determining a probability distribution over the feature space, i.e., over all possible observations. This is called a generative model since the distribution can be sampled for predictions. However, the ability to produce examples of the modelled data is redundant in classification tasks. Furthermore, the MLE method maximises the likelihood of the observations for all of the competing HMMs independently of each other. The underlying task is to find the HMM that most accurately models the observation sequence, so it makes sense to also try to find the meaningful differences between HMMs.
-% The HMMs competing for being the most accurate model of the observations are not compared to each other.
-In discriminative training, instead of maximising the likelihood of the data given a generative model, a model is trained to discriminate between the classes, which in this case are different phoneme sequences. This way more capacity is used to model the boundaries between different HMMs, instead of using it to model the relations between individual HMMs and alignments. 
+  The MLE method described in Section \ref{sec:hmm_est} aims to maximise the likelihood of the observed sequence given the most probable HMM in VT, or all the possible HMMs in B-W. This method results in a model that predicts the training data by determining a probability distribution over the feature space, i.e., over all possible observations. This is called a generative model since the distribution can be sampled for predictions. However, the ability to produce examples of the modelled data is redundant in classification tasks. Furthermore, the MLE method maximises the likelihood of the observations for all of the competing HMMs independently of each other. The underlying task is to find the HMM that most accurately models the observation sequence, so it makes sense to also try to find the meaningful differences between HMMs.
+  % The HMMs competing for being the most accurate model of the observations are not compared to each other.
+  In discriminative training, instead of maximising the likelihood of the data given a generative model, a model is trained to discriminate between the classes, which in this case are different phoneme sequences. This way more capacity is used to model the boundaries between different HMMs, instead of using it to model the relations between individual HMMs and alignments. 
 
-The objective function can be simply the difference between the correct classifications (e.g., a phoneme sequence) for a set of examples and the classifications assigned to them by the model. This is called the minimum classification error (MCE) criterion.
-Another type of objective function is the maximum mutual information (MMI) criterion
-\begin{equation} \label{eq:mmi}
-  \mathcal{F}_{\textup{MMI}}(M) = \sum_{r=1}^R \log 
-    \frac{P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})}
-      {\sum P(\boldsymbol{W})P(\boldsymbol{O}|\boldsymbol{W})}
-\end{equation}
-% equivalent to conditional maximum likelihood 
-% extended b-w
+  The objective function can be simply the difference between the correct classifications (e.g., a phoneme sequence) for a set of examples and the classifications assigned to them by the model. This is called the minimum classification error (MCE) criterion.
+  Another type of objective function is the maximum mutual information (MMI) criterion
+  \begin{equation} \label{eq:mmi}
+    \mathcal{F}_{\textup{MMI}}(M) = \sum_{r=1}^R \log 
+      \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})}
+        {\sum P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})}
+  \end{equation}
+  % equivalent to conditional maximum likelihood 
+  % extended b-w
 
 \subsubsection{Mapping phonemes to graphemes}
 
 \subsubsection{Weighted finite-state transducers in Kaldi} \label{sec:wfst}
 
-Weighted finite-state transducers are a type of automaton in which a transition has an input label, an output label, and a weight. A special case of FST is a finite-state acceptor where the input and output labels of a transition are equal. FSTs, having both input and output labels, map an input sequence to an output sequence when a path is taken through it. FSTs are used in Kaldi, for example, to map a phoneme sequence to a grapheme sequence, in the file LG.fst. FSAs are used in Kaldi to encode a grammar or a language model, in the file G.fst. 
+  Weighted finite-state transducers are a type of automaton in which a transition has an input label, an output label, and a weight. A special case of FST is a finite-state acceptor where the input and output labels of a transition are equal. FSTs, having both input and output labels, map an input sequence to an output sequence when a path is taken through it. FSTs are used in Kaldi, for example, in the lexicon FST (the file L.fst) to map a phoneme sequence to a grapheme sequence. FSAs are used in Kaldi to encode a grammar or a language model, in the file G.fst. 
 
+  Kaldi uses the OpenFST \citep{} library for building and handling FSTs. 
+
+  \begin{figure}
+  \end{figure}
+
+
+\subsubsection{Silence and pronunciation probability modelling}
+
+  \citep{chen2015pronunciation} 
 
 
 
@@ -549,21 +592,13 @@ Weighted finite-state transducers are a type of automaton in which a transition 
 
 \subsubsection{Speaker identification} \label{sec:spk_id}
 
-Section \ref{sec:adaptive_training} discussed the differences between speakers and how the differences are modelled in adaptive training. 
+  Section \ref{sec:adaptive_training} discussed the differences between speakers and how the differences are modelled in adaptive training. 
 
 
 
 
 
-\subsection{Statistical language modelling}
 
-\subsubsection{n-gram language models}
-
-\subsubsection{Recurrent neural language models}
-
-\subsubsection{Attention-based neural language models}
-
-% \citet{dai2019transformer}
 
 
 
