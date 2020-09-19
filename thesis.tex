@@ -304,25 +304,45 @@
 
 \subsection{Statistical language modelling} \label{sec:lm} 
 
-  In statistical, probabilistic language modelling, the probability distribution $P(\boldsymbol{w})$ over word sequences is estimated based on information drawn from a training corpus. The probability of a word sequence is typically the product of the probability of the constituent words in the context
-  \begin{equation}\label{eq:lm}
-    P(w_t|\textup{context}) = \prod 
-  \end{equation}
-  What constitutes the context depends on the method.
+  A language model defines the probability distribution $P(\boldsymbol{w})$, from Eq. \ref{eq:asr-bayes}, over word sequences $\boldsymbol{w} = w_1,...,w_N$.
+  In statistical language modelling, the distribution  is estimated based on statistics drawn from a training corpus. The statistical approach is in contrast with linguistically motivated models of language that take into account, for example, the grammaticality of a string when determining its probability. The probability of a word sequence is typically the product of the probability of the constituent words, and the probability of each word is conditional on the context.
+  % \begin{equation}\label{eq:lm}
+  %   P(w_t|\textup{context}) = \prod 
+  % \end{equation}
+  What constitutes the context depends on the method. In n-gram models, the context is $n-1$ previous tokens, where $n$ can be a constant or a variable. In NNLMs, the context can also include subsequent tokens.
 
-\subsubsection{n-gram language models}
+\subsubsection{n-gram language models} \label{}
 
   % An n-gram language model bases the prediction of the last token in a sequence of $n$ tokens on statistics gathered from a training corpus. 
   The task is to calculate the probability distribution over the vocabulary for the prediction of the word after $n-1$ previous words (i.e., the context).
   A simple method to accomplish is to count the frequency of each word in the context:
   \begin{equation}\label{eq:ngram}
-    P(w_i|w_{i-(n-1)},...,w_{i-1}) = \frac{\textup{count}(w_{i-(n-1)},...,w_{i-1}, w_i)}{\textup{count}(w_{i-(n-1)},...,w_{i-1}}
+    P(w_i|w_{i-(n-1)},...,w_{i-1}) = \frac{\textup{count}(w_{i-(n-1)},...,w_{i-1}, w_i)}{\textup{count}(w_{i-(n-1)},...,w_{i-1})}
   \end{equation}
+  This is called the maximum likelihood estimate since it maximises the likelihood of all the training data. However,.. .. 
+  
+  % problems aimed to be fixed by smoothing
 
   To improve the predictions, \emph{smoothing} can be applied to the simple occurrence counts by redistributing probability mass from the most common n-grams to the less common ones, i.e., \emph{discounting} the most frequent n-grams. Alternatively, or in addition, the information of lower-order n-grams ((n-1)-grams,...,unigrams) can be used if there is an insufficient number examples of the n-grams of the desired order; the model can \emph{backoff} to the lower orders. The lower-order n-gram scores can also be \emph{interpolated} with the scores of the n-grams of the nominal order $n$. 
   
-  Kneaser-Ney smoothing is a commonly used method, where 
+  Backing off to unigrams, of course, revives % better  word ?
+  problems that motivated using higher-order n-grams in the first place. One of them is that of two words that are equally frequent, and thus have the same unigram probability, one may have a very specific kind of context in which it almost always appears whereas the other appears in many different contexts. Given a novel context, which is the reason to backoff to unigrams, the former is statistically less probable to appear than the latter, but this is not captured by unigram statistics.
+  \citet{kneser1995improved} developed a smoothing method that is a commonly used, where the number of different bigram contexts of a word correlate with the unigram backoff probability. The number of seen bigram types where the word $w$ is the latter word, i.e., the number of types of the previous token $w'$ that are at least once followed by $w$ in the corpus, can be expressed as $|{w' : \count(w'w)>0}|$. This count is normalised to get the KN unigram probability:
+  \begin{equation}\label{eq:ngram}
+    P_{\textup{KN}}(w) = \frac{|{w' : \count(w'w)>0}|}{ \sum_{w'} |{w'' : \count(w'w'')>0}|}
+  \end{equation}
+  For bigrams
 
+
+
+
+
+
+  The modified Kneser-Ney \citep{chen1998empirical}
+
+
+
+  \citep{siivola2007growing}
 
 \subsubsection{Recurrent neural language models}
 
@@ -406,7 +426,7 @@
   ML is one criterium of finding the best HMM parameters; others include the MMI (see Section \ref{sec:mmi}) and the MAP criteria.
 
   % Baum-Welch algorithm
-  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM parameters. Maximising the expectedness of the data can be turned around and thought of as minimising how surprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to finding a local maximum for the likelihood of a set of data given a model.  Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the parameters of
+  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM parameters. Maximising the expectedness of the data can be turned around and seen as minimising how surprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to finding a local maximum for the likelihood of a set of data given a model.  Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the parameters of
   the HMM $M$. % here all HMMs, viterbi: only the best ?
   If the HMM had only one state $j$, the maximum likelihood estimate $\hat{\boldsymbol{\mu}}_j$ would simply be the average of the observations, and $\hat{\boldsymbol{\Sigma}}_j$, too, could be determined directly, using the covariance definition.
   In practice, there are many states which is why the parameters need to be estimated numerically, iteratively. 
