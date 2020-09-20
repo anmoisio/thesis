@@ -55,6 +55,7 @@
   \usepackage{amsfonts, amssymb, amsbsy, amsmath, natbib, graphicx, tabstackengine}
 
   \DeclareMathOperator*{\argmax}{argmax}
+  \DeclareMathOperator*{\max}{max}
 
   % \university{Aalto-yliopisto}
   % \school{Sähkötekniikan korkeakoulu}
@@ -305,43 +306,73 @@
 \subsection{Statistical language modelling} \label{sec:lm} 
 
   A language model defines the probability distribution $P(\boldsymbol{w})$, from Eq. \ref{eq:asr-bayes}, over word sequences $\boldsymbol{w} = w_1,...,w_N$.
-  In statistical language modelling, the distribution  is estimated based on statistics drawn from a training corpus. The statistical approach is in contrast with linguistically motivated models of language that take into account, for example, the grammaticality of a string when determining its probability. The probability of a word sequence is typically the product of the probability of the constituent words, and the probability of each word is conditional on the context.
-  % \begin{equation}\label{eq:lm}
-  %   P(w_t|\textup{context}) = \prod 
-  % \end{equation}
-  What constitutes the context depends on the method. In n-gram models, the context is $n-1$ previous tokens, where $n$ can be a constant or a variable. In NNLMs, the context can also include subsequent tokens.
+  In statistical language modelling, the distribution  is estimated based on statistics drawn from a training corpus. The statistical approach is in contrast with linguistically motivated models of language that take into account, for example, the grammaticality of a string when determining its probability. 
+  
+
+  What constitutes the context depends on the method. The constant-order n-gram model uses a simple context of $n-1$ previous tokens. In more involved models, the context can also be of variable length and include subsequent tokens (bi-directional context).
+
+
 
 \subsubsection{n-gram language models} \label{}
 
+
+
   % An n-gram language model bases the prediction of the last token in a sequence of $n$ tokens on statistics gathered from a training corpus. 
-  The task is to calculate the probability distribution over the vocabulary for the prediction of the word after $n-1$ previous words (i.e., the context).
-  A simple method to accomplish is to count the frequency of each word in the context:
+  The probability of a word sequence is the product of the probabilities of the constituent words, and the probability of each word is conditional on $n-1$ previous words (i.e., the context):
+  \begin{equation}\label{eq:lm}
+    P(w_1,...,w_N) = \prod_{i=1}^N P(w_i|w_{i-(n-1)},...,w_{i-1})
+  \end{equation}
+  
+
+  A simple 
+  % (the simplest of the ones that make any sense)
+  method to define the probability of an n-gram is to let the probability of each word be its normalised frequency in the context:
   \begin{equation}\label{eq:ngram}
     P(w_i|w_{i-(n-1)},...,w_{i-1}) = \frac{\textup{count}(w_{i-(n-1)},...,w_{i-1}, w_i)}{\textup{count}(w_{i-(n-1)},...,w_{i-1})}
   \end{equation}
-  This is called the maximum likelihood estimate since it maximises the likelihood of all the training data. However,.. .. 
+  This is called the maximum likelihood estimate of $P(w_i|w_{i-(n-1)},...,w_{i-1})$ since it maximises the likelihood of 
+  % the language model for 
+  this specific training data set\citep{chen1998empirical}. As in machine learning in general, however, the aim is to use the training data to distil from it a generalisable model, which predicts patterns also in previously unseen data, instead of building a model that maximally accounts for the training data set. 
   
   % problems aimed to be fixed by smoothing
 
-  To improve the predictions, \emph{smoothing} can be applied to the simple occurrence counts by redistributing probability mass from the most common n-grams to the less common ones, i.e., \emph{discounting} the most frequent n-grams. Alternatively, or in addition, the information of lower-order n-grams ((n-1)-grams,...,unigrams) can be used if there is an insufficient number examples of the n-grams of the desired order; the model can \emph{backoff} to the lower orders. The lower-order n-gram scores can also be \emph{interpolated} with the scores of the n-grams of the nominal order $n$. 
+  To improve the predictions, \emph{smoothing} can be applied to the simple occurrence counts by redistributing probability mass from the most common n-grams to the less common ones, i.e., \emph{discounting} the most frequent n-grams. Low occurrence counts become a problem especially when $n$ is high, since the number of possible n-grams increases exponentially as $n$ increases. If there is an insufficient number of examples of the n-grams of the desired order, the information of lower-order n-grams (unigrams,...,(n-1)-grams) can be used; the model can \emph{backoff} to the lower orders to make the probability distribution smoother. The lower-order n-gram scores can also be \emph{interpolated} with the scores of the n-grams of the nominal order $n$. 
   
-  Backing off to unigrams, of course, revives % better  word ?
-  problems that motivated using higher-order n-grams in the first place. One of them is that of two words that are equally frequent, and thus have the same unigram probability, one may have a very specific kind of context in which it almost always appears whereas the other appears in many different contexts. Given a novel context, which is the reason to backoff to unigrams, the former is statistically less probable to appear than the latter, but this is not captured by unigram statistics.
-  \citet{kneser1995improved} developed a smoothing method that is a commonly used, where the number of different bigram contexts of a word correlate with the unigram backoff probability. The number of seen bigram types where the word $w$ is the latter word, i.e., the number of types of the previous token $w'$ that are at least once followed by $w$ in the corpus, can be expressed as $|{w' : \count(w'w)>0}|$. This count is normalised to get the KN unigram probability:
-  \begin{equation}\label{eq:ngram}
-    P_{\textup{KN}}(w) = \frac{|{w' : \count(w'w)>0}|}{ \sum_{w'} |{w'' : \count(w'w'')>0}|}
+  Backing off to lower orders revives % better  word ?
+  problems that motivated using higher-order n-grams in the first place. One of them is that of two words that are equally frequent, and thus have the same unigram probability, one may have a very specific kind of context in which it almost always appears whereas the other appears in various contexts. Given a novel context, which is why backing off to unigrams is necessary, the former is statistically less probable to appear in it than the latter, but this is not captured by unigram statistics.
+  \citet{kneser1995improved} introduced a smoothing method, which has become commonly used, where the number of different bigram contexts of a word correlate with the unigram backoff probability. The number of seen bigram types where the word $w$ is the latter word, i.e., the number of types of the previous token $w'$ that at least once precede $w$ in the corpus, can be expressed as $| \{ {w' : \textup{count}(w',w)>0} \} |$. This count is normalised by the number of all word types that are seen as the first word of a bigram to get the KN unigram probability:
+  \begin{equation}\label{eq:continuation}
+    P_{\textup{KN}}(w) = \frac{| \{ {w' : \textup{count}(w',w)>0} \} |}
+                              { \sum_{w''} |\{ {w' : \count(w'w'')>0}\}|}
   \end{equation}
-  For bigrams
+  For a Kneser-Ney smoothed bigram model, the unigram and bigram statistics are then interpolated:
+  \begin{equation}\label{eq:kn_bigram}
+    P_{\textup{KN}}(w_i|w_{i-1}) = \frac{\max(\textup{count}(w_{i-1}w_i)-d, 0)}
+                                        {\textup{count}(w_{i-1})} 
+                                  \lambda(w_{i-1})
+                                  P_{\textup{KN}}(w_i)
+  \end{equation}
+  where $d$ is a discount constant, usually $0<d<1$, and $\lambda$ is a normalising factor that defines how the discounted probability mass is redistributed:
+  \begin{equation}\label{eq:kn_lambda}
+      \lambda(w_{i-1}) = \frac{d}
+                          {\sum_{w'} \textup{count}(w_{i-1},w')  }
+                          | \{ {w' : \textup{count}(w_{i-1},w')>0} \} |
+  \end{equation}
+  The discount is normalised by the sum of the counts of all bigrams where the $w_{i-1}$ is the first word, and the normalised discount is multiplied by the number of word types that have followed $w_{i-1}$, i.e., the number of word types that have been discounted, so that $P_{\textup{KN}}(w_i|w_{i-1})$ over all $w_i$ equals to one.
 
+  The bigram formulation can be generalised to higher-order n-grams:
+  \begin{equation}\label{eq:kn}
+    P_{\textup{KN}}(w_i|w_{i-n+1}^{i-1}) = 
+        \frac{\max(\textup{count}_{\textup{KN}}(w_{i-n+1}^{i-1},w_{i})
+            - d, 0)}{\sum_{w'} \textup{count}_{\textup{KN}}(w_{i-n+1}^{i-1},w')} + 
+        \lambda(w_{i-n+1}^{i-1})
+        P_{\textup{KN}}(w_i|w_{i-n+2}^{i-1})
+  \end{equation}
+  where $w_{i-n+1}^{i-1}$ is the $n-1$ words before $w_i$ and $\textup{count}_{\textup{KN}}$ is the count for the highest order and the number of different words that precede the n-gram for the lower orders \citep{Jurafsky2019}.
 
+  In the modified Kneser-Ney smoothing, introduced by \citet{chen1998empirical}, the discount constants are different for n-grams that have 1, 2, or more than 2 occurrences, changing also $\labmda$ so that the distribution still sums to one. This is motivated by empirical results that suggest that the optimal $d$ depends on the frequency.
 
-
-
-
-  The modified Kneser-Ney \citep{chen1998empirical}
-
-
-
+  A common approach to making an n-gram model more efficient is to \emph{prune} n-grams that do not contribute to the 
   \citep{siivola2007growing}
 
 \subsubsection{Recurrent neural language models}
