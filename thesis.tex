@@ -275,10 +275,8 @@
 
 %% Leave page number of the first page empty
 \thispagestyle{empty}
-\clearpage
 
 \section{Finnish conversations to text} 
-
   The task of converting speech into text, or \emph{automatic speech recognition}, can be divided into
   % four
   subtasks: \emph{feature extraction}, \emph{acoustic modelling}, \emph{phoneme-to-grapheme mapping}, and \emph{language modelling}. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, which are a compressed representation of the audio signal. 
@@ -302,6 +300,35 @@
   %   \hat{\boldsymbol{w}} = \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
   %   \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
   % \end{equation} 
+
+
+
+
+\subsection{Machine learning}
+
+  A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
+  
+  Creating models of phenomena in an environment is the basis for being able to understand, predict, or act in the environment. Brains build both unconscious and  consciously accessible models of perceptible and consequential things: models of other animals, of plants, of the body that contains the brain, of weather, water etc.
+  % representations of time, space, temperature etc. 
+
+  The abstraction and simplification can happen by grouping similar things into one. For example, a mental model of a tree integrates many individual leaves into one foliage, and, more fundamentally, a visual model of a leaf integrates many cells into one green surface that is perceived when looking at a leaf.
+
+  A model can be a function that generates an output given an input, emulating how the real-world phenomenon behaves. Inputting a knife into a coconut outputs coconut milk, and an accurate mental model of a coconut should be able to predict that a coconut will function in this manner. More generally, a model can be any kind of mapping from a domain to another.
+  
+  % ; via lowering the resolution: a mental model of a 
+
+  There are two directions, ways to create a model of a phenomenon: top-down or bottom-up. Top-down design of models is an exclusively human undertaking, and a much rarer way to build a model. A top-down designed model could be, for example, a recipe for a dish, which is then used to cook up the real thing. This way the simplified model is created without the real phenomenon existing yet, or ever. However, top-down design depends on previous models that have ultimately been estimated from bottom up. 
+  A bottom-up generation of a model is the more usual way models come to being. In this approach, the abstract model is estimated from data gathered from the manifest world. In this example, a recipe for the dish can be developed by experimenting with random recipes in some finite search space of possible recipes, tasting the finished product, and iteratively narrowing down the search space, homing in on an optimal experience. Once a cook has done enough bottom-up design, top-down design becomes possible by deducing from the mental model what a never-before-experienced combination of ingredients will taste like. In mathematics, solving a function in a top-down fashion is called an analytical or a symbolic solution, and bottom up a numerical solution. 
+
+  In computer science, top-down design has been the usual way to develop systems.
+  % If the function to be estimated is simple enough
+  For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
+
+  The mapping from input to output is determined by the parameters that are learned. There are different approaches to defining how good a model is, given a training dataset. Using the maximum likelihood (ML) criterion, the parameters are adjusted to maximise how probable the model judges the data set. 
+
+  % bayesing, MAP
+
+
 
 \subsection{Statistical language modelling} \label{sec:lm} 
 
@@ -375,7 +402,7 @@
   A common approach to making an n-gram model more efficient is to \emph{prune} n-grams that do not contribute to the 
   \citep{siivola2007growing}
 
-\subsubsection{Recurrent neural language models}
+\subsubsection{Recurrent and convolutional neural language models}
 
 \subsubsection{Attention-based neural language models}
 
@@ -389,7 +416,7 @@
 
 \subsection{Feature extraction} 
 
-  A speech audio signal contains a lot of information that is irrelevant for converting the signal to text. The first step of ASR is to find the features of the signal that contain the information about what is being said. An assumption is made that the speech signal does not change meaningfully in a time frame of about 10 milliseconds, so that the signal can be divided into frames with this time resolution. The frames overlap so that each frame is about 20 or 25 milliseconds, and a tapered window function, such as Hamming, is applied to (i.e., multiplied by) each frame. This window function removes the discontinuities that occur on the borders of frames, and the overlapping compensates for the tapering of the window function so that the distorting effect on the signal statistics is minimised \citet{}. % https://wiki.aalto.fi/display/ITSP/Windowing
+  A speech audio signal contains a lot of information that is irrelevant for converting the signal to text. The first step of ASR is to find the features of the signal that contain the information about what is being said. An assumption is made that the speech signal does not change meaningfully in a time frame of about 10 milliseconds so that the signal can be divided into frames with this time resolution. The frames overlap so that each frame is about 20 or 25 milliseconds, and a tapered window function, such as Hamming, is applied to (i.e., multiplied by) each frame. This window function removes the discontinuities that occur on the borders of frames, and the overlapping compensates for the tapering of the window function so that the distorting effect on the signal statistics is minimised \citet{}. % https://wiki.aalto.fi/display/ITSP/Windowing
 
   The stationary frames' frequency components can be then computed with the Fourier transform. A commonly used method is to extract the MFCCs by applying a logarithmic mel-scale filterbank to the frequency spectrum, and lastly computing the DCT. The log mel-scale emphasises the lower frequencies emulating the way humans perceive sound, i.e., the way the human inner ear recognises lower frequencies with higher frequency resolution. The DCT decorrelates the coefficients so that the use of diagonal covariance matrices is possible in the subsequent stages of the modelling, namely when using GMMs to model the HMM state emissions (Section \ref{phoneme_hmm}). The use of diagonal covariance matrices reduces the number of free parameters.
   
@@ -634,7 +661,11 @@
 
 \subsubsection{Silence and pronunciation probability modelling}
 
-  \citep{chen2015pronunciation} 
+  The Kaldi toolkit allows also for modelling silence and pronunciation probabilities. 
+
+  The probability of a silence phone between two words is estimated from statistics collected from alignments \citep{chen2015pronunciation}. 
+
+  When using a subword vocabulary, the it is important to indicate which boundaries are actual word boundaries \citep{smit2017improved}, otherwise the silences might 
 
 
 
