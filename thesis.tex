@@ -52,10 +52,11 @@
   %%             binding side of the page and black hypertext)
   %% two-sided printing: twoside (default is one-sided printing)
 
-  \usepackage{amsfonts, amssymb, amsbsy, amsmath, natbib, graphicx, tabstackengine}
+  \usepackage{amsfonts, amssymb, amsbsy, amsmath, natbib, graphicx, 
+              tabstackengine}
+  
 
   \DeclareMathOperator*{\argmax}{argmax}
-  \DeclareMathOperator*{\max}{max}
 
   % \university{Aalto-yliopisto}
   % \school{Sähkötekniikan korkeakoulu}
@@ -253,6 +254,7 @@
   MPE           & minimum phone error \\
   NN            & neural network \\
   NNLM          & neural network language model \\
+  OOV           & out of vocabulary \\
   PDF           & probability density function \\
   PPL           & perplexity \\
   RNN           & recurrent neural network \\
@@ -303,8 +305,7 @@
 
 
 
-
-\subsection{Machine learning}
+\subsection{Machine learning} \label{sec:ml} 
 
   A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
   
@@ -329,7 +330,6 @@
   % bayesing, MAP
 
 
-
 \subsection{Statistical language modelling} \label{sec:lm} 
 
   A language model defines the probability distribution $P(\boldsymbol{w})$, from Eq. \ref{eq:asr-bayes}, over word sequences $\boldsymbol{w} = w_1,...,w_N$.
@@ -339,9 +339,7 @@
   What constitutes the context depends on the method. The constant-order n-gram model uses a simple context of $n-1$ previous tokens. In more involved models, the context can also be of variable length and include subsequent tokens (bi-directional context).
 
 
-
-\subsubsection{n-gram language models} \label{}
-
+\subsubsection{n-gram language models} \label{sec:ngram} 
 
 
   % An n-gram language model bases the prediction of the last token in a sequence of $n$ tokens on statistics gathered from a training corpus. 
@@ -397,28 +395,29 @@
   \end{equation}
   where $w_{i-n+1}^{i-1}$ is the $n-1$ words before $w_i$ and $\textup{count}_{\textup{KN}}$ is the count for the highest order and the number of different words that precede the n-gram for the lower orders \citep{Jurafsky2019}.
 
-  In the modified Kneser-Ney smoothing, introduced by \citet{chen1998empirical}, the discount constants are different for n-grams that have 1, 2, or more than 2 occurrences, changing also $\labmda$ so that the distribution still sums to one. This is motivated by empirical results that suggest that the optimal $d$ depends on the frequency.
+  In the modified Kneser-Ney smoothing, introduced by \citet{chen1998empirical}, the discount constants are different for n-grams that have 1, 2, or more than 2 occurrences, changing also $\lambda$ so that the distribution still sums to one. This is motivated by empirical results that suggest that the optimal $d$ depends on the frequency.
 
   A common approach to making an n-gram model more efficient is to \emph{prune} n-grams that do not contribute to the 
   \citep{siivola2007growing}
 
-\subsubsection{Recurrent and convolutional neural language models}
+\subsubsection{Recurrent and convolutional neural language models} \label{sec:rnn} 
 
-\subsubsection{Attention-based neural language models}
+\subsubsection{Attention-based neural language models} \label{sec:attention} 
 
   % \citet{dai2019transformer}
 
 
-\subsection{The Kaldi toolkit}
 
-  Kaldi is a toolkit for automatic speech recognition, used for the ASR experiments in this study. The next few sections of this chapter aim to give an overview of the process of building an ASR system using Kaldi. 
+\subsection{Automatic speech recognition using the Kaldi toolkit} \label{sec:am}
+
+  Kaldi is a toolkit for automatic speech recognition, used in the ASR experiments in this study. This chapter aims to give an overview of the most relevant theoretical underpinnings of Kaldi ASR systems, as well as some of the practical details of implementing the systems.
 
 
-\subsection{Feature extraction} 
+\subsubsection{Feature extraction} \label{sec:feats} 
 
   A speech audio signal contains a lot of information that is irrelevant for converting the signal to text. The first step of ASR is to find the features of the signal that contain the information about what is being said. An assumption is made that the speech signal does not change meaningfully in a time frame of about 10 milliseconds so that the signal can be divided into frames with this time resolution. The frames overlap so that each frame is about 20 or 25 milliseconds, and a tapered window function, such as Hamming, is applied to (i.e., multiplied by) each frame. This window function removes the discontinuities that occur on the borders of frames, and the overlapping compensates for the tapering of the window function so that the distorting effect on the signal statistics is minimised \citet{}. % https://wiki.aalto.fi/display/ITSP/Windowing
 
-  The stationary frames' frequency components can be then computed with the Fourier transform. A commonly used method is to extract the MFCCs by applying a logarithmic mel-scale filterbank to the frequency spectrum, and lastly computing the DCT. The log mel-scale emphasises the lower frequencies emulating the way humans perceive sound, i.e., the way the human inner ear recognises lower frequencies with higher frequency resolution. The DCT decorrelates the coefficients so that the use of diagonal covariance matrices is possible in the subsequent stages of the modelling, namely when using GMMs to model the HMM state emissions (Section \ref{phoneme_hmm}). The use of diagonal covariance matrices reduces the number of free parameters.
+  The stationary frames' frequency components can be then computed with the Fourier transform. A commonly used method is to extract the MFCCs by applying a logarithmic mel-scale filterbank to the frequency spectrum, and lastly computing the DCT. The log mel-scale emphasises the lower frequencies emulating the way humans perceive sound, i.e., the way the human inner ear recognises lower frequencies with higher frequency resolution. The DCT decorrelates the coefficients so that the use of diagonal covariance matrices is possible in the subsequent stages of the modelling, namely when using GMMs to model the HMM state emissions (Section \ref{sec:phoneme_hmm}). The use of diagonal covariance matrices reduces the number of free parameters.
   
   % ?
   % The MFCC method thus assumes that coefficients adjacent in time are independent of each other, which is a false assumption in the case of speech signals.
@@ -436,9 +435,8 @@
 
   The cepstral mean and variance normalization is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
 
-\subsection{Acoustic modelling} \label{sec:am}
 
-\subsubsection{Modelling phonemes with hidden Markov models} \label{sec:phoneme_hmm}
+\subsubsection{Modelling phonemes with hidden Markov models} \label{sec:phoneme_hmm} 
 
   Estimating the likelihoods of observations given phonemes is achieved by creating a HMM for each phoneme. 
   The phoneme-specific HMMs
@@ -477,7 +475,8 @@
   
   After initialising a HMM for each phoneme, the parameters, i.e. means, covariances and mixture weights need to be estimated in the process referred to as "training" of the model.
 
-\subsubsection{Finding the best hidden state sequence and training HMMs} \label{sec:hmm_est}
+
+\subsubsection{Finding the best hidden state sequence and training HMMs} \label{sec:hmm_est} 
 
   The speech recognition system is trained in a supervised manner, meaning that the training data consists of a parallel corpus of speech audio and corresponding correct transcription. However, the task of the acoustic model is not as straightforward as finding a label for an input vector\footnote{In End-to-end ASR the whole ASR task is simplified to outputting an arbitrary length grapheme sequence given the sequence of observed features}. The reference transcription can be of arbitrary length but the AM is required to map each observation to a HMM state, generating an equal-length \emph{alignment} of observations and states. The states correspond to phonemes, so an alignment can be mapped to a transcription of the audio.
 
@@ -521,7 +520,7 @@
     \alpha_j(t) &= P(\boldsymbol{o}_1,...,\boldsymbol{o}_t,x(t)=j|M)  \label{eq:forward} \\
     \beta_j(t) &= P(\boldsymbol{o}_{t+1},...,\boldsymbol{o}_T|x(t)=j,M) \label{eq:back}
   \end{align}
-  Spelled out, $\aplha_j(t)$ is the probability of the partial observation sequence up to time $t$ and that $M$ is in state $j$ at the time step. The backward probability is the probability of the partial observation sequence at the subsequent time steps up to the last vector, given that at the current time the model state is $j$. 
+  Spelled out, $\alpha_j(t)$ is the probability of the partial observation sequence up to time $t$ and that $M$ is in state $j$ at the time step. The backward probability is the probability of the partial observation sequence at the subsequent time steps up to the last vector, given that at the current time the model state is $j$. 
   The forward probability is a joint probability of the observations and the state, whereas the backward probability of the observations is conditional on the state. This allows for the state occupation probability to be determined by the product of the forward and backward probabilities (from Eqs. \ref{eq:occ} \ref{eq:forward} and \ref{eq:back})
   \begin{align}\label{}
     L_j(t) = \frac{ \alpha_j(t) \beta_j(t) }{P(\boldsymbol{O}|M)}
@@ -587,8 +586,7 @@
   % The transition probabilities from a state to another are essentially the counts of the transitions seen in the training corpus.
 
 
-
-\subsubsection{State tying and phonetic decision trees}
+\subsubsection{State tying and phonetic decision trees} 
   % tying
   The states of the phoneme HMMs are can be tied together so that the parameters of the output distributions of those states are shared. This makes the estimation of the parameters more robust because there are more training data occurrences, and also makes the total system more compact with fewer parameters \citep{young1992general}. States are clustered based on some metric of similarity.  
 
@@ -601,7 +599,7 @@
   After a tree has been constructed for the states of the triphone models, also previously unseen triphones can be synthesised by traversing the tree to the appropriate leaf node, i.e. cluster, by answering the questions about that triphone's context and using the tied states of that cluster.
 
 
-\subsubsection{Adaptive training} \label{sec:adaptive_training}
+\subsubsection{Adaptive training} \label{sec:adaptive_training} 
   % alignments % lda + mllt
   % https://kaldi-asr.org/doc/transform.html
 
@@ -627,7 +625,7 @@
   % Speaker adaptive training \citep{povey2008fast}
 
 
-\subsubsection{Discriminative training} \label{sec:mmi}
+\subsubsection{Discriminative training} \label{sec:mmi} 
 
   % The maximum likelihood method aims to  
   % Typically?
@@ -647,9 +645,46 @@
   % equivalent to conditional maximum likelihood 
   % extended b-w
 
-\subsubsection{Mapping phonemes to graphemes}
+\subsubsection{Lexicon and special symbols in Kaldi} \label{sec:lexicon} 
 
-\subsubsection{Weighted finite-state transducers in Kaldi} \label{sec:wfst}
+  The decoded hidden states of a HMM correspond to phonemes, but the ultimate aim is to generate a word sequence for a given observation sequence. For mapping words to phoneme sequences, the system uses a \emph{lexicon}, also referred to as \emph{pronouncing dictionary}, or just \emph{dictionary}. 
+
+  In Finnish there is generally a one-to-one mapping from graphemes to phonemes. This makes creating a lexicon very simple.
+
+  A lexicon for a language like English has to be constructed largely by hand, as most of the mapping from letters to sounds does not have a sound\footnote{Ignore the pun, please.} logic behind it. This is due to historical change in the pronunciations of words that was not translated into corresponding change in their written forms (e.g., during the Great Vowel Shift) as well as loan words from other languages which have different rules of orthography \citep{english}.
+  
+  Similar change can be seen in Finnish as words are imported from other languages, mainly from English. Loan words often do not follow the Finnish phonetic orthography, which means that the one-to-one mapping from letters to phonemes is no longer accurate for these words. For example, "googlata" is pronounced "G U U G L A T A" instead of following the Finnish orthographic rules to pronounce it "G O O G L A T A", or alternatively spelling it "guuglata". In this study these inaccuracies are ignored(?), and the Finnish lexicon is generated automatically using the simple letter-to-phoneme correspondence, where letters correspond to a single phoneme, usually denoted by itself (with a few exceptions: e.g., "c"->"K", "q"->"K V").
+
+\begin{table}[htb]
+\centering
+  \begin{tabular}{|ll|}
+    \hline
+    {[oov]}   & SPN \\
+    !SIL    & SIL \\
+    {[laugh]} & SPN \\
+    {[reject]} & NSN \\
+    +i+     & I \\
+    +loma   & L O M A \\
+    +ssa    & S S A \\
+    avoim+  & A V O I M \\ 
+    zoom+    & T S O O M   \\
+    äitiys+ & AE I T I Y S \\
+    överi   & OE V E R I  \\
+    über    & Y Y B E R  \\
+    \hline 
+  \end{tabular}
+  \caption{An example of a lexicon.
+  The first entries have special phonemes: spoken noise (SPN), silence (SIL) and non-spoken noise (NSN). "oov" refers to out-of-vocabulary words. 
+  "+" is the intra-word boundary marker in subword vocabularies.
+  Note also the inaccurate pronunciation of "zoom".
+  }
+  \label{}
+\end{table}
+
+  
+
+
+\subsubsection{Weighted finite-state transducers in Kaldi} \label{sec:wfst} 
 
   Weighted finite-state transducers are a type of automaton in which a transition has an input label, an output label, and a weight. A special case of FST is a finite-state acceptor where the input and output labels of a transition are equal. FSTs, having both input and output labels, map an input sequence to an output sequence when a path is taken through it. FSTs are used in Kaldi, for example, in the lexicon FST (the file L.fst) to map a phoneme sequence to a grapheme sequence. FSAs are used in Kaldi to encode a grammar or a language model, in the file G.fst. 
 
@@ -659,11 +694,13 @@
   \end{figure}
 
 
-\subsubsection{Silence and pronunciation probability modelling}
+\subsubsection{Silence and pronunciation probability modelling} \label{sec:sil_prob} 
 
-  The Kaldi toolkit allows also for modelling silence and pronunciation probabilities. 
+  The Kaldi toolkit allows also for modelling the probability of silence between specific words, and the probability of different pronunciations of a word. This has found to improve WER results by a small but consistent margin \citep{chen2015pronunciation}. 
 
-  The probability of a silence phone between two words is estimated from statistics collected from alignments \citep{chen2015pronunciation}. 
+  Differences of pronunciation are significant in many languages. However, in Finnish, which has a phonemic orthography (see Section \ref{sec:lexicon}), pronunciation probabilities are not applicable. If the mapping from phonemes to graphemes is one-to-one, there are no alternative pronunciations for a word.
+
+  The probability of a silence phone between two words is estimated from statistics collected from alignments. 
 
   When using a subword vocabulary, the it is important to indicate which boundaries are actual word boundaries \citep{smit2017improved}, otherwise the silences might 
 
@@ -694,15 +731,16 @@
 \clearpage
 \section{Methods}
 
+\subsection{Baseline} 
+
+  The baseline language models and the ASR system is based on the systems developed by \citet{enarvi2017automatic}.
 
 
 
 \clearpage
 \section{Experiments}
 
-\subsection{Baseline}
 
-The baseline language models and the ASR system is based on the systems developed by \citet{enarvi2017automatic}.
 
 
 
