@@ -308,7 +308,9 @@
 \subsection{Machine learning} \label{sec:ml} 
 
   A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
-  
+  A model can be statistical, conceptual, mathematical ...
+  Model of any of these kinds, however, is ...
+
   Creating models of phenomena in an environment is the basis for being able to understand, predict, or act in the environment. Brains build both unconscious and  consciously accessible models of perceptible and consequential things: models of other animals, of plants, of the body that contains the brain, of weather, water etc.
   % representations of time, space, temperature etc. 
 
@@ -337,6 +339,11 @@
   
 
   What constitutes the context depends on the method. The constant-order n-gram model uses a simple context of $n-1$ previous tokens. In more involved models, the context can also be of variable length and include subsequent tokens (bi-directional context).
+
+
+\subsubsection{Choosing the LM vocabulary}
+
+  subwords words
 
 
 \subsubsection{n-gram language models} \label{sec:ngram} 
@@ -577,7 +584,8 @@
 
 
 \subsubsection{Phones in context}
-  Phones of the same phoneme sound different when flanked by different phonemes. For this reason, contextual information is modelled, too, by assigning each triphone a HMM. 
+  Phones of the same phoneme sound different when flanked by different phonemes. For this reason, contextual information is modelled, too, by assigning each triphone a HMM. \citep{schwartz1985context}
+
   The monophone models are first trained
   % (with single-component Gaussians?)
   and the triphone models are initialised with the monophone model set parameters. The number of Gaussians in the triphone models is increased gradually and the parameters are re-estimated.
@@ -645,9 +653,9 @@
   % equivalent to conditional maximum likelihood 
   % extended b-w
 
-\subsubsection{Lexicon and special symbols in Kaldi} \label{sec:lexicon} 
+\subsubsection{Mapping words to phoneme sequences} \label{sec:lexicon} 
 
-  The decoded hidden states of a HMM correspond to phonemes, but the ultimate aim is to generate a word sequence for a given observation sequence. For mapping words to phoneme sequences, the system uses a \emph{lexicon}, also referred to as \emph{pronouncing dictionary}, or just \emph{dictionary}. 
+  The hidden state sequence decoded from a HMM corresponds to a phoneme sequence, but the ultimate aim is to generate a word sequence for a given observation sequence. For mapping words to phoneme sequences, the ASR system uses a \emph{lexicon}, also referred to as \emph{pronouncing dictionary}, or just \emph{dictionary}. 
 
   In Finnish there is generally a one-to-one mapping from graphemes to phonemes. This makes creating a lexicon very simple.
 
@@ -686,11 +694,18 @@
 
 \subsubsection{Weighted finite-state transducers in Kaldi} \label{sec:wfst} 
 
-  Weighted finite-state transducers are a type of automaton in which a transition has an input label, an output label, and a weight. A special case of FST is a finite-state acceptor where the input and output labels of a transition are equal. FSTs, having both input and output labels, map an input sequence to an output sequence when a path is taken through it. FSTs are used in Kaldi, for example, in the lexicon FST (the file L.fst) to map a phoneme sequence to a grapheme sequence. FSAs are used in Kaldi to encode a grammar or a language model, in the file G.fst. 
+  Weighted finite-state transducers are a type of automaton in which a transition has an input label, an output label, and a weight. A special case of FST is a finite-state acceptor where the input and output labels of a transition are equal. FSTs, having both input and output labels, map an input sequence to an output sequence when a path is taken through it. FSTs are used in Kaldi, for example, in the lexicon FST (the file L.fst) to transduce a phoneme sequence to a (sub)word token sequence. A grammar or a language model is encoded in a finite-state acceptor (G.fst) since its purpose is to define the possible sequences without transducing sequences from a domain to another. 
 
-  Kaldi uses the OpenFST \citep{} library for building and handling FSTs. 
+  % Kaldi uses the OpenFST \citep{} library for building and handling FSTs. 
+
+  Kaldi composes the decoding graph from four component transducers: grammar/LM G.fst, lexicon L.fst, context C.fst, and HMM H.fst. 
+
+  The n-gram language model that is used in training and decoding is converted into a transducer
+
+  Figure \ref{fig:fst} is an example of a grammar-lexicon (LG.fst) transducer. 
 
   \begin{figure}
+  \caption{} \label{fig:fst}
   \end{figure}
 
 
