@@ -54,6 +54,8 @@
 
   \usepackage{amsfonts, amssymb, amsbsy, amsmath, natbib, graphicx, 
               tabstackengine}
+
+  \graphicspath{ {./images/} }
   
 
   \DeclareMathOperator*{\argmax}{argmax}
@@ -232,7 +234,7 @@
   AM            & acoustic model \\
   ASR           & automatic speech recognition \\
   CER           & character error rate \\
-  CMVN          & cepstral mean and variance normalization \\
+  CMVN          & cepstral mean and variance normalisation \\
   DNN           & deep neural network \\
   EM            & expectation maximisation \\
   fMLLR         & feature space maximum likelihood linear regression \\
@@ -262,7 +264,7 @@
   TDNN          & time delay neural network \\
   WER           & word error rate \\
   WFST          & weighted finite-state transducer \\
-  VTLN          & vocal tract length normalization \\
+  VTLN          & vocal tract length normalisation \\
   \end{tabular}
 %%
 
@@ -273,15 +275,15 @@
 \setcounter{page}{1}
 
 %% Text body begins.
-\section{Introduction}
+\section{Introduction} \label{sec:introduction}
 
 %% Leave page number of the first page empty
 \thispagestyle{empty}
 
-\section{Finnish conversations to text} 
+\section{Finnish conversations to text} \label{sec:background} 
   The task of converting speech into text, or \emph{automatic speech recognition}, can be divided into
   % four
-  subtasks: \emph{feature extraction}, \emph{acoustic modelling}, \emph{phoneme-to-grapheme mapping}, and \emph{language modelling}. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, which are a compressed representation of the audio signal. 
+  subtasks: \emph{feature extraction}, \emph{acoustic modelling}, \emph{phoneme-to-grapheme mapping}, and \emph{language modelling}. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, also called observations, which are a compressed representation of the audio signal. 
   The task is then to find $\argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O})$, where $\boldsymbol{w}$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
   \begin{equation}\label{eq:asr-bayes}
     \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
@@ -325,7 +327,7 @@
 
   In computer science, top-down design has been the usual way to develop systems.
   % If the function to be estimated is simple enough
-  For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
+  For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
 
   The mapping from input to output is determined by the parameters that are learned. There are different approaches to defining how good a model is, given a training dataset. Using the maximum likelihood (ML) criterion, the parameters are adjusted to maximise how probable the model judges the data set. 
 
@@ -334,14 +336,14 @@
 
 \subsection{Statistical language modelling} \label{sec:lm} 
 
-  A language model defines the probability distribution $P(\boldsymbol{w})$, from Eq. \ref{eq:asr-bayes}, over word sequences $\boldsymbol{w} = w_1,...,w_N$.
+  A language model defines the probability distribution\footnote{This would be a probability mass function since word sequences are discrete but, since there is no limit to how long the sequences can be, there is an infinite set of possible word sequences.} $P(\boldsymbol{w})$, from Eq. \ref{eq:asr-bayes}, over word sequences $\boldsymbol{w} = w_1,...,w_N$.
   In statistical language modelling, the distribution  is estimated based on statistics drawn from a training corpus. The statistical approach is in contrast with linguistically motivated models of language that take into account, for example, the grammaticality of a string when determining its probability. 
   
 
   What constitutes the context depends on the method. The constant-order n-gram model uses a simple context of $n-1$ previous tokens. In more involved models, the context can also be of variable length and include subsequent tokens (bi-directional context).
 
 
-\subsubsection{Choosing the LM vocabulary}
+\subsubsection{Choice of vocabulary} \label{sec:vocab} 
 
   subwords words
 
@@ -402,14 +404,16 @@
   \end{equation}
   where $w_{i-n+1}^{i-1}$ is the $n-1$ words before $w_i$ and $\textup{count}_{\textup{KN}}$ is the count for the highest order and the number of different words that precede the n-gram for the lower orders \citep{Jurafsky2019}.
 
-  In the modified Kneser-Ney smoothing, introduced by \citet{chen1998empirical}, the discount constants are different for n-grams that have 1, 2, or more than 2 occurrences, changing also $\lambda$ so that the distribution still sums to one. This is motivated by empirical results that suggest that the optimal $d$ depends on the frequency.
+  In the modified Kneser-Ney smoothing, introduced by \citet{chen1998empirical}, the discount constants are different for n-grams that have one, two, or more than two occurrences, changing also $\lambda$ for the distribution to still sum to one. This is motivated by empirical results suggesting that the optimal $d$ depends on the frequency.
 
   A common approach to making an n-gram model more efficient is to \emph{prune} n-grams that do not contribute to the 
   \citep{siivola2007growing}
 
+  The ARPA (named after DARPA which was previously named ARPA) backoff n-gram format is used ... \footnote{\url{http://www.speech.sri.com/projects/srilm/manpages/ngram-format.5.html}}
+
 \subsubsection{Recurrent and convolutional neural language models} \label{sec:rnn} 
 
-\subsubsection{Attention-based neural language models} \label{sec:attention} 
+\subsubsection{Attentive neural language models} \label{sec:attention} 
 
   % \citet{dai2019transformer}
 
@@ -440,7 +444,9 @@
   \end{equation}
   In Kaldi, the default window length $\boldsymbol{\Theta}$ is 2, so the $\boldsymbol{\Delta}$s are computed by multiplying the MFCCs with a sliding window of values $[-2,-1,0,1,2]$ and then normalising by dividing by $2*(1^2 + 2^2)= 10$ \citep{kaldi}. The $\boldsymbol{\Delta\Delta}$s are computed by applying the same method to the $\boldsymbol{\Delta}$ features. The first and last MFCCs are replicated to fill the window \citep{htkbook}.
 
-  The cepstral mean and variance normalization is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
+  The cepstral mean and variance normalisation is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
+
+  frame splicing
 
 
 \subsubsection{Modelling phonemes with hidden Markov models} \label{sec:phoneme_hmm} 
@@ -659,54 +665,73 @@
 
   In Finnish there is generally a one-to-one mapping from graphemes to phonemes. This makes creating a lexicon very simple.
 
-  A lexicon for a language like English has to be constructed largely by hand, as most of the mapping from letters to sounds does not have a sound\footnote{Ignore the pun, please.} logic behind it. This is due to historical change in the pronunciations of words that was not translated into corresponding change in their written forms (e.g., during the Great Vowel Shift) as well as loan words from other languages which have different rules of orthography \citep{english}.
+  A lexicon for a language like English has to be constructed largely by hand, as most of the mapping from letters to phonemes does not have a sound\footnote{Ignore the pun, please.} logic behind it. This is due to historical change in the pronunciations of words that was not translated into corresponding change in their written forms (e.g., during the Great Vowel Shift) as well as loan words from other languages which have different rules of orthography \citep{english}.
   
   Similar change can be seen in Finnish as words are imported from other languages, mainly from English. Loan words often do not follow the Finnish phonetic orthography, which means that the one-to-one mapping from letters to phonemes is no longer accurate for these words. For example, "googlata" is pronounced "G U U G L A T A" instead of following the Finnish orthographic rules to pronounce it "G O O G L A T A", or alternatively spelling it "guuglata". In this study these inaccuracies are ignored(?), and the Finnish lexicon is generated automatically using the simple letter-to-phoneme correspondence, where letters correspond to a single phoneme, usually denoted by itself (with a few exceptions: e.g., "c"->"K", "q"->"K V").
 
-\begin{table}[htb]
-\centering
-  \begin{tabular}{|ll|}
-    \hline
-    {[oov]}   & SPN \\
-    !SIL    & SIL \\
-    {[laugh]} & SPN \\
-    {[reject]} & NSN \\
-    +i+     & I \\
-    +loma   & L O M A \\
-    +ssa    & S S A \\
-    avoim+  & A V O I M \\ 
-    zoom+    & T S O O M   \\
-    äitiys+ & AE I T I Y S \\
-    överi   & OE V E R I  \\
-    über    & Y Y B E R  \\
-    \hline 
-  \end{tabular}
-  \caption{An example of a lexicon.
-  The first entries have special phonemes: spoken noise (SPN), silence (SIL) and non-spoken noise (NSN). "oov" refers to out-of-vocabulary words. 
-  "+" is the intra-word boundary marker in subword vocabularies.
-  Note also the inaccurate pronunciation of "zoom".
-  }
-  \label{}
-\end{table}
+  \begin{table}[htb]
+    \centering
+      \begin{tabular}{|ll|}
+      \hline
+      {[oov]}   & SPN \\
+      !SIL    & SIL \\
+      {[laugh]} & SPN \\
+      {[reject]} & NSN \\
+      +i+     & I \\
+      +loma   & L O M A \\
+      +ssa    & S S A \\
+      avoim+  & A V O I M \\ 
+      zoom+    & T S O O M   \\
+      äitiys+ & AE I T I Y S \\
+      överi   & OE V E R I  \\
+      über    & Y Y B E R  \\
+      \hline 
+    \end{tabular}
+    \caption{An example of a lexicon.
+    The first entries have special phonemes: spoken noise (SPN), silence (SIL) and non-spoken noise (NSN). "oov" refers to out-of-vocabulary words. 
+    "+" is the intra-word boundary marker in subword vocabularies.
+    Note also the inaccurate pronunciation of "zoom".
+    }
+    \label{}
+  \end{table}
 
   
 
 
 \subsubsection{Weighted finite-state transducers in Kaldi} \label{sec:wfst} 
 
-  Weighted finite-state transducers are a type of automaton in which a transition has an input label, an output label, and a weight. A special case of FST is a finite-state acceptor where the input and output labels of a transition are equal. FSTs, having both input and output labels, map an input sequence to an output sequence when a path is taken through it. FSTs are used in Kaldi, for example, in the lexicon FST (the file L.fst) to transduce a phoneme sequence to a (sub)word token sequence. A grammar or a language model is encoded in a finite-state acceptor (G.fst) since its purpose is to define the possible sequences without transducing sequences from a domain to another. 
-
-  % Kaldi uses the OpenFST \citep{} library for building and handling FSTs. 
-
-  Kaldi composes the decoding graph from four component transducers: grammar/LM G.fst, lexicon L.fst, context C.fst, and HMM H.fst. 
-
-  The n-gram language model that is used in training and decoding is converted into a transducer
-
-  Figure \ref{fig:fst} is an example of a grammar-lexicon (LG.fst) transducer. 
-
-  \begin{figure}
-  \caption{} \label{fig:fst}
+  Weighted finite-state transducers are a type of automaton in which a transition has an input label, an output label, and a weight. A special case of FST is a finite-state acceptor (FSA) where the input and output labels of a transition are equal. FSTs, having both input and output labels, map an input sequence to an output sequence when a path is taken through it. Figure \ref{fig:wfst} displays a simple example of an FST.
+  \begin{figure}[htb]
+    \centering
+    \includegraphics[width=9cm]{wfst}
+    \caption{A weighted finite-state transducer \citep{openfst}.}
+    \label{fig:wfst}
   \end{figure}
+  The example transducer has three states, the initial state (0) denoted with a bold circle and final state (2) with a double circle. The arcs between states have input labels \{a, b, c\}, output labels \{x, y, z\}, and real number (floating point) weights associated with them. The final state has also a weight. This transducer would map the input sequence "ac" to the output sequence "xz" with the weight calculated by summing the individual arc weights, in this case adding up to 6.5.
+
+  FSTs are used in Kaldi ... \textbf{training L, decoding hclg}
+
+  Kaldi composes the \texttt{HCLG.fst} decoding graph from four component transducers: HMM \texttt{H.fst}, context \texttt{C.fst}, lexicon \texttt{L.fst}, and LM (or grammar) \texttt{G.fst} \citep{povey2012wfst}. 
+
+  The n-gram language model that is used in decoding
+  % (in training, only a lexicon is needed)
+  is converted from the ARPA format, described in \ref{tab:arpa}, into the \texttt{G.fst} transducer using the \texttt{arpa2fst} program. The purpose of \texttt{G.fst} is not to transduce a sequence from one domain to another, but to assign weights to the possible word sequences. For this reason, the input and output labels are equal, making it a finite-state acceptor. The ARPA model lists the conditional base-10 logarithmic probabilities for each n-gram. These give weights to the arcs of the corresponding paths in the acceptor, the arc weights having an inverse relation to the probabilities and using natural logarithm instead of 10-base. A complete path through the acceptor corresponds to a word sequence and the weight of the path indicates how unlikely the sequence is. 
+  If the highest-order n-gram has not been explicitly specified a probability in the n-gram model, a path is taken through the backoff node which corresponds to the lower-order backoff n-grams and the weights are determined by the associated backoff probabilities. Since the model can recursively back off  all the way to unigrams, any word sequence is accepted and given a weight. The acceptor also dismisses sentence start and end tokens of the LM  (\texttt{<s>} and \texttt{</s>} or whatever they may be) since these are not wanted in the speech transcripts. The number of words used in speech recognition can also be limited to make the decoding graph of feasible size, in which case some words are omitted from the LM acceptor.
+
+  The lexicon transducer \texttt{L.fst} maps a phoneme sequence input to an output consisting of one word. If the lexicon has multiple words with the same pronunciation, \emph{word disambiguation symbols} are needed to ensure each phoneme sequence has only one possible word output. 
+  Word disambiguation symbols 
+  See Section
+  \ref{sec:lexicon} for discussion about orthography and Section \ref{sec:sil_prob} for discussion about the case where one word has multiple pronunciations. Disambiguation symbols are used 
+
+
+
+  % , for example, in the lexicon FST (the file L.fst) to transduce a phoneme sequence to a (sub)word token sequence. A grammar or a language model is encoded in a finite-state acceptor (G.fst) since its purpose is to define the possible sequences without transducing sequences from a domain to another. 
+
+  % Figure \ref{fig:fst} is an example of a grammar-lexicon (LG.fst) transducer. 
+
+  % \begin{figure}
+  % \caption{} \label{fig:fst}
+  % \end{figure}
 
 
 \subsubsection{Silence and pronunciation probability modelling} \label{sec:sil_prob} 
