@@ -261,6 +261,8 @@
   PPL           & perplexity \\
   RNN           & recurrent neural network \\
   SAT           & speaker adaptive training \\
+  SD            & speaker-dependent \\
+  SI            & speaker-independent \\
   TDNN          & time delay neural network \\
   WER           & word error rate \\
   WFST          & weighted finite-state transducer \\
@@ -276,6 +278,10 @@
 
 %% Text body begins.
 \section{Introduction} \label{sec:introduction}
+
+\subsection{The aim and scope of the thesis}
+
+\subsection{Structure of the thesis}
 
 %% Leave page number of the first page empty
 \thispagestyle{empty}
@@ -306,7 +312,6 @@
   % \end{equation} 
 
 
-
 \subsection{Machine learning} \label{sec:ml} 
 
   A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
@@ -335,6 +340,8 @@
 
 
 \subsection{Statistical language modelling} \label{sec:lm} 
+
+
 
   A language model defines the probability distribution\footnote{This would be a probability mass function since word sequences are discrete but, since there is no limit to how long the sequences can be, there is an infinite set of possible word sequences.} $P(\boldsymbol{w})$, from Eq. \ref{eq:asr-bayes}, over word sequences $\boldsymbol{w} = w_1,...,w_N$.
   In statistical language modelling, the distribution  is estimated based on statistics drawn from a training corpus. The statistical approach is in contrast with linguistically motivated models of language that take into account, for example, the grammaticality of a string when determining its probability. 
@@ -418,7 +425,6 @@
   % \citet{dai2019transformer}
 
 
-
 \subsection{Automatic speech recognition using the Kaldi toolkit} \label{sec:am}
 
   Kaldi is a toolkit for automatic speech recognition, used in the ASR experiments in this study. This chapter aims to give an overview of the most relevant theoretical underpinnings of Kaldi ASR systems, as well as some of the practical details of implementing the systems.
@@ -444,7 +450,7 @@
   \end{equation}
   In Kaldi, the default window length $\boldsymbol{\Theta}$ is 2, so the $\boldsymbol{\Delta}$s are computed by multiplying the MFCCs with a sliding window of values $[-2,-1,0,1,2]$ and then normalising by dividing by $2*(1^2 + 2^2)= 10$ \citep{kaldi}. The $\boldsymbol{\Delta\Delta}$s are computed by applying the same method to the $\boldsymbol{\Delta}$ features. The first and last MFCCs are replicated to fill the window \citep{htkbook}.
 
-  The cepstral mean and variance normalisation is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
+  The cepstral mean and variance normalisation (CMVN) is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
 
   frame splicing
 
@@ -613,30 +619,68 @@
   After a tree has been constructed for the states of the triphone models, also previously unseen triphones can be synthesised by traversing the tree to the appropriate leaf node, i.e. cluster, by answering the questions about that triphone's context and using the tied states of that cluster.
 
 
-\subsubsection{Adaptive training} \label{sec:adaptive_training} 
+\subsubsection{Speaker adaptive training} \label{sec:adaptive_training} 
   % alignments % lda + mllt
   % https://kaldi-asr.org/doc/transform.html
 
   % acoustic normalisation = feature space
 
-  An ASR system 
+  Variability between speakers poses a challenge to an ASR system. Each speaker may have idiosyncratic voice, distinct style of pronunciation as well as distinct recording conditions, which can degrade the ASR performance. A straight-forward solution would be to train personal speaker-dependent (SD) models, but this is not an option when the aim is to build a  system that recognises speech also by people not in the training data set.
+  % Speaker-dependent systems can be adapted from speaker-independent systems by a transformation  
+  The solution to speaker variability discussed in this section is to learn separate representations of speakers which are incorporated into the speaker-independent (SI) system in the training, called speaker-adaptive training, or SAT for short.
+  SAT requires identifying each speaker from the metadata that indicates the speaker ID. Adaptation can be useful even the speaker-identifying metadata is absent, in which case a separate adaptation is learned for each utterance, as if each utterance were spoken by a different person.
 
-  Each speaker has a distinct voice, which should be taken into account when training and using a general, speaker-independent ASR system. This can be done by representing each speaker's voice as a transform in the feature space. For each speaker, each feature vector is transformed by multiplying it by a matrix that encodes information about how the voice differs from the general speaker. The transform can be done when testing the final model (speaker adaptation, discussed in Section \ref{sec:adaptation}) and in the training process. The latter is called adaptive training.
-  
-  First, a transform is generated for each speaker. 
+  With a HMM/GMM acoustic model, speaker adaptation can be done by representing each speaker's distinct qualities as a transform in the feature space or in the model space. A feature space transform is applied on the observation vectors, and model space transform on the mean and variance of the GMM. Furthermore, a model space transform can be unconstrained or constrained, the former being separate transforms for the means and variances and the latter using the same transform for both \citep{gales1998maximum}.
+  SAT is a similar normalisation method to CMVN discussed in Section \ref{sec:feats}, but it SAT the normalisation is integrated in the training of the model parameters.
 
-  % The Kaldi program 'transform-feats' is used to multiply the feature vectors with transform matrices
+  Using the model space transform, the aim is to learn the optimal model $\boldsymbol{M}$ and adaptation $\boldsymbol{G}^{(r)}$ for speaker $r$
+  \begin{equation}
+    (\hat{\boldsymbol{M}}, \hat{\boldsymbol{G}}) =
+        \argmax_{(\boldsymbol{M},\boldsymbol{G})}} \prod^R_{r=1}
+        P(\boldsymbol{O}^{(r)}; \boldsymbol{G}^{(r)}(\boldsymbol{M}))
+  \end{equation}
+  where $\hat{\boldsymbol{M}}$ are the model parameters \citep{anastasakos1996compact}.
+  The feature space transform is analogous, only transforming the observations instead of the model.
 
-  An affine transform applied by appending a 1 to the feature vector, and multiplying it with the linear transform $\boldsymbol{A}$ concatenated with the constant offset (bias) $\boldsymbol{b}$: $\bracketVectorstack{  \boldsymbol{A} ; \boldsymbol{b}} \bracketVectorstack{\boldsymbol{o} \\ 1}$
+  A common SAT transform is the maximum likelihood linear regression where $\boldsymbol{G}(\boldsymbol{M})$ is an affine\footnote{\emph{Linear} regression is thus a slight misnomer.} transformation defined by the matrix $\boldsymbol{A}$ and bias $\boldsymbol{b}$ 
+  \begin{equation}
+    \boldsymbol{\mu}^{(r)} = \boldsymbol{A}^{(r)}\boldsymbol{\mu}+\boldsymbol{b}^{(r)}
+  \end{equation}
+  The constrained MLLR (CMLLR) can be represented as a feature space transform \citep{gales1998maximum} and is therefore also called feature-space (MLLR) or fMLLR.
 
-  Linear transformations can be applied either in model-space or feature-space \citep{gales1998maximum}. MLLT and LDA transforms are speaker-independent
 
-  fMLLR transform is speaker- or utterance-specific.
+  In practice (in Kaldi) affine transform applied by appending a 1 to the feature vector, and multiplying it with the linear transform $\boldsymbol{A}$ concatenated with the constant offset (bias) $\boldsymbol{b}$: $\bracketVectorstack{  \boldsymbol{A} ; \boldsymbol{b}} \bracketVectorstack{\boldsymbol{o} \\ 1}$
 
-  % model-space or feature-space 
-  % speaker- or utterance-specific
+  Analogously with the GMM parameter transform, in DNN acoustic models (see Section \ref{sec:dnn_am}) can also use speaker adaptive training using i-vectors \citep{ivector, miao2015speaker} or x-vectors \citep{snyder2018x}.
 
-  % Speaker adaptive training \citep{povey2008fast}
+
+  %%%%  
+    % A speaker-independent (SI)!!!!!!!!!!! ASR system can be trained on and transcribe the speech of different speakers, in different recording conditions, 
+    % % about different topics,
+    % and with other distinct attributes. When these speech audio attributes are known, and in some way consistent, they can be taken into account in the training of and decoding with the system.
+    
+    % This section discusses how an ASR system training can be improved by  and learning to adapt the general acoustic model to each speaker.
+    
+    % The attributes that are distinct but consistent for each speaker include obviously the qualities of the speaker's voice, but also the recording conditions since it can be assumed that these stay constant per speaker. Alternatively, adaptation can be performed for each environment \citep{}.
+    
+    % The idea can also be generalised to any other attributes of the speech which modulates the speech in some consistent manner, for example the gender of the speaker. 
+
+
+    % MLLT and LDA transforms are speaker-independent
+
+
+    % For each speaker, each feature vector is transformed by multiplying it by a matrix that encodes information about how this speaker differs from the general speaker.
+    
+    % The transform can be done when testing the final model (speaker adaptation, discussed in Section \ref{sec:adaptation}) and in the training process. The latter is called adaptive training.
+    
+    % First, a transform is generated for each speaker. 
+
+    % The Kaldi program 'transform-feats' is used to multiply the feature vectors with transform matrices
+
+    % model-space or feature-space 
+    % speaker- or utterance-specific
+
+    % Speaker adaptive training \citep{povey2008fast}
 
 
 \subsubsection{Discriminative training} \label{sec:mmi} 
@@ -697,7 +741,6 @@
 
   
 
-
 \subsubsection{Weighted finite-state transducers in Kaldi} \label{sec:wfst} 
 
   Weighted finite-state transducers are a type of automaton in which a transition has an input label, an output label, and a weight. A special case of FST is a finite-state acceptor (FSA) where the input and output labels of a transition are equal. FSTs, having both input and output labels, map an input sequence to an output sequence when a path is taken through it. Figure \ref{fig:wfst} displays a simple example of an FST.
@@ -711,18 +754,21 @@
 
   FSTs are used in Kaldi ... \textbf{training L, decoding hclg}
 
-  Kaldi composes the \texttt{HCLG.fst} decoding graph from four component transducers: HMM \texttt{H.fst}, context \texttt{C.fst}, lexicon \texttt{L.fst}, and LM (or grammar) \texttt{G.fst} \citep{povey2012wfst}. 
+  Kaldi composes the $HCLG$ decoding graph from four component transducers: HMM $H$, context $C$, lexicon $L$, and LM (or grammar) $G$ \citep{povey2012wfst}. 
 
   The n-gram language model that is used in decoding
   % (in training, only a lexicon is needed)
-  is converted from the ARPA format, described in \ref{tab:arpa}, into the \texttt{G.fst} transducer using the \texttt{arpa2fst} program. The purpose of \texttt{G.fst} is not to transduce a sequence from one domain to another, but to assign weights to the possible word sequences. For this reason, the input and output labels are equal, making it a finite-state acceptor. The ARPA model lists the conditional base-10 logarithmic probabilities for each n-gram. These give weights to the arcs of the corresponding paths in the acceptor, the arc weights having an inverse relation to the probabilities and using natural logarithm instead of 10-base. A complete path through the acceptor corresponds to a word sequence and the weight of the path indicates how unlikely the sequence is. 
-  If the highest-order n-gram has not been explicitly specified a probability in the n-gram model, a path is taken through the backoff node which corresponds to the lower-order backoff n-grams and the weights are determined by the associated backoff probabilities. Since the model can recursively back off  all the way to unigrams, any word sequence is accepted and given a weight. The acceptor also dismisses sentence start and end tokens of the LM  (\texttt{<s>} and \texttt{</s>} or whatever they may be) since these are not wanted in the speech transcripts. The number of words used in speech recognition can also be limited to make the decoding graph of feasible size, in which case some words are omitted from the LM acceptor.
+  is converted from the ARPA format, described in \ref{tab:arpa}, into the $G$ transducer using the \texttt{arpa2fst} program. The purpose of $G$ is not to transduce a sequence from one domain to another, but to assign weights to the possible word sequences. For this reason, the input and output labels are equal, making it a finite-state acceptor. The ARPA model lists the conditional base-10 logarithmic probabilities for each n-gram. These give weights to the arcs of the corresponding paths in the acceptor, the arc weights having an inverse relation to the probabilities (i.e., they are negated) and using natural logarithm instead of 10-base.  Referring to the weight of decoding graph FST as "cost" is more intuitive, so in this text this term is used, too. A complete path through the acceptor corresponds to a word sequence and the cost of the path indicates how \emph{un}likely the sequence is.
+  If a probability of the highest-order n-gram has not been explicitly specified  in the n-gram model, a path is taken through the backoff node which corresponds to the lower-order backoff n-grams and the costs are determined by the associated backoff probabilities. Since the model can recursively back off  all the way to unigrams, any word sequence is accepted and given a cost. The backoff arcs do not have a word label, which raises a problem there are multiple paths for a single input sequence, making processing the graph inefficient\footnote{more disadvantages?}. The backoff arcs are therefore assigned a \emph{disambiguation symbol} "\texttt{\#0}" as the input label. The disambiguation symbol allows for an operation (in practice, an algorithm) called \emph{determinisation}. A deterministic transducer has the property that one input string matches at most one path \citep{mohri2008speech}.
+  The acceptor also dismisses sentence start and end tokens of the LM  (\texttt{<s>} and \texttt{</s>} or whatever they may be) since these are not wanted in the speech transcripts. The number of word types used in speech recognition can also be limited to make the decoding graph of feasible size, in which case some types are omitted from the LM acceptor.
 
-  The lexicon transducer \texttt{L.fst} maps a phoneme sequence input to an output consisting of one word. If the lexicon has multiple words with the same pronunciation, \emph{word disambiguation symbols} are needed to ensure each phoneme sequence has only one possible word output. 
-  Word disambiguation symbols 
+  The lexicon transducer $L$ maps a phoneme sequence input to an output consisting of one word. If the lexicon has multiple words with the same pronunciation, or when a phoneme sequence is a part of multiple word pronunciations, word disambiguation symbols \{\texttt{\#1}, \texttt{\#2},...\} are needed to ensure each phoneme sequence has only one possible word output. Ambiguity in the transducer means that there could be multiple paths matching one input string.  
   See Section
-  \ref{sec:lexicon} for discussion about orthography and Section \ref{sec:sil_prob} for discussion about the case where one word has multiple pronunciations. Disambiguation symbols are used 
+  \ref{sec:lexicon} for discussion about orthography and Section \ref{sec:sil_prob} for discussion about the case where one word has multiple pronunciations. 
 
+  The grammar acceptor $G$ and lexicon transducer $L$ are combined to compose a new transducer $LG$ that maps a phoneme sequence input to a word sequence output. The composition is done in the program \texttt{fsttablecompose}, and the new transducer is determinised in the program \texttt{fstdeterminizestar}.
+
+  $C$ is the transducer from context-dependent phonemes to context-independent phonemes. 
 
 
   % , for example, in the lexicon FST (the file L.fst) to transduce a phoneme sequence to a (sub)word token sequence. A grammar or a language model is encoded in a finite-state acceptor (G.fst) since its purpose is to define the possible sequences without transducing sequences from a domain to another. 
@@ -745,22 +791,11 @@
   When using a subword vocabulary, the it is important to indicate which boundaries are actual word boundaries \citep{smit2017improved}, otherwise the silences might 
 
 
-
-
 \subsubsection{Deep neural networks for acoustic modelling} \label{sec:dnn_am}
 
-\subsubsection{Speaker identification} \label{sec:spk_id}
+% \subsubsection{Speaker recognition} \label{sec:spk_id}
 
-  Section \ref{sec:adaptive_training} discussed the differences between speakers and how the differences are modelled in adaptive training. 
-
-
-
-
-
-
-
-
-
+%   Section \ref{sec:adaptive_training} discussed the differences between speakers and how the differences are modelled in adaptive training. 
 
 
 
