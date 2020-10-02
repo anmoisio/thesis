@@ -243,6 +243,7 @@
   GMM           & Gaussian mixture model \\
   GRU           & gated recurrent unit \\
   HMM           & hidden Markov model \\
+  LDA           & latent Dirichlet allocation \\
   LDA           & linear discriminant analysis \\
   LM            & language model \\
   LSTM          & long short-term memory \\
@@ -450,9 +451,11 @@
   \end{equation}
   In Kaldi, the default window length $\boldsymbol{\Theta}$ is 2, so the $\boldsymbol{\Delta}$s are computed by multiplying the MFCCs with a sliding window of values $[-2,-1,0,1,2]$ and then normalising by dividing by $2*(1^2 + 2^2)= 10$ \citep{kaldi}. The $\boldsymbol{\Delta\Delta}$s are computed by applying the same method to the $\boldsymbol{\Delta}$ features. The first and last MFCCs are replicated to fill the window \citep{htkbook}.
 
-  The cepstral mean and variance normalisation (CMVN) is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
+  The cepstral mean and variance normalisation (CMVN) is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments. Normalising variability between the speech signals is in general important in training an ASR system that ought to recognise different types of speech by different speakers in different recording conditions. The topic of handling meaningless variance (i.e., variance that does not contribute to the information content of the utterance)  between the utterances is revisited in Section \ref{sec:adaptive_training} which describes speaker adaptive training.
 
   frame splicing
+
+  MLLT and LDA \citep{somervuo2003feature, pylkkonen2006lda} transforms 
 
 
 \subsubsection{Modelling phonemes with hidden Markov models} \label{sec:phoneme_hmm} 
@@ -595,7 +598,7 @@
   % AS stated in the Kaldi documentation, computed alignment is a sequence of transitions that corresponds to an utterance. 
 
 
-\subsubsection{Phones in context}
+\subsubsection{Phones in context} \label{sec:triphone} 
   Phones of the same phoneme sound different when flanked by different phonemes. For this reason, contextual information is modelled, too, by assigning each triphone a HMM. \citep{schwartz1985context}
 
   The monophone models are first trained
@@ -625,13 +628,17 @@
 
   % acoustic normalisation = feature space
 
-  Variability between speakers poses a challenge to an ASR system. Each speaker may have idiosyncratic voice, distinct style of pronunciation as well as distinct recording conditions, which can degrade the ASR performance. A straight-forward solution would be to train personal speaker-dependent (SD) models, but this is not an option when the aim is to build a  system that recognises speech also by people not in the training data set.
+  Variability between speakers poses a challenge to an ASR system. Each speaker may have idiosyncratic voice, distinct style of pronunciation as well as distinct recording conditions, which can degrade the ASR performance. Cepstral mean and variance normalisation, mentioned in Section \ref{sec:feats}, mitigates the problem of different noise conditions of speech signals. This section addresses the problem of accounting for inter-speaker variability.
+  
+  One solution to the problem is \emph{speaker adaptation}, which means modifying a speaker-independent (SI) model to create personal, speaker-dependent (SD) models for each speaker. This can be done by taking a small number of speech data from the speaker and using this adapt a SI model to the specific speaker. However, this requires data from the speaker and re-estimating the parameters of the model to conform to the speaker.
+  
+  Often the the aim is to build a  system that recognises speech also from completely new speakers.
   % Speaker-dependent systems can be adapted from speaker-independent systems by a transformation  
-  The solution to speaker variability discussed in this section is to learn separate representations of speakers which are incorporated into the speaker-independent (SI) system in the training, called speaker-adaptive training, or SAT for short.
+  The solution to speaker variability discussed in this section is to learn an explicit representation for each speaker's idiosyncratic qualities which is then used in addition to the speaker-independent (SI) in the training. Because the speaker variabilities are learned separately from the SI model, the SI model is better able to generalise to new speakers.
+  This is called speaker-adaptive training, or SAT for short.  
   SAT requires identifying each speaker from the metadata that indicates the speaker ID. Adaptation can be useful even the speaker-identifying metadata is absent, in which case a separate adaptation is learned for each utterance, as if each utterance were spoken by a different person.
 
-  With a HMM/GMM acoustic model, speaker adaptation can be done by representing each speaker's distinct qualities as a transform in the feature space or in the model space. A feature space transform is applied on the observation vectors, and model space transform on the mean and variance of the GMM. Furthermore, a model space transform can be unconstrained or constrained, the former being separate transforms for the means and variances and the latter using the same transform for both \citep{gales1998maximum}.
-  SAT is a similar normalisation method to CMVN discussed in Section \ref{sec:feats}, but it SAT the normalisation is integrated in the training of the model parameters.
+  With a HMM/GMM acoustic model, speaker adaptive training can be done by representing each speaker's distinct qualities as a transform in the feature space or in the model space. A feature space transform is applied on the observation vectors, and model space transform on the mean and variance of the GMM. Furthermore, a model space transform can be unconstrained or constrained, the former being separate transforms for the means and variances and the latter using the same transform for both \citep{gales1998maximum}.
 
   Using the model space transform, the aim is to learn the optimal model $\boldsymbol{M}$ and adaptation $\boldsymbol{G}^{(r)}$ for speaker $r$
   \begin{equation}
@@ -646,14 +653,24 @@
   \begin{equation}
     \boldsymbol{\mu}^{(r)} = \boldsymbol{A}^{(r)}\boldsymbol{\mu}+\boldsymbol{b}^{(r)}
   \end{equation}
-  The constrained MLLR (CMLLR) can be represented as a feature space transform \citep{gales1998maximum} and is therefore also called feature-space (MLLR) or fMLLR.
+  The constrained MLLR (CMLLR) can be represented as a feature space transform \citep{gales1998maximum} and is therefore also called feature-space (MLLR) or fMLLR. The transformation projects the features from the speaker-specific space to the speaker-normalised space.
+
+  In practice (in Kaldi) affine transform applied by appending a 1 to the feature vector, and multiplying it with the linear transform $\boldsymbol{A}$ concatenated with the constant offset (bias) $\boldsymbol{b}$: $\bracketVectorstack{  \boldsymbol{A} ; \boldsymbol{b}} \bracketVectorstack{\boldsymbol{o} \\ 1}$. The Kaldi program \texttt{transform-feats} is used to multiply the feature vectors with transform matrices.
+  \newline
+
+  As well as HMM/GMM models, also HMM/DNN acoustic models (see Section \ref{sec:dnn_am}) can be trained speaker-adaptively. A common method is to use i-vectors \citep{ivector, miao2015speaker}, in addition to the features that are fed to the DNN. i-vectors have usually a hundred or a few hundred dimensions that encode properties of a speaker, enabling the AM to generalise more robustly to speech from different speakers. \citet{ivector} referred to the i-vector as \emph{total factors} in the \emph{total variability space} because it models both speaker and channel variability in contrast with earlier models (joint factor analysis) that made a distinction between the two sources of variability. 
+  
+  i-vector extractor training starts by estimating a speaker-independent GMM called an \emph{universal background model}, or UBM. The purpose of the UBM is to represent the general, or universal, characteristics of speech, i.e., the speaker-independent model. Baum-Welch statistics are obtained from the UBM. The i-vector is then defined as the mean vector of the posterior Gaussian distribution conditioned on the Baum-Welch statistics for a given utterance \citep{ivector}.
+  \newline
+
+  x-vectors \citep{snyder2018x}
+  
+  % , for example by using speaker-adapted features \citep{trmal2010speaker} or 
+  
+  % DNNs  by using speaker-specific information, such as .
 
 
-  In practice (in Kaldi) affine transform applied by appending a 1 to the feature vector, and multiplying it with the linear transform $\boldsymbol{A}$ concatenated with the constant offset (bias) $\boldsymbol{b}$: $\bracketVectorstack{  \boldsymbol{A} ; \boldsymbol{b}} \bracketVectorstack{\boldsymbol{o} \\ 1}$
-
-  Analogously with the GMM parameter transform, in DNN acoustic models (see Section \ref{sec:dnn_am}) can also use speaker adaptive training using i-vectors \citep{ivector, miao2015speaker} or x-vectors \citep{snyder2018x}.
-
-
+  %  or 
   %%%%  
     % A speaker-independent (SI)!!!!!!!!!!! ASR system can be trained on and transcribe the speech of different speakers, in different recording conditions, 
     % % about different topics,
@@ -666,7 +683,7 @@
     % The idea can also be generalised to any other attributes of the speech which modulates the speech in some consistent manner, for example the gender of the speaker. 
 
 
-    % MLLT and LDA transforms are speaker-independent
+    % 
 
 
     % For each speaker, each feature vector is transformed by multiplying it by a matrix that encodes information about how this speaker differs from the general speaker.
@@ -674,8 +691,6 @@
     % The transform can be done when testing the final model (speaker adaptation, discussed in Section \ref{sec:adaptation}) and in the training process. The latter is called adaptive training.
     
     % First, a transform is generated for each speaker. 
-
-    % The Kaldi program 'transform-feats' is used to multiply the feature vectors with transform matrices
 
     % model-space or feature-space 
     % speaker- or utterance-specific
