@@ -247,6 +247,7 @@
   LDA           & linear discriminant analysis \\
   LM            & language model \\
   LSTM          & long short-term memory \\
+  MAP           & maximum a posteriori \\
   MCE           & minimum classification error \\
   MFCC          & mel-frequency cepstral coefficient \\
   ML            & maximum likelihood \\
@@ -269,13 +270,13 @@
   WFST          & weighted finite-state transducer \\
   VTLN          & vocal tract length normalisation \\
   \end{tabular}
-%%
 
-%% \clearpage is similar to \newpage, but it also flushes the floats (figures
-%% and tables).
-\cleardoublepage
-\pagenumbering{arabic}
-\setcounter{page}{1}
+  %% \clearpage is similar to \newpage, but it also flushes the floats (figures
+  %% and tables).
+  \cleardoublepage
+  \pagenumbering{arabic}
+  \setcounter{page}{1}
+%%
 
 %% Text body begins.
 \section{Introduction} \label{sec:introduction}
@@ -287,6 +288,7 @@
 %% Leave page number of the first page empty
 \thispagestyle{empty}
 
+\clearpage
 \section{Finnish conversations to text} \label{sec:background} 
   The task of converting speech into text, or \emph{automatic speech recognition}, can be divided into
   % four
@@ -338,6 +340,8 @@
   The mapping from input to output is determined by the parameters that are learned. There are different approaches to defining how good a model is, given a training dataset. Using the maximum likelihood (ML) criterion, the parameters are adjusted to maximise how probable the model judges the data set. 
 
   % bayesing, MAP
+  % cross entropy
+  % 
 
 
 \subsection{Statistical language modelling} \label{sec:lm} 
@@ -634,9 +638,9 @@
   
   Often the the aim is to build a  system that recognises speech also from completely new speakers.
   % Speaker-dependent systems can be adapted from speaker-independent systems by a transformation  
-  The solution to speaker variability discussed in this section is to learn an explicit representation for each speaker's idiosyncratic qualities which is then used in addition to the speaker-independent (SI) in the training. Because the speaker variabilities are learned separately from the SI model, the SI model is better able to generalise to new speakers.
+  The solution to speaker variability discussed in this section is to learn an explicit representation for each speaker's idiosyncratic qualities which is then used in addition to the speaker-independent (SI) model in the training. Because the speaker variabilities are learned by separate models, the SI model encodes, in theory, only the information needed for discriminating between phonemes, and is therefore better able to generalise to new speakers.
   This is called speaker-adaptive training, or SAT for short.  
-  SAT requires identifying each speaker from the metadata that indicates the speaker ID. Adaptation can be useful even the speaker-identifying metadata is absent, in which case a separate adaptation is learned for each utterance, as if each utterance were spoken by a different person.
+  SAT requires identifying each speaker from the metadata that indicates the speaker ID. Adaptation can be useful even if the speaker-identifying metadata is absent, in which case a separate adaptation is learned for each utterance, as if each utterance were spoken by a different person.
 
   With a HMM/GMM acoustic model, speaker adaptive training can be done by representing each speaker's distinct qualities as a transform in the feature space or in the model space. A feature space transform is applied on the observation vectors, and model space transform on the mean and variance of the GMM. Furthermore, a model space transform can be unconstrained or constrained, the former being separate transforms for the means and variances and the latter using the same transform for both \citep{gales1998maximum}.
 
@@ -653,24 +657,25 @@
   \begin{equation}
     \boldsymbol{\mu}^{(r)} = \boldsymbol{A}^{(r)}\boldsymbol{\mu}+\boldsymbol{b}^{(r)}
   \end{equation}
-  The constrained MLLR (CMLLR) can be represented as a feature space transform \citep{gales1998maximum} and is therefore also called feature-space (MLLR) or fMLLR. The transformation projects the features from the speaker-specific space to the speaker-normalised space.
+  The constrained MLLR (CMLLR) can be represented as a feature space transform \citep{gales1998maximum} and is therefore also called feature-space MLLR or fMLLR. The transformation projects the features from the speaker-specific space to the speaker-normalised space.
 
-  In practice (in Kaldi) affine transform applied by appending a 1 to the feature vector, and multiplying it with the linear transform $\boldsymbol{A}$ concatenated with the constant offset (bias) $\boldsymbol{b}$: $\bracketVectorstack{  \boldsymbol{A} ; \boldsymbol{b}} \bracketVectorstack{\boldsymbol{o} \\ 1}$. The Kaldi program \texttt{transform-feats} is used to multiply the feature vectors with transform matrices.
+  In practice (in Kaldi), affine transform is applied by appending a 1 to the feature vector, and multiplying it with the linear transform $\boldsymbol{A}$ concatenated with the constant offset (bias) $\boldsymbol{b}$: $\bracketVectorstack{  \boldsymbol{A} ; \boldsymbol{b}} \bracketVectorstack{\boldsymbol{o} \\ 1}$. The Kaldi program \texttt{transform-feats} is used to multiply the feature vectors with transform matrices.
+  % \citep{povey2008fast}
   \newline
 
-  As well as HMM/GMM models, also HMM/DNN acoustic models (see Section \ref{sec:dnn_am}) can be trained speaker-adaptively. A common method is to use i-vectors \citep{ivector, miao2015speaker}, in addition to the features that are fed to the DNN. i-vectors have usually a hundred or a few hundred dimensions that encode properties of a speaker, enabling the AM to generalise more robustly to speech from different speakers. \citet{ivector} referred to the i-vector as \emph{total factors} in the \emph{total variability space} because it models both speaker and channel variability in contrast with earlier models (joint factor analysis) that made a distinction between the two sources of variability. 
+  As well as HMM/GMM models, also HMM/DNN acoustic models (see Section \ref{sec:dnn_am}) can be trained speaker-adaptively. A common method is to use i-vectors \citep{ivector, miao2015speaker}, appended to the features that are fed to the DNN. i-vectors have usually a hundred or a few hundred dimensions that encode properties of a speaker, enabling the AM to generalise more robustly to speech from different speakers. \citet{ivector} referred to the i-vector as the \emph{total factors} $\boldsymbol{w}$ in the \emph{total variability space} $\boldsymbol{T}$ because it models both speaker and channel variability in contrast with joint factor analysis \citep{kenny2005joint} which makes a distinction between the two sources of variability. 
   
-  i-vector extractor training starts by estimating a speaker-independent GMM called an \emph{universal background model}, or UBM. The purpose of the UBM is to represent the general, or universal, characteristics of speech, i.e., the speaker-independent model. Baum-Welch statistics are obtained from the UBM. The i-vector is then defined as the mean vector of the posterior Gaussian distribution conditioned on the Baum-Welch statistics for a given utterance \citep{ivector}.
-  \newline
+  i-vector extractor training starts by estimating a speaker-independent GMM called an \emph{universal background model}, or UBM. The purpose of the UBM is to represent the general, or universal, characteristics of speech, i.e., it is the speaker-independent model. Baum-Welch statistics are obtained from the UBM. The i-vector is then defined as the mean vector of the posterior Gaussian distribution conditioned on the Baum-Welch statistics for a given utterance \citep{ivector}. In practice it is a MAP estimate \citep{kenny2005eigenvoice}. The mean vector (i-vector) is actually a concatenation of the mean vectors of the mixture components, called a supervector \citep{campbell2006svm}. A speaker-specific utterance supervector $\boldsymbol{M}$ is composed of the factors
+  \begin{equation}
+    \boldsymbol{M} = \boldsymbol{m} + \boldsymbol{T} \boldsymbol{w}
+  \end{equation}
+  where $\boldsymbol{m}$ is the UBM supervector. The total variability space $\boldsymbol{T}$ models the variability of speakers, and it is also referred to as the i-vector extractor \citep{alam2014use}. The extractor compresses the high-dimensional statistics from the UBM into the dense i-vector representation for a given utterance.
 
-  x-vectors \citep{snyder2018x}
+  Another approach to modelling speaker characteristics is to train a feedforward deep neural network to project speakers into an embedding space. \citet{snyder2017deep} introduced a \emph{speaker embedding} method where the DNN is trained to classify speakers from variable-length segments. The DNN learns to assign each speaker an embedding space vector which can be then used in the AM training similarly to an i-vector.
+  \citet{snyder2018x} describe the use of speaker embeddings which they call x-vectors. 
   
-  % , for example by using speaker-adapted features \citep{trmal2010speaker} or 
   
-  % DNNs  by using speaker-specific information, such as .
 
-
-  %  or 
   %%%%  
     % A speaker-independent (SI)!!!!!!!!!!! ASR system can be trained on and transcribe the speech of different speakers, in different recording conditions, 
     % % about different topics,
@@ -682,20 +687,12 @@
     
     % The idea can also be generalised to any other attributes of the speech which modulates the speech in some consistent manner, for example the gender of the speaker. 
 
-
-    % 
-
-
     % For each speaker, each feature vector is transformed by multiplying it by a matrix that encodes information about how this speaker differs from the general speaker.
     
     % The transform can be done when testing the final model (speaker adaptation, discussed in Section \ref{sec:adaptation}) and in the training process. The latter is called adaptive training.
     
     % First, a transform is generated for each speaker. 
 
-    % model-space or feature-space 
-    % speaker- or utterance-specific
-
-    % Speaker adaptive training \citep{povey2008fast}
 
 
 \subsubsection{Discriminative training} \label{sec:mmi} 
@@ -807,6 +804,11 @@
 
 
 \subsubsection{Deep neural networks for acoustic modelling} \label{sec:dnn_am}
+
+  In the previous decade, deep neural networks achieved state-of-the-art results in acoustic modelling, supplanting the Gaussian mixture models as the most accurate method to classify observations into phoneme classes.
+
+
+
 
 % \subsubsection{Speaker recognition} \label{sec:spk_id}
 
