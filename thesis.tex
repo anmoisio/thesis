@@ -439,7 +439,7 @@
 
   A speech audio signal contains a lot of information that is irrelevant for converting the signal to text. The first step of ASR is to find the features of the signal that contain the information about what is being said. An assumption is made that the speech signal does not change meaningfully in a time frame of about 10 milliseconds so that the signal can be divided into frames with this time resolution. The frames overlap so that each frame is about 20 or 25 milliseconds, and a tapered window function, such as Hamming, is applied to (i.e., multiplied by) each frame. This window function removes the discontinuities that occur on the borders of frames, and the overlapping compensates for the tapering of the window function so that the distorting effect on the signal statistics is minimised \citet{}. % https://wiki.aalto.fi/display/ITSP/Windowing
 
-  The stationary frames' frequency components can be then computed with the Fourier transform. A commonly used method is to extract the MFCCs by applying a logarithmic mel-scale filterbank to the frequency spectrum, and lastly computing the DCT. The log mel-scale emphasises the lower frequencies emulating the way humans perceive sound, i.e., the way the human inner ear recognises lower frequencies with higher frequency resolution. The DCT decorrelates the coefficients so that the use of diagonal covariance matrices is possible in the subsequent stages of the modelling, namely when using GMMs to model the HMM state emissions (Section \ref{sec:phoneme_hmm}). The use of diagonal covariance matrices reduces the number of free parameters.
+  The stationary frames' frequency components can be then computed with the Fourier transform. A commonly used method is to extract the MFCCs by applying a logarithmic mel-scale filterbank to the frequency spectrum, and lastly computing the DCT. The log mel-scale emphasises the lower frequencies emulating the way humans perceive sound, i.e., the way the human inner ear recognises lower frequencies with higher frequency resolution. The DCT decorrelates the coefficients so that the use of diagonal covariance matrices is possible in the subsequent stages of the modelling, namely when using GMMs to model the HMM state emissions (Section \ref{sec:phoneme_hmm}). The use of diagonal covariance matrices greatly reduces the number of free parameters, but the trade-off is that correlation between feature vector elements is not modelled.
   
   % ?
   % The MFCC method thus assumes that coefficients adjacent in time are independent of each other, which is a false assumption in the case of speech signals.
@@ -455,11 +455,21 @@
   \end{equation}
   In Kaldi, the default window length $\boldsymbol{\Theta}$ is 2, so the $\boldsymbol{\Delta}$s are computed by multiplying the MFCCs with a sliding window of values $[-2,-1,0,1,2]$ and then normalising by dividing by $2*(1^2 + 2^2)= 10$ \citep{kaldi}. The $\boldsymbol{\Delta\Delta}$s are computed by applying the same method to the $\boldsymbol{\Delta}$ features. The first and last MFCCs are replicated to fill the window \citep{htkbook}.
 
-  The cepstral mean and variance normalisation (CMVN) is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments. Normalising variability between the speech signals is in general important in training an ASR system that ought to recognise different types of speech by different speakers in different recording conditions. The topic of handling meaningless variance (i.e., variance that does not contribute to the information content of the utterance)  between the utterances is revisited in Section \ref{sec:adaptive_training} which describes speaker adaptive training.
 
-  frame splicing
+% \subsection{Further processing of the features}
+
+  The cepstral mean and variance normalisation (CMVN) is a method for making the features more useful in noisy conditions \citep{viikki1998cepstral}. In this technique, the MFCC feature vectors are normalised to have a zero mean and unit variance over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments. Normalising variability between the speech signals is in general important in training an ASR system that ought to recognise different types of speech by different speakers in different recording conditions. The topic of handling meaningless variance (i.e., variance that does not contribute to the phoneme content of the utterance)  between the utterances is revisited in Section \ref{sec:adaptive_training} which describes speaker adaptive training.
+
+  % frame splicing
+
+  The features can be compressed by a dimensionality reduction method. Two common methods for this are the principal component analysis (PCA) and linear discriminant analysis (LDA).
+
 
   MLLT and LDA \citep{somervuo2003feature, pylkkonen2006lda} transforms 
+
+  The intuition behind LDA is that defining new axes that maximise variance between speakers makes discriminating easier.
+
+  GMMs are sensitive to the number of dimensions of the feature vectors: even a small increase in the vector length will increase the number of GMM parameters substantially. The usual number of dimensions used with GMMs is about 40. With DNNs, however, the input vector determines only the width of the input layer--widths of the other layers are not constrained by the dimensionality of the input features. Therefore, DNNs can learn to use longer feature vectors, and often the used number of dimensions is a few hundred \citep{rath2013improved}.
 
 
 \subsubsection{Modelling phonemes with hidden Markov models} \label{sec:phoneme_hmm} 
@@ -632,14 +642,19 @@
 
   % acoustic normalisation = feature space
 
-  Variability between speakers poses a challenge to an ASR system. Each speaker may have idiosyncratic voice, distinct style of pronunciation as well as distinct recording conditions, which can degrade the ASR performance. Cepstral mean and variance normalisation, mentioned in Section \ref{sec:feats}, mitigates the problem of different noise conditions of speech signals. This section addresses the problem of accounting for inter-speaker variability.
+  Variability between speakers poses a challenge to an ASR system. Each speaker may have idiosyncratic voice, distinct style of pronunciation as well as distinct recording conditions, which can degrade the ASR performance. This section describes some of the methods to account for inter-speaker variability by adapting either the model or the features to a particular speaker. An exhaustive overview of all the used methods is beyond the scope of this thesis.
+
+  The adaptation can be done either in testing or training, usually respectively referred to as \emph{speaker adaptation} and \emph{speaker adaptive training} (SAT). Speaker adaptation can be done by modifying a speaker-independent (SI) model to create personal, speaker-dependent (SD) models for each speaker.  This can be done by taking a small number of speech data from the speaker and using this adapt a SI model to the specific speaker \citep{shinoda2011speaker}. In SAT, speaker-specific information is incorporated in the training of the model. When a model is trained using SAT, it naturally benefits to use an adaptation scheme also in testing. Both GMM- and DNN-based AMs have been shown to benefit from speaker adaptation as well as SAT. A commonly used SAT method for GMMs is using the feature-space MLLR. For DNNs
+
+  % Cepstral mean and variance normalisation, mentioned in Section \ref{sec:feats}, mitigates the problem of different noise conditions of speech signals. 
   
-  One solution to the problem is \emph{speaker adaptation}, which means modifying a speaker-independent (SI) model to create personal, speaker-dependent (SD) models for each speaker. This can be done by taking a small number of speech data from the speaker and using this adapt a SI model to the specific speaker. However, this requires data from the speaker and re-estimating the parameters of the model to conform to the speaker.
+  % One solution to the problem is \emph{speaker adaptation}, which can be done by modifying a speaker-independent (SI) model to create personal, speaker-dependent (SD) models for each speaker.  This can be done by taking a small number of speech data from the speaker and using this adapt a SI model to the specific speaker. However, this requires data from the speaker and re-estimating the parameters of the model to conform to the speaker.
+  % Instead  of adapting the model parameters, speaker adaptation can be done also transforming the features of the test speaker \citep{}.
   
-  Often the the aim is to build a  system that recognises speech also from completely new speakers.
+  % Often the the aim is to build a  system that recognises speech also from completely new speakers.
   % Speaker-dependent systems can be adapted from speaker-independent systems by a transformation  
-  The solution to speaker variability discussed in this section is to learn an explicit representation for each speaker's idiosyncratic qualities which is then used in addition to the speaker-independent (SI) model in the training. Because the speaker variabilities are learned by separate models, the SI model encodes, in theory, only the information needed for discriminating between phonemes, and is therefore better able to generalise to new speakers.
-  This is called speaker-adaptive training, or SAT for short.  
+  % The solution to speaker variability discussed in this section is to learn an explicit representation for each speaker's idiosyncratic qualities which is then used in addition to the speaker-independent (SI) model in the training. Because the speaker variabilities are learned by separate models, the SI model encodes, in theory, only the information needed for discriminating between phonemes, and is therefore better able to generalise to new speakers.
+  % This is called speaker-adaptive training, or SAT for short.  
   SAT requires identifying each speaker from the metadata that indicates the speaker ID. Adaptation can be useful even if the speaker-identifying metadata is absent, in which case a separate adaptation is learned for each utterance, as if each utterance were spoken by a different person.
 
   With a HMM/GMM acoustic model, speaker adaptive training can be done by representing each speaker's distinct qualities as a transform in the feature space or in the model space. A feature space transform is applied on the observation vectors, and model space transform on the mean and variance of the GMM. Furthermore, a model space transform can be unconstrained or constrained, the former being separate transforms for the means and variances and the latter using the same transform for both \citep{gales1998maximum}.
@@ -657,22 +672,24 @@
   \begin{equation}
     \boldsymbol{\mu}^{(r)} = \boldsymbol{A}^{(r)}\boldsymbol{\mu}+\boldsymbol{b}^{(r)}
   \end{equation}
-  The constrained MLLR (CMLLR) can be represented as a feature space transform \citep{gales1998maximum} and is therefore also called feature-space MLLR or fMLLR. The transformation projects the features from the speaker-specific space to the speaker-normalised space.
+  Whether an adaptation modifies the model or the features is in some cases only a question of interpretation when describing the method, and a question of choosing among two equivalent implementations. The constrained MLLR (CMLLR) can be represented as a feature space transform \citep{gales1998maximum}, and is therefore also called feature-space MLLR or fMLLR. The transformation projects the features from the speaker-specific space to the speaker-normalised space.
 
   In practice (in Kaldi), affine transform is applied by appending a 1 to the feature vector, and multiplying it with the linear transform $\boldsymbol{A}$ concatenated with the constant offset (bias) $\boldsymbol{b}$: $\bracketVectorstack{  \boldsymbol{A} ; \boldsymbol{b}} \bracketVectorstack{\boldsymbol{o} \\ 1}$. The Kaldi program \texttt{transform-feats} is used to multiply the feature vectors with transform matrices.
   % \citep{povey2008fast}
   \newline
 
-  As well as HMM/GMM models, also HMM/DNN acoustic models (see Section \ref{sec:dnn_am}) can be trained speaker-adaptively. A common method is to use i-vectors \citep{ivector, miao2015speaker}, appended to the features that are fed to the DNN. i-vectors have usually a hundred or a few hundred dimensions that encode properties of a speaker, enabling the AM to generalise more robustly to speech from different speakers. \citet{ivector} referred to the i-vector as the \emph{total factors} $\boldsymbol{w}$ in the \emph{total variability space} $\boldsymbol{T}$ because it models both speaker and channel variability in contrast with joint factor analysis \citep{kenny2005joint} which makes a distinction between the two sources of variability. 
+  As well as GMM parameters, also DNN acoustic models (see Section \ref{sec:dnn_am}) can be estimated speaker-adaptively. Adapting can be performed in the feature-space by appending or transforming the observations or in the model-space by modifying the DNN AM parameters.
   
-  i-vector extractor training starts by estimating a speaker-independent GMM called an \emph{universal background model}, or UBM. The purpose of the UBM is to represent the general, or universal, characteristics of speech, i.e., it is the speaker-independent model. Baum-Welch statistics are obtained from the UBM. The i-vector is then defined as the mean vector of the posterior Gaussian distribution conditioned on the Baum-Welch statistics for a given utterance \citep{ivector}. In practice it is a MAP estimate \citep{kenny2005eigenvoice}. The mean vector (i-vector) is actually a concatenation of the mean vectors of the mixture components, called a supervector \citep{campbell2006svm}. A speaker-specific utterance supervector $\boldsymbol{M}$ is composed of the factors
+  A common method is to extract i-vectors from speakers \citep{ivector}, optionally perform a transformation of the i-vectors using a control network, and append them to the features that are fed to the DNN \citep{miao2015speaker}. i-vectors have usually a hundred or a few hundred dimensions that encode properties of a speaker as well as the environment, enabling the AM to generalise more robustly to speech in different conditions. The original paper by \citet{ivector} referred to the i-vector as the \emph{total factors} $\boldsymbol{w}$ in the \emph{total variability space} $\boldsymbol{T}$ because it models both speaker and channel variability in contrast with joint factor analysis \citep{kenny2005joint} which makes a distinction between the two sources of variability. 
+  
+  The total variability space $\boldsymbol{T}$ models the variability between utterances, and it is also referred to as the i-vector extractor \citep{alam2014use}. i-vector extractor training starts by estimating a speaker-independent GMM called an \emph{universal background model}, or UBM. The purpose of the UBM is to represent the general, or universal, characteristics of speech, i.e., it is the speaker-independent model. Baum-Welch statistics are obtained from the UBM at the frame level. The i-vector is then defined as the mean vector of the posterior Gaussian distribution conditioned on the Baum-Welch statistics for a given utterance \citep{ivector}. In practice it is a MAP estimate \citep{kenny2005eigenvoice}. The mean vector (i-vector) is actually a concatenation of the mean vectors of the mixture components, called a supervector \citep{campbell2006svm}. A speaker-specific utterance supervector $\boldsymbol{M}$ is composed of the factors
   \begin{equation}
     \boldsymbol{M} = \boldsymbol{m} + \boldsymbol{T} \boldsymbol{w}
   \end{equation}
-  where $\boldsymbol{m}$ is the UBM supervector. The total variability space $\boldsymbol{T}$ models the variability of speakers, and it is also referred to as the i-vector extractor \citep{alam2014use}. The extractor compresses the high-dimensional statistics from the UBM into the dense i-vector representation for a given utterance.
+  where $\boldsymbol{m}$ is the UBM supervector.  The extractor compresses the high-dimensional statistics from the UBM into the dense i-vector representation for a given utterance. In decoding, i-vectors can be extracted, for example, every 10 frames, and an utterance-level i-vector can be obtained by averaging the frame-level i-vectors across the utterance.
 
-  Another approach to modelling speaker characteristics is to train a feedforward deep neural network to project speakers into an embedding space. \citet{snyder2017deep} introduced a \emph{speaker embedding} method where the DNN is trained to classify speakers from variable-length segments. The DNN learns to assign each speaker an embedding space vector which can be then used in the AM training similarly to an i-vector.
-  \citet{snyder2018x} describe the use of speaker embeddings which they call x-vectors. 
+  Another approach to modelling speaker characteristics is to train a feedforward deep neural network to project speakers into an embedding space that models the speaker variance. \citet{snyder2017deep} introduced a \emph{speaker embedding} method  where the DNN is trained to classify speakers from variable-length segments. The DNN learns to assign each speaker an embedding space vector which can be then used in the AM training similarly to an i-vector.
+  \citet{snyder2018x} describe the use of speaker embeddings, which they call x-vectors, in speaker  recognition. In contrast with i-vectors, x-vectors model only the speaker characteristics since the DNN is trained to identify speakers. 
   
   
 
@@ -746,7 +763,7 @@
     \caption{An example of a lexicon.
     The first entries have special phonemes: spoken noise (SPN), silence (SIL) and non-spoken noise (NSN). "oov" refers to out-of-vocabulary words. 
     "+" is the intra-word boundary marker in subword vocabularies.
-    Note also the inaccurate pronunciation of "zoom".
+    Note also the inaccurate pronunciation of "zoom": "T S U U M" would be more accurate.
     }
     \label{}
   \end{table}
@@ -846,6 +863,7 @@
 
 
 \clearpage
+\small
 % for counting pages
 \thesisbibliography
 
