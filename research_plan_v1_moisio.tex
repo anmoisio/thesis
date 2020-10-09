@@ -1,0 +1,87 @@
+\documentclass[titlepage]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[title]{appendix}
+\usepackage{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{amsmath}
+
+\title{Speech recognition for conversational Finnish \\ 
+        \textbf{Master's thesis research plan v1}}
+\author{Anssi Moisio\\
+    Master's programme in Computer, Communication and Information Sciences\\
+    Signal, Speech and Language Processing major}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+
+\large
+% \normalsize
+
+
+% • Draft a research plan. The research plan should be 2-3 pages long and include the
+%   following sections:
+% 1. Definition of the research problem and the research questions.
+% 2. Description of the state-of-the-art. How has the problem been approached so far
+%     (by others)?
+
+\section{The ASR task}
+
+Automatic speech recognition (ASR) is the task of converting speech into text.
+The difficulty of the task depends on how varied the speech audio signals are. The restricted problem of recognising a few different words pronounced clearly by one speaker recorded in noise-free conditions was solved years ago. Speech recognition becomes more difficult when the speech is continuous and recorded in differing noise conditions from many speakers. Current state-of-the-art ASR systems are nearing the human-level recognition accuracy also in continuous speech recognition tasks if the speech is planned and pronounced clearly, as it is, for example, in broadcast news or parliament discussions. However, spontaneous, informal conversations remain a challenging type of speech to transcribe automatically, and the gap between human and machine accuracy is still very large. This thesis explores methods for improving ASR for conversational Finnish.
+
+\section{The basic structure of an ASR system}
+
+The conventional ASR system includes two main component systems: the acoustic model (AM) and the language model (LM). The LM generates an \emph{a priori} probability distribution over possible word sequences. For example, the transciption "en minä tiedä" should probably be assigned a larger probability than "en sinä tiedä" even before any speech audio is processed. The AM outputs \emph{a posteriori} probabilities for phoneme sequences based on the speech audio. A dictionary is used to map the phoneme sequences to words, or more accurately, the same grapheme units that the LM uses, which can also be subword units or characters, for instance. The probabilities of the LM and AM are combined to estimate the most likely transcription of the speech audio.
+
+In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results. An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon although they benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and the thesis explores methods in this paradigm.
+
+
+% 3. What will be your methodology?
+\section{Related work and methodology}
+
+The purpose of the thesis is to experiment with some of the latest acoustic and language modelling methods to improve upon the previous best results obtained for an informal, spontaneous Finnish conversation speech data set. Both the speech data set used in this thesis and the previous best results are described by \citet{enarvi2017automatic}. In their work, the acoustic models are trained on 85 hours of speech using the Kaldi toolkit. A first pass of large-vocabulary decoding and word lattice generation is done using an n-gram language model trained on a conversational Finnish text corpus collected by \citet{enarvi2013studies}. A second pass of rescoring the lattices and generating transcripts is done using a recurrent neural network language model trained on the same text corpus. Subword-vocabulary language models based on statistical segmentation of words \citep{creutz2002unsupervised, creutz2007unsupervised} were found to perform better than a word vocabulary.
+
+The baseline system is the same in this thesis, and the work begun by replicating the previous results. The Kaldi toolkit includes acoustic model training pipelines, called "recipes", that are tuned to achieve optimal results for a particular speech data set. In the past three years after the above mentioned previous best results were achieved, the Kaldi recipes have been developed further, and the latest machine learning algorithms have been implemented in the toolkit. By applying the latest Kaldi recipes for the Finnish speech data used in this thesis, the previous best results can be improved. Other acoustic modelling experiments of this work include modelling the speaker and channel variability using i-vectors \citep{ivector} and x-vectors \citep{snyder2018x}.
+
+\citet{vaswani2017attention} introduced a neural network architecture for language modelling called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type.
+One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the commonly used recurrent neural networks, since their hidden states do not depend on the hidden states of previous time steps.
+In this thesis, a Transformer-XL \citep{dai2019transformer} LM is trained and evaluated in the ASR task, in a similar manner as described by \citet{jain2020finnish}.
+
+Other language modelling experiments in this work include evaluating word and subword vocabularies, tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs), and experimenting with topic modelling (see e.g., \citet{xiong2018session, xing2016topic}).
+
+\clearpage
+\section{Schedule}
+
+% 4. Your milestones - preliminary schedule for the thesis project (based on the
+%     research plan, schedule the next steps on a monthly basis).
+
+\begin{itemize}
+    \item May: Learn to use Kaldi, replicate the acoustic model \citep{enarvi2017automatic} and first-pass decoding with n-grams.
+    \item June: Train the LSTM LM, and apply latest Kaldi recipes to improve on the baseline.
+    \item July: Experiments with subword vocabulary segmentation and using the subwords in ASR.
+    \item August: Train the Transformer-XL and experiment with its hyperparameters.
+    \item September: Writing the thesis background section, experiments with i-vectors.
+    \item October - November: speaker embeddings for the AM, topic modelling for the LM, writing the thesis experiments section.
+    \item December: Wrapping up the experiments, writing the results and conclusion sections.
+\end{itemize}
+
+
+% 5. A preliminary list of references (5-10 references).
+
+% • In the document, include your name, study programme, major and the preliminary or
+% agreed topic of your thesis.
+
+\clearpage
+\nocite{*}
+\bibliographystyle{apalike}
+Below is a list of references used so far in the thesis--not a "preliminary" list since the thesis should soon be finished already.
+\bibliography{references}
+
+\end{document}
