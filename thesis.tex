@@ -348,7 +348,13 @@
     \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
   \end{equation}
 
-  The probability of the observations ${P(\boldsymbol{O})}$ is not relevant in finding the best transcription for the observations, which leaves the product $P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})$ to be estimated. Here, the former factor is the a priori probabilities of word sequences, modelled by language models, discussed in Section \ref{sec:lm}. The acoustic model determines likelihoods of observations given phoneme sequences that are mapped to grapheme sequences by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{w})$. Acoustic modelling is discussed in Section \ref{sec:am}.
+  The probability of the observations ${P(\boldsymbol{O})}$ is not relevant in finding the best transcription (the argmax) for the observations, which leaves the product, or sum in logarithmic space,
+  \begin{equation}\label{eq:asr-bayes-2}
+    \argmax_{\boldsymbol{w}} P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})
+    = \argmax_{\boldsymbol{w}}
+      \log \{ P(\boldsymbol{w}) \} + \log \{ P(\boldsymbol{O}|\boldsymbol{w}) \}
+  \end{equation}
+  to be estimated. Here, the former factor is the a priori probabilities of word sequences, modelled by language models, discussed in Section \ref{sec:lm}. The acoustic model determines likelihoods of observations given phoneme sequences that are mapped to grapheme sequences by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{w})$. Acoustic modelling is discussed in Section \ref{sec:am}.
   % The first
   % % four
   % sections of this chapter respectively describe the
@@ -768,6 +774,9 @@
   \end{equation}
   % equivalent to conditional maximum likelihood 
   % extended b-w
+  
+  % vesely2013sequence
+
 
 \subsubsection{Mapping words to phoneme sequences} \label{sec:lexicon} 
 
@@ -859,7 +868,20 @@
 
 \subsubsection{Deep neural networks for acoustic modelling} \label{sec:dnn_am}
 
-  In the previous decade, deep neural networks achieved state-of-the-art results in acoustic modelling, supplanting the Gaussian mixture models as the most accurate method to classify observations into phoneme classes. 
+  In the previous decade, deep neural networks achieved state-of-the-art results in acoustic modelling, supplanting the Gaussian mixture models as the most accurate method to classify observations into phoneme classes. In the HMM/DNN hybrid approach, DNNs provide \emph{pseudo-likelihoods} of the observations for each HMM state. This is due to DNNs being discriminative instead of generative like GMMs.
+  The approach defined in Eq. \ref{eq:asr-bayes-2} works well for traditional ASR systems that use GMMs for acoustic modelling. However, if the generative model is replaced with a discriminative neural network model, it does not produce an acoustic likelihood $P(\boldsymbol{o}_t|\boldsymbol{s}(t))$ but a state level posterior probability $P(\boldsymbol{s}(t)|\boldsymbol{o}_t)$, which is a problem because the decoding (Eq. \ref{eq:asr-bayes-2}) relies on the likelihoods. This mismatch can be bypassed by applying the Bayes' rule to produce pseudo-likelihoods:
+  \begin{equation}
+      P(\boldsymbol{x}_t|\boldsymbol{s}(t)) =
+      \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)P(\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))} \propto	 
+      \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))}
+  \end{equation}
+  The state priors $P(\boldsymbol{s}(t))$ can be gathered from corpus frequencies \citep{Bourlard1994}. 
+
+
+
+  Two common types of DNNs used for acoustic modelling are RNNs and time delay neural networks (TDNN). Both RNNs and TDNNs are inherently suited to model time-series data where the previous time steps are relevant when producing the output for the current time step. (explaining RNNs and TDNNs in previous sections?)
+
+  Currently, the state-of-the-art implementations of DNNs in Kaldi are trained using lattice-free MMI training criterion. These are called "chain" models in Kaldi. 
 
 
 
