@@ -287,13 +287,37 @@
 
 %% Text body begins.
 \section{Introduction} \label{sec:introduction}
+\thispagestyle{empty} 
 
-% introduction from thesis research plan
+\subsection{The ASR task} 
 
-%% Leave page number of the first page empty
-\thispagestyle{empty}
+  Automatic speech recognition (ASR) is the task of converting speech into text.
+  The difficulty of the task depends on how varied the speech audio signals are. The restricted problem of recognising a few different words pronounced clearly by one speaker recorded in noise-free conditions was solved years ago. Speech recognition becomes more difficult when the speech is continuous and recorded in differing noise conditions from many speakers. Current state-of-the-art ASR systems are nearing the human-level recognition accuracy also in continuous speech recognition tasks if the speech is planned and pronounced clearly, as it is, for example, in broadcast news or parliament discussions. However, spontaneous, informal conversations remain a challenging type of speech to transcribe automatically, and the gap between human and machine accuracy is still very large. This thesis explores methods for improving ASR for conversational Finnish.
+
+\subsection{The basic structure of an ASR system} 
+
+  The conventional ASR system includes two main component systems: the acoustic model (AM) and the language model (LM). The LM generates an \emph{a priori} probability distribution over possible word sequences. For example, the transciption "en minä tiedä" should probably be assigned a larger probability than "en sinä tiedä" even before any speech audio is processed. The AM outputs \emph{a posteriori} probabilities for phoneme sequences based on the speech audio. A dictionary is used to map the phoneme sequences to words, or more accurately, the same grapheme units that the LM uses, which can also be subword units or characters, for instance. The probabilities of the LM and AM are combined to estimate the most likely transcription of the speech audio.
+
+  In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results. An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon although they benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and the thesis explores methods in this paradigm.
+
+% 3. What will be your methodology?
+\subsection{Related work and methodology}
+
+  The purpose of the thesis is to experiment with some of the latest acoustic and language modelling methods to improve upon the previous best results obtained for an informal, spontaneous Finnish conversation speech data set. Both the speech data set used in this thesis and the previous best results are described by \citet{enarvi2017automatic}. In their work, the acoustic models are trained on 85 hours of speech using the Kaldi toolkit. A first pass of large-vocabulary decoding and word lattice generation is done using an n-gram language model trained on a conversational Finnish text corpus collected by \citet{enarvi2013studies}. A second pass of rescoring the lattices and generating transcripts is done using a recurrent neural network language model trained on the same text corpus. Subword-vocabulary language models based on statistical segmentation of words \citep{creutz2002unsupervised, creutz2007unsupervised} were found to perform better than a word vocabulary.
+
+  The baseline system is the same in this thesis, and the work begun by replicating the previous results. The Kaldi toolkit includes acoustic model training pipelines, called "recipes", that are tuned to achieve optimal results for a particular speech data set. In the past three years after the above mentioned previous best results were achieved, the Kaldi recipes have been developed further, and the latest machine learning algorithms have been implemented in the toolkit. By applying the latest Kaldi recipes for the Finnish speech data used in this thesis, the previous best results can be improved. Other acoustic modelling experiments of this work include modelling the speaker and channel variability using i-vectors \citep{ivector} and x-vectors \citep{snyder2018x}.
+
+  \citet{vaswani2017attention} introduced a neural network architecture for language modelling called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type.
+  One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the commonly used recurrent neural networks, since their hidden states do not depend on the hidden states of previous time steps.
+  In this thesis, a Transformer-XL \citep{dai2019transformer} LM is trained and evaluated in the ASR task, in a similar manner as described by \citet{jain2020finnish}.
+
+  Other language modelling experiments in this work include evaluating word and subword vocabularies, tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs), and experimenting with topic modelling (see e.g., \citet{xiong2018session, xing2016topic}).
+
+
 
 \subsection{Machine learning} \label{sec:ml} 
+
+\subsubsection{Statistical models}
 
   A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
   A model can be statistical, conceptual, mathematical ...
@@ -311,12 +335,17 @@
   
   % ; via lowering the resolution: a mental model of a 
 
-  There are two directions, ways to create a model of a phenomenon: top-down or bottom-up. Top-down design of models is an exclusively human undertaking, and a much rarer way to build a model. A top-down designed model could be, for example, a recipe for a dish, which is then used to cook up the real thing. This way the simplified model is created without the real phenomenon existing yet, or ever. However, top-down design depends on previous models that have ultimately been estimated from bottom up. 
-  A bottom-up generation of a model is the more usual way models come to being. In this approach, the abstract model is estimated from data gathered from the manifest world. In this example, a recipe for the dish can be developed by experimenting with random recipes in some finite search space of possible recipes, tasting the finished product, and iteratively narrowing down the search space, homing in on an optimal experience. Once a cook has done enough bottom-up design, top-down design becomes possible by deducing from the mental model what a never-before-experienced combination of ingredients will taste like. In mathematics, solving a function in a top-down fashion is called an analytical or a symbolic solution, and bottom up a numerical solution. 
+% \subsubsection{Estimating models statistically}
 
-  In computer science, top-down design has been the usual way to develop systems.
-  % If the function to be estimated is simple enough
-  For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
+%   There are two directions, ways to create a model of a phenomenon: top-down or bottom-up. Top-down design of models is an exclusively human undertaking, and a much rarer way to build a model. A top-down designed model could be, for example, a recipe for a dish, which is then used to cook up the real thing. This way the simplified model is created without the real phenomenon existing yet, or ever. However, top-down design depends on previous models that have ultimately been estimated from bottom up. 
+%   A bottom-up generation of a model is the more usual way models come to being. In this approach, the abstract model is estimated from data gathered from the manifest world. In this example, a recipe for the dish can be developed by experimenting with random recipes in some finite search space of possible recipes, tasting the finished product, and iteratively narrowing down the search space, homing in on an optimal experience. Once a cook has done enough bottom-up design, top-down design becomes possible by deducing from the mental model what a never-before-experienced combination of ingredients will taste like. In mathematics, solving a function in a top-down fashion is called an analytical or a symbolic solution, and bottom up a numerical solution. 
+
+%   In computer science, top-down design has been the usual way to develop systems.
+%   % If the function to be estimated is simple enough
+%   For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
+
+
+\subsubsection{Fitness criterion}
 
   The mapping from input to output is determined by the parameters $\theta$ that are learned. There are different approaches to defining how good a model is, given a training dataset. Using the maximum likelihood estimation (MLE), the parameters are adjusted to maximise how probable the model judges the data set. The maximum likelihood estimate $\theta_{\textup{ML}}$ of the model parameters is the point in the parameter space that maximises the likelihood of the observed data. The confidence of how good the point estimate is is related to its variance. If alternative samplings of the observations are likely to change the estimate, the variance is larger. In contrast to the MLE approach,
   % and frequentist statistics in general,
@@ -324,9 +353,13 @@
   
   % incorporate the degree of certainty to the model itself
 
+\subsubsection{Optimisation}
+
   Depending on the criterium for an optimal model, a optimisation method is chosen and applied to tune the free parameters of a model. When the model to be estimated includes latent variables, the maximum likelihood estimate can be computed using the expectation maximisation (EM) algorithm. A latent (i.e., hidden) variable is a variable that is not directly observed, but can affect the observed variables. A general example of a latent variable is some phenomenon in the real world that is not directly observed, but whose properties are inferred from measurements that are observable. Two types of models that include latent variables are GMMs and HMMs, both of which are central to the conventional implementation methods in automatic speech recognition. In GMMs, the identity of the mixture component $c$ of a data point $o$ is a latent variable, and the probability distribution $P(o)$ is determined by the joint distribution $P(o,c)=P(o|c)P(c)$. Hidden Markov models are named after the latent, hidden sequence that generates an observed sequence\footnote{They are also named after the Russian mathematician Andrey Markov.}; in speech recognition the hidden sequence can be a sequence of phones that generate the sequence of processed audio signal chunks referred to as features.
   % 'Maximum likelihood modeling with Gaussian distributions for classification'
   % gupta2011theory
+
+
 
   The EM algorithm consists of iterating the expectation step (E-step) and the maximisation step (M-step). The E-step 
 
@@ -335,7 +368,6 @@
   % cross entropy
   % 
 
-  
 
 \clearpage
 \section{Finnish conversations to text} \label{sec:background} 
@@ -386,7 +418,12 @@
 
 \subsubsection{Choice of vocabulary} \label{sec:vocab} 
 
-  subwords words
+  A language model defines a set of units that the output sequence can include, called the vocabulary. One natural choice of vocabulary is to include in it the word types that appear in the training corpus. However, using smaller units has some benefits over a word vocabulary. If the words are segmented into smaller pieces, or all the way to individual characters, the vocabulary is smaller. This decreases computation and memory requirements for neural language models (Sections \ref{sec:rnn} and \ref{ec:attention}),
+  % as well as the language model FSA (Section \ref{sec:wfst}),
+  for instance. Another benefit of using a \emph{subword} vocabulary is that words absent in the training corpus can possibly be composed of the subword units, which means that the out-of-vocabulary (OOV) rate is smaller. The downside of subword vocabularies is that each sentence includes a larger number of units to be processed.
+  % , which increases the computational costs for some systems, for example when 
+
+  When segmenting words into subword units it is beneficial to 
 
 
 \subsubsection{n-gram language models} \label{sec:ngram} 
@@ -647,7 +684,8 @@
   % ?
   .
   The Viterbi training is computationally less expensive than the B-W algorithm.
-  In Viterbi training, the HMM parameters and the most probable hidden state sequence, both unknown, are estimated alternately. After updating the HMM parameters, the training data observations are aligned with the states, and within each state, a further alignment is made to align observations with mixture components. 
+  In Viterbi training, the HMM parameters and the most probable hidden state sequence, both unknown, are estimated alternately. After updating the HMM parameters, the training data observations are aligned with the states. The new alignment is then used for estimating the HMM parameters again, and so on. 
+  % Within each state, a further alignment is made to align observations with mixture components. 
   % Using the Viterbi algorithm, the states are aligned with the observation sequence by maximising
 
 
@@ -761,21 +799,27 @@
   % Typically?
   % Discriminative training is based on an objective function which is minimised or maximised using an optimisation algorithm.
 
-  The MLE method described in Section \ref{sec:hmm_est} aims to maximise the likelihood of the observed sequence given the most probable HMM in VT, or all the possible HMMs in B-W. This method results in a model that predicts the training data by determining a probability distribution over the feature space, i.e., over all possible observations. This is called a generative model since the distribution can be sampled for predictions. However, the ability to produce examples of the modelled data is redundant in classification tasks. Furthermore, the MLE method maximises the likelihood of the observations for all of the competing HMMs independently of each other. The underlying task is to find the HMM that most accurately models the observation sequence, so it makes sense to also try to find the meaningful differences between HMMs.
+  The MLE method described in Section \ref{sec:hmm_est} aims to maximise the likelihood of the observed sequence given the most probable HMM in Viterbi training, or all the possible HMMs in Baum-Welch.
+  % This method results in a model that predicts the training data by determining a probability distribution over the feature space, i.e., over all possible observations. This is called a generative model since the distribution can be sampled for predictions. However, the ability to produce examples of the modelled data is redundant in classification tasks.
+  % Furthermore, t
+  The MLE method maximises the likelihood of the observations for all of the competing HMMs independently of each other. However, the underlying task is to find the HMM that most accurately models the observation sequence, so it makes sense to also try to find the meaningful differences between HMMs.
   % The HMMs competing for being the most accurate model of the observations are not compared to each other.
-  In discriminative training, instead of maximising the likelihood of the data given a generative model, a model is trained to discriminate between the classes, which in this case are different phoneme sequences. This way more capacity is used to model the boundaries between different HMMs, instead of using it to model the relations between individual HMMs and alignments. 
+  In discriminative training, instead of maximising the likelihood of the data given a generative model, a model is trained to discriminate between the classes, which in this case are different phoneme sequences. This way more capacity is used to model the boundaries between different HMMs, instead of using it to model just the relations between individual HMMs and alignments. 
 
-  The objective function can be simply the difference between the correct classifications (e.g., a phoneme sequence) for a set of examples and the classifications assigned to them by the model. This is called the minimum classification error (MCE) criterion.
-  Another type of objective function is the maximum mutual information (MMI) criterion
+  The objective function can be simply the difference between the correct classifications (e.g., a phoneme sequence) for a set of examples and the classifications assigned to them by the model. This is called the minimum classification error (MCE) criterion \citep{juang1997minimum}.
+  Another type of objective function is the maximum mutual information (MMI) \citep{bahl1986maximum} criterion
   \begin{equation} \label{eq:mmi}
     \mathcal{F}_{\textup{MMI}}(M) = \sum_{r=1}^R \log 
-      \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})}
-        {\sum P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})}
+      \frac{P(\boldsymbol{w}_r)P(\boldsymbol{O}_r|\boldsymbol{w}_r)}
+        {\sum_{\boldsymbol{w}} P(\boldsymbol{w})P(\boldsymbol{O}_r|\boldsymbol{w})}
   \end{equation}
+  where $\boldsymbol{w}_r$ is the correct transcription for the $r$'th speech file \citep{povey2005discriminative}. The numerator is the log-probability of the output sequence, and the denominator is the log-probability of all possible output sequences. This way the probability of a particular sequence is normalised by the probability of all sequences.
   % equivalent to conditional maximum likelihood 
   % extended b-w
   
   % vesely2013sequence
+
+  % Traditionally this has been done by training a cross-entropy system, generating word lattices with a weak language model, and using these lattices as an approx- imation for all possible word sequences in the discriminative objective function– as was done when Gaussian Mixture Mod- els were the state of the art povey2016purely
 
 
 \subsubsection{Mapping words to phoneme sequences} \label{sec:lexicon} 
@@ -881,7 +925,8 @@
 
   Two common types of DNNs used for acoustic modelling are RNNs and time delay neural networks (TDNN). Both RNNs and TDNNs are inherently suited to model time-series data where the previous time steps are relevant when producing the output for the current time step. (explaining RNNs and TDNNs in previous sections?)
 
-  Currently, the state-of-the-art implementations of DNNs in Kaldi are trained using lattice-free MMI training criterion. These are called "chain" models in Kaldi. 
+  Currently, the state-of-the-art implementations of DNNs in Kaldi are trained using lattice-free MMI (LF-MMI) training criterion, as described by \citet{povey2016purely}. These are called "chain" models in Kaldi. LF-MMI is a sequence discriminative criterion, which means that the aim is to maximise the conditional log-likelihood (Eq. \ref{eq:mmi}) of the correct transcript on the sequence level. In the traditional MMI approach, a cross-entropy system is trained to  generate lattices for a weak language model. The lattices are used to approximate the possible word sequences for the discriminative objective function denominator. In LF-MMI, the possible word sequences are not approximated with a lattice, but a phone-level language model is computed so that the sum in the denominator is not approximated, but computed exactly. The phone LM is represented as an FST, created in a similar manner as the normal decoding FST described in Section \ref{sec:wfst}. In this case there is no lexicon and grammar FSTs but a phone grammar FST, so the graph consists of the component FSTs $H$, $C$, and $P$. The numerator FST uses a lattice to represent the utterance. The numerator FST is composed with the denominator FST so that the phoneme LM of the denominator removes illegal output sequences. The composition also ensures that the objective function value is negative. 
+  % https://desh2608.github.io/2019-05-21-chain/
 
 
 
