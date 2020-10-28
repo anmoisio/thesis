@@ -53,11 +53,11 @@
   %% two-sided printing: twoside (default is one-sided printing)
 
   \usepackage{amsfonts, amssymb, amsbsy, amsmath, natbib, graphicx, 
-              tabstackengine}
+              tabstackengine, tabularx}
   \usepackage{titlesec}
   \setcounter{secnumdepth}{4}
   \titleformat{\paragraph}
-  {\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+  {\normalfont\small\bfseries}{\theparagraph}{1em}{}
   \titlespacing*{\paragraph}
   {0pt}{3.25ex plus 1ex minus .2ex}{0ex plus .2ex}
 
@@ -268,11 +268,13 @@
   OOV           & out of vocabulary \\
   PDF           & probability density function \\
   PPL           & perplexity \\
+  ReLU          & rectified linear unit \\
   RNN           & recurrent neural network \\
   SAT           & speaker adaptive training \\
-  SD            & speaker-dependent \\
-  SI            & speaker-independent \\
+  SD            & speaker dependent \\
+  SI            & speaker independent \\
   TDNN          & time delay neural network \\
+  VAD           & voice activity detection, used synonymously with speech activity detection \\
   WER           & word error rate \\
   WFST          & weighted finite-state transducer \\
   VTLN          & vocal tract length normalisation \\
@@ -337,12 +339,12 @@
 
 % \subsubsection{Estimating models statistically}
 
-%   There are two directions, ways to create a model of a phenomenon: top-down or bottom-up. Top-down design of models is an exclusively human undertaking, and a much rarer way to build a model. A top-down designed model could be, for example, a recipe for a dish, which is then used to cook up the real thing. This way the simplified model is created without the real phenomenon existing yet, or ever. However, top-down design depends on previous models that have ultimately been estimated from bottom up. 
-%   A bottom-up generation of a model is the more usual way models come to being. In this approach, the abstract model is estimated from data gathered from the manifest world. In this example, a recipe for the dish can be developed by experimenting with random recipes in some finite search space of possible recipes, tasting the finished product, and iteratively narrowing down the search space, homing in on an optimal experience. Once a cook has done enough bottom-up design, top-down design becomes possible by deducing from the mental model what a never-before-experienced combination of ingredients will taste like. In mathematics, solving a function in a top-down fashion is called an analytical or a symbolic solution, and bottom up a numerical solution. 
+  % There are two directions, ways to create a model of a phenomenon: top-down or bottom-up. Top-down design of models is an exclusively human undertaking, and a much rarer way to build a model. A top-down designed model could be, for example, a recipe for a dish, which is then used to cook up the real thing. This way the simplified model is created without the real phenomenon existing yet, or ever. However, top-down design depends on previous models that have ultimately been estimated from bottom up. 
+  % A bottom-up generation of a model is the more usual way models come to being. In this approach, the abstract model is estimated from data gathered from the manifest world. In this example, a recipe for the dish can be developed by experimenting with random recipes in some finite search space of possible recipes, tasting the finished product, and iteratively narrowing down the search space, homing in on an optimal experience. Once a cook has done enough bottom-up design, top-down design becomes possible by deducing from the mental model what a never-before-experienced combination of ingredients will taste like. In mathematics, solving a function in a top-down fashion is called an analytical or a symbolic solution, and bottom up a numerical solution. 
 
-%   In computer science, top-down design has been the usual way to develop systems.
-%   % If the function to be estimated is simple enough
-%   For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
+  % In computer science, top-down design has been the usual way to develop systems.
+  % % If the function to be estimated is simple enough
+  % For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
 
 
 \subsubsection{Fitness criterion}
@@ -400,8 +402,6 @@
   %   \hat{\boldsymbol{w}} = \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
   %   \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
   % \end{equation} 
-
-
 
 
 
@@ -915,9 +915,9 @@
   In the previous decade, deep neural networks achieved state-of-the-art results in acoustic modelling, supplanting the Gaussian mixture models as the most accurate method to classify observations into phoneme classes. In the HMM/DNN hybrid approach, DNNs provide \emph{pseudo-likelihoods} of the observations for each HMM state. This is due to DNNs being discriminative instead of generative like GMMs.
   The approach defined in Eq. \ref{eq:asr-bayes-2} works well for traditional ASR systems that use GMMs for acoustic modelling. However, if the generative model is replaced with a discriminative neural network model, it does not produce an acoustic likelihood $P(\boldsymbol{o}_t|\boldsymbol{s}(t))$ but a state level posterior probability $P(\boldsymbol{s}(t)|\boldsymbol{o}_t)$, which is a problem because the decoding (Eq. \ref{eq:asr-bayes-2}) relies on the likelihoods. This mismatch can be bypassed by applying the Bayes' rule to produce pseudo-likelihoods:
   \begin{equation}
-      P(\boldsymbol{x}_t|\boldsymbol{s}(t)) =
-      \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)P(\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))} \propto	 
-      \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))}
+    P(\boldsymbol{x}_t|\boldsymbol{s}(t)) =
+    \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)P(\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))} \propto	 
+    \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))}
   \end{equation}
   The state priors $P(\boldsymbol{s}(t))$ can be gathered from corpus frequencies \citep{Bourlard1994}. 
 
@@ -941,8 +941,8 @@
 
 
 
-\clearpage
-\section{Methods}
+% \clearpage
+% \section{Methods}
 
 
 
@@ -957,13 +957,67 @@
 \subsection{Acoustic modelling experiments}
 \subsubsection{Speech corpora}
 
+  The acoustic model training, development and test sets are the same as in \citep{enarvi2017automatic}. The training speech data are 85 hours of read and spontaneous speech from three different sources. The SPEECON corpus consists of 550 speakers reading 30 sentences and 30 single words as well as speaking 10 spontaneous sentences \citep {iskra2002speecon}. The DSPCON\footnote{\url{http://urn.fi/urn:nbn:fi:lb-201708251}} corpus consists of 5281 spontaneous sentences from 218 different male students and 24 female students, totalling 9.8 hours \citep{enarvi2018modeling}. The third source is the FinDialogue part of the FinINTAS corpus \citep{lennes2009segmental}. The development and test sets contain additionally spontaneous utterances from radio shows, referred to as RadioCon. Table \ref{tab:am_data} lists the acoustic modelling data sets.
+
+  \begin{table}[ht!]
+      \begin{tabularx}{\columnwidth}{|X|l|l|l|}
+          \hline
+          \textbf{AM corpora} & \# of speakers &\# of utterances & \# of hours \\ \hline
+          DSPCON                                & 242 &     & 9.8  \\ \hline
+          SPEECON                               & 550 &     &     \\ \hline
+          FinDialogue                           &     &     &     \\ \hline
+          total AM training data                &     &     & 85   \\ \hline
+          RadioCon (devel, test sets)           &     &     &     \\ \hline
+          VoxCeleb (speaker embeddings)         &     &     &     \\ \hline
+      \end{tabularx}
+      \caption{}
+      \label{tab:am_data}
+  \end{table}
+
+  \emph{Speed perturbation} is a data augmentation method in which the speed of the audio is increased or decreased \citep{ko2015audio}. This method is used for the DNN AM training data, augmenting the speech data by changing its speed by a factor of 0.9 and 1.1, increasing the amount of data by a factor of three. As the quality, or domain, of the three different data sets is different, it could be useful to augment only the in-domain data, i.e., DSPCON. A system is trained with the whole dataset augmented, as well as one system augmenting only DSPCON. The difference
+
+
 \subsubsection{Acoustic model architecture and training}
 
-\subsubsection{i-vectors}
+  
+
+\subsubsection{Speaker embedding experiments}
+
+  In the speaker embedding experiments, pretrained extractors are used as well as extractors trained on the AM training data. 
+  
+  \paragraph*{Pretrained VoxCeleb i-vector and x-vector extractors} 
+    Pretrained i-vector and x-vector extractors trained on the VoxCeleb data \citep{nagrani2017voxceleb, chung2018voxceleb2} are used in the experiments. The VoxCeleb1 data contains about 100k utterances from 1251 celebrities and the VoxCeleb2 data contains about 1M utterances from over 6000 speakers. The code that was used for training the extractors is in the Kaldi repository\footnote{i-vectors: \url{https://github.com/kaldi-asr/kaldi/tree/master/egs/voxceleb/v1}}\footnote{x-vectors: \url{https://github.com/kaldi-asr/kaldi/tree/master/egs/voxceleb/v2}} and the pretrained extractors are downloaded online\footnote{\url{https://kaldi-asr.org/models/m7}}.
+    
+    The VoxCeleb i-vector extractor was trained on 24 MFCCs and their delta and delta-delta coefficients. An energy-based VAD system is used to select the voiced frames for both i-vector and x-vector systems. The i-vector system UBM is a GMM that has 2048 full-covariance component Gaussians. The i-vectors have 400 dimensions, and are subsequently reduced to 200 dimensions using an LDA model.
+
+    The VoxCeleb x-vector extractor is trained on the VoxCeleb speech data that has been augmented in various ways. The MUSAN corpus \citep{snyder2015musan} of music, noise and speech as well as simulated room impulse response \citep{ko2017study} are used to generate noise for the speech data. The noise is added to the speech data and a subset of the noisy audio files is randomly selected and pooled with the clean audio files. This increases the amount of data roughly twofold. 
+    The x-vector extractor was trained on 30 MFCCs with their deltas and delta-deltas. The DNN is a TDNN with ReLU non-linearities where the five first layers use frame-level training with a temporal context of a few adjacent frames. The architecure is described by \citet{snyder2017deep}. After the frame-level layers is a pooling layer that aggregates the frame-level outputs, calculating the mean and standard deviation of the whole segment. The last two layers before softmax operate on the segment level statistics. The x-vector is extracted from the penultimate layer (the 6th layer), with 512 dimensions. An LDA model reduces the x-vector dimensionality to 200.
+
+
+  \paragraph*{Pretrained i-vector extractor trained on Yle and Parliament data}
+    A pretrained i-vector extractor was used as a comparison to the models trained in this work.
+
+  \paragraph*{i-vector extractor trained on the conversational Finnish data}
+
+
+
+  Both online and offline i-vectors are extracted 
 
 
 \subsection{Language modelling experiments}
+
 \subsubsection{Text corpora}
+
+  \begin{table}[ht!]
+      \begin{tabularx}{\columnwidth}{|X|l|l|}
+          \hline
+          \textbf{LM training corpora} & \# of word tokens & 4-gram interpolation weight \\ \hline
+          DSP conversational speech corpus transcriptions & 61k  & 0.41 \\ \hline
+          WEB corpus, conversational written text corpus & 75.9M & 0.59 \\ \hline
+      \end{tabularx}
+      \caption{}
+      \label{}
+  \end{table}
 
 
 
