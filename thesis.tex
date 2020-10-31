@@ -771,6 +771,8 @@
 
   Another approach to modelling speaker characteristics is to train a feedforward deep neural network to project speakers into an embedding space that models the speaker variance. \citet{snyder2017deep} introduced a \emph{speaker embedding} method  where the DNN is trained to classify speakers from variable-length segments. The DNN learns to assign each speaker an embedding space vector which can be then used in the AM training similarly to an i-vector.
   \citet{snyder2018x} describe the use of speaker embeddings, which they call x-vectors, in speaker  recognition. In contrast with i-vectors, x-vectors model only the speaker characteristics since the DNN is trained to identify speakers. 
+
+  Speaker embeddings can be extracted either online or offline. This refers to which frames can be used in the extraction. When streamed audio is transcribed on the fly, the transcribed utterance is partial: only the frames up to time $t$ can be be used in the embedding instead of the complete utterance. Online decoding is simulated in the standard recipes in Kaldi, and the embeddings are extracted using partial utterances every 10 frames or so. Offline extraction can be used also, and this is standard when using the embeddings in speaker recognition.
   
   
 
@@ -955,7 +957,7 @@
 %   The baseline language models and the ASR system is based on the systems developed by \citet{enarvi2017automatic}.
 
 \subsection{Acoustic modelling experiments}
-\subsubsection{Speech corpora}
+\subsubsection{Speech corpora} 
 
   The acoustic model training, development and test sets are the same as in \citep{enarvi2017automatic}. The training speech data are 85 hours of read and spontaneous speech from three different sources. The SPEECON corpus consists of 550 speakers reading 30 sentences and 30 single words as well as speaking 10 spontaneous sentences \citep {iskra2002speecon}. The DSPCON\footnote{\url{http://urn.fi/urn:nbn:fi:lb-201708251}} corpus consists of 5281 spontaneous sentences from 218 different male students and 24 female students, totalling 9.8 hours \citep{enarvi2018modeling}. The third source is the FinDialogue part of the FinINTAS corpus \citep{lennes2009segmental}. The development and test sets contain additionally spontaneous utterances from radio shows, referred to as RadioCon. Table \ref{tab:am_data} lists the acoustic modelling data sets.
 
@@ -976,14 +978,30 @@
 
   \emph{Speed perturbation} is a data augmentation method in which the speed of the audio is increased or decreased \citep{ko2015audio}. This method is used for the DNN AM training data, augmenting the speech data by changing its speed by a factor of 0.9 and 1.1, increasing the amount of data by a factor of three. As the quality, or domain, of the three different data sets is different, it could be useful to augment only the in-domain data, i.e., DSPCON. A system is trained with the whole dataset augmented, as well as one system augmenting only DSPCON. The difference
 
+  
+\subsubsection{HMM/GMM acoustic model architecture and training}
 
-\subsubsection{Acoustic model architecture and training}
+  Different features are used in GMMs and DNNs. The GMMs input 13 MFCCs and their $\Delta$ and $\Delta\Delta$ features, amounting to a 39-dimensional feature vector. Cepstral mean and variance normalisation is applied to the features per speaker.
 
+  
+  The GMM phoneme model set was trained for the most part by following the Kaldi recipe for the Wall Street Journal corpus\footnote{\url{https://github.com/kaldi-asr/kaldi/blob/master/egs/wsj/s5/run.sh}}. The monophone model set is trained with a subset of 2000 shortest utterances. The features are first aligned equally with the states, after which 40 iterations of Viterbi training are performed to estimate the HMM/GMM model set and generate an improved alignment. The number of Gaussians is increased in between iterations, reaching a total of 1000 Gaussians. 
+
+  The triphone model set is initialised from the monophone models and their alignments, and is trained in a three consecutive steps. Subsets of the data set is selected, including 4000 utterances for the first step, 8000 utterances for the second step, and then using the whole ~15000 utterance training data set for the third triphone training step. The  
+
+  
+
+
+  The GMM triphone model set was kept fixed throughout the experiments, after first running a couple of experiments to tune the model. 
+
+
+\subsubsection{HMM/DNN acoustic model architecture and training}
   
 
 \subsubsection{Speaker embedding experiments}
 
   In the speaker embedding experiments, pretrained extractors are used as well as extractors trained on the AM training data. 
+
+  Both online and offline i-vectors are extracted and compared. 
   
   \paragraph*{Pretrained VoxCeleb i-vector and x-vector extractors} 
     Pretrained i-vector and x-vector extractors trained on the VoxCeleb data \citep{nagrani2017voxceleb, chung2018voxceleb2} are used in the experiments. The VoxCeleb1 data contains about 100k utterances from 1251 celebrities and the VoxCeleb2 data contains about 1M utterances from over 6000 speakers. The code that was used for training the extractors is in the Kaldi repository\footnote{i-vectors: \url{https://github.com/kaldi-asr/kaldi/tree/master/egs/voxceleb/v1}}\footnote{x-vectors: \url{https://github.com/kaldi-asr/kaldi/tree/master/egs/voxceleb/v2}} and the pretrained extractors are downloaded online\footnote{\url{https://kaldi-asr.org/models/m7}}.
@@ -1001,7 +1019,7 @@
 
 
 
-  Both online and offline i-vectors are extracted 
+   
 
 
 \subsection{Language modelling experiments}
