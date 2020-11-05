@@ -930,6 +930,14 @@
   Currently, the state-of-the-art implementations of DNNs in Kaldi are trained using lattice-free MMI (LF-MMI) training criterion, as described by \citet{povey2016purely}. These are called "chain" models in Kaldi. LF-MMI is a sequence discriminative criterion, which means that the aim is to maximise the conditional log-likelihood (Eq. \ref{eq:mmi}) of the correct transcript on the sequence level. In the traditional MMI approach, a cross-entropy system is trained to  generate lattices for a weak language model. The lattices are used to approximate the possible word sequences for the discriminative objective function denominator. In LF-MMI, the possible word sequences are not approximated with a lattice, but a phone-level language model is computed so that the sum in the denominator is not approximated, but computed exactly. The phone LM is represented as an FST, created in a similar manner as the normal decoding FST described in Section \ref{sec:wfst}. In this case there is no lexicon and grammar FSTs but a phone grammar FST, so the graph consists of the component FSTs $H$, $C$, and $P$. The numerator FST uses a lattice to represent the utterance. The numerator FST is composed with the denominator FST so that the phoneme LM of the denominator removes illegal output sequences. The composition also ensures that the objective function value is negative. 
   % https://desh2608.github.io/2019-05-21-chain/
 
+  Regularisation is important in DNN training to impede overfitting. Kaldi chain models incorporate a number of regularisation methods in the DNN architectures. One of the methods is called \emph{L2-regularisation}, which applies the euclidean norm to penalise elements in the output vector that tend to blow up. This is achieved by subtracting $\frac{1}{2}c\boldsymbol{y}\boldsymbol{y}$ from the objective function of each frame output $\boldsymbol{y}$ \citep{povey2016purely}. In Kaldi, L2-regularisation is applied on the outputs; this method is different from, and should not be confused with, the L2-regularisation of the weights, which is another commonly used regularisation method.
+  
+  Another widely used regularisation method for deep neural nets are \emph{dropout layers} which randomly sample a subset of the neurons and their connections which are omitted, dropped out, during an iteration of the training \citep{srivastava2014dropout}. This prevents the neurons from relying on the other neuron's outputs too much, i.e., prevents too much \emph{co-adaptation} among the parameters. Dropping out random units in training shifts the unit of adaptation down from large groups of neurons to individual neurons, since it is not guaranteed that the other neurons are present. This principle is explained through an analogy to sexual selection, in the above mentioned original paper. Since genes are mixed randomly with another set of genes from a conspecific between every generation, individual genes cannot rely on specific other genes to be present in the future. This inhibits aggregation of large interdependent gene complexes, in which genes function well only with the group of co-adapted genes. These kinds of complexes would become rigid, and fragile to the inevitable mutations that will always occur quite randomly: new genes would be difficult to incorporate in the complex. This kind of rigidity is analogous to overfitting to the training data and failing to find generalisable rules that apply to new data samples from the hidden distribution, which regularisation attempts to lessen.
+
+  % It has been empirically shown that dropout layers 
+
+  A third type of regularisation technique is called \emph{leaky HMM} in Kaldi. Transitioning from any state $a$ to any state $b$ is allowed once per frame with the probability of a \emph{leaky-hmm-coefficient} times the inherent probability of state $b$. The motivation is to effect a gradual forgetting of the context, since transitioning to a random state is equal to stopping and restarting the HMM \citep{povey2016purely}. This reduces overfitting.
+
 
 
 
@@ -986,15 +994,32 @@
   
   The GMM phoneme model set was trained for the most part by following the Kaldi recipe for the Wall Street Journal corpus\footnote{\url{https://github.com/kaldi-asr/kaldi/blob/master/egs/wsj/s5/run.sh}}. The monophone model set is trained with a subset of 2000 shortest utterances. The features are first aligned equally with the states, after which 40 iterations of Viterbi training are performed to estimate the HMM/GMM model set and generate an improved alignment. The number of Gaussians is increased in between iterations, reaching a total of 1000 Gaussians. 
 
-  The triphone model set is initialised from the monophone models and their alignments, and is trained in a three consecutive steps. Subsets of the data set is selected, including 4000 utterances for the first step, 8000 utterances for the second step, and then using the whole ~15000 utterance training data set for the third triphone training step. The  
+  The triphone model set is initialised from the monophone models and their alignments, and is trained in a three consecutive steps. Subsets of the data set is selected, including 4000 utterances for the first step, 8000 utterances for the second step, and then using the whole ~15000 utterance training data set for the third triphone training step. The first step (\texttt{train\_deltas.sh}) is similar to monophone training, using the delta and delta-delta features in addition to the MFCCs, and increasing the total number of Gaussians to 10k. The second step (\texttt{train\_lda\_mllt.sh}) splices the MFCC features, reduces the dimensionality back to 40 using LDA, and estimates an MLLT transform. The MLLT transform is applied on the features and new estimates of the models are computed, increasing the total number of Gaussians to 15k. The third and final triphone training step (\texttt{train\_sat.sh}) does speaker adaptive training utilising fMMLR. The total number of Gaussians is increased to 40k.
 
-  
+  After the triphone model set is trained, silence probabilities (see Section \ref{sec:sil_prob}) are estimated from the statistics of the training data alignments. Since the Finnish lexicon is a one-to-one mapping from letters to phonemes, there are no optional pronunciations of words for which to calculate pronunciation probabilities.
 
+  An MMI (see Section \ref{sec:mmi}) system is trained based on the triphone alignments and silence probabilities. The MMI model generates the alignments that are used to train the deep neural network acoustic model.
 
-  The GMM triphone model set was kept fixed throughout the experiments, after first running a couple of experiments to tune the model. 
+  The GMM triphone model set was kept fixed throughout the experiments, after first running a couple of experiments to tune the model. These experiments included evaluating the MMI model compared to a fourth triphone training step and experimenting on a couple of different 
 
 
 \subsubsection{HMM/DNN acoustic model architecture and training}
+
+  The DNN AM inputs higher-resolution features than the GMM AM. 40-dimensional MFCCs are extracted from the data set, which has been augmented using speed perturbation.
+  
+  % The first layer of the DNN
+
+  % Table \ref{tab:am} lists the TDNN AM layers.
+
+  % \begin{table}[ht!]
+  %     \begin{tabularx}{\columnwidth}{|X|l|l|}
+  %         \hline
+  %         \textbf{layer} & number of neurons & activation function \\ \hline
+  %          &   & \\ \hline
+  %     \end{tabularx}
+  %     \caption{}
+  %     \label{tab:am}
+  % \end{table}
   
 
 \subsubsection{Speaker embedding experiments}
@@ -1017,7 +1042,20 @@
 
   \paragraph*{i-vector extractor trained on the conversational Finnish data}
 
+    % The Kaldi recipes include 
 
+
+
+
+  \paragraph*{Domain adaptation by finetuning the pretrained extractors}
+
+    Since the VoxCeleb extractor models are trained on English speech, it is possible that the extractors are suboptimal for Finnish. The extractors are trained on task of identifying speakers based on an utterance. There could be differences in the two languages in what kind of acoustic cues are utilised to identify the speaker. As with other modelling tasks, such as acoustic modelling, the extractor model could benefit from finetuning the large pretrained model on a smaller set of in-domain (or closer to the test domain) speech corpus. 
+
+    The Voxceleb x-vector extractor was finetuned with the augmented Finnish speech corpus. The softmax layer was replaced so that the number of target classes (speakers) was compatible with the finetuning data. Apart from the ouptu layer, all the other layers and their parameters were kept from the pretrained model, and the model was trained on the Finnish data for one epoch. This improves the evaluation set WER result a little (Table \ref{tab:spk_emb}).
+
+    Replacing the last hidden layer of the extractor model was experimented on, but this did not improve the WER results. Adding a new layer after the 7th layer was also tried, but here too the results were worse than for the pretrained model.
+    
+    
 
    
 
