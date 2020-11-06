@@ -238,6 +238,7 @@
 
   \begin{tabular}{ll}
   AM            & acoustic model \\
+  ANN           & artificial neural network \\
   ASR           & automatic speech recognition \\
   CER           & character error rate \\
   CMN           & cepstral mean normalisation \\
@@ -252,6 +253,7 @@
   HMM           & hidden Markov model \\
   LDA           & latent Dirichlet allocation \\
   LDA           & linear discriminant analysis \\
+  LF-MMI        & lattice-free MMI \\
   LM            & language model \\
   LSTM          & long short-term memory \\
   MAP           & maximum a posteriori \\
@@ -261,6 +263,7 @@
   MLE           & maximum likelihood estimation \\
   MLLR          & maximum likelihood linear regression \\
   MLLT          & maximum likelihood linear transformation \\
+  MLP           & multilayer perceptron \\
   MMI           & maximum mutual information \\
   MPE           & minimum phone error \\
   NN            & neural network \\
@@ -274,7 +277,7 @@
   SD            & speaker dependent \\
   SI            & speaker independent \\
   TDNN          & time delay neural network \\
-  VAD           & voice activity detection, used synonymously with speech activity detection \\
+  VAD           & voice activity detection, here synonymous with speech activity detection \\
   WER           & word error rate \\
   WFST          & weighted finite-state transducer \\
   VTLN          & vocal tract length normalisation \\
@@ -319,7 +322,7 @@
 
 \subsection{Machine learning} \label{sec:ml} 
 
-\subsubsection{Statistical models}
+\subsubsection{Statistical models} 
 
   A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
   A model can be statistical, conceptual, mathematical ...
@@ -347,7 +350,7 @@
   % For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
 
 
-\subsubsection{Fitness criterion}
+\subsubsection{Fitness criterion} 
 
   The mapping from input to output is determined by the parameters $\theta$ that are learned. There are different approaches to defining how good a model is, given a training dataset. Using the maximum likelihood estimation (MLE), the parameters are adjusted to maximise how probable the model judges the data set. The maximum likelihood estimate $\theta_{\textup{ML}}$ of the model parameters is the point in the parameter space that maximises the likelihood of the observed data. The confidence of how good the point estimate is is related to its variance. If alternative samplings of the observations are likely to change the estimate, the variance is larger. In contrast to the MLE approach,
   % and frequentist statistics in general,
@@ -355,7 +358,7 @@
   
   % incorporate the degree of certainty to the model itself
 
-\subsubsection{Optimisation}
+\subsubsection{Optimisation} 
 
   Depending on the criterium for an optimal model, a optimisation method is chosen and applied to tune the free parameters of a model. When the model to be estimated includes latent variables, the maximum likelihood estimate can be computed using the expectation maximisation (EM) algorithm. A latent (i.e., hidden) variable is a variable that is not directly observed, but can affect the observed variables. A general example of a latent variable is some phenomenon in the real world that is not directly observed, but whose properties are inferred from measurements that are observable. Two types of models that include latent variables are GMMs and HMMs, both of which are central to the conventional implementation methods in automatic speech recognition. In GMMs, the identity of the mixture component $c$ of a data point $o$ is a latent variable, and the probability distribution $P(o)$ is determined by the joint distribution $P(o,c)=P(o|c)P(c)$. Hidden Markov models are named after the latent, hidden sequence that generates an observed sequence\footnote{They are also named after the Russian mathematician Andrey Markov.}; in speech recognition the hidden sequence can be a sequence of phones that generate the sequence of processed audio signal chunks referred to as features.
   % 'Maximum likelihood modeling with Gaussian distributions for classification'
@@ -369,6 +372,26 @@
   % bayesing, MAP
   % cross entropy
   % 
+
+\subsubsection{Artificial neural networks and deep learning}
+
+  Artificial neural networks (ANN) are a family of model types, historically based on the concept of a perceptron \citep{rosenblatt1957perceptron}, which functions similarly to a biological neuron, and is therefore called an artificial neuron, or just neuron.
+  The core functioning, common to the perceptron and the biological neuron, is that an input either activates the output or not based on an activation function. In the case of a perceptron, the activation function is a unit step function: if the input is above a scalar threshold the output is activated. Perceptron learns a binary classifier by tuning this threshold based on information from training examples. The idea of a perceptron has since been generalised and extended into the wide range of different kinds of artificial neural networks, but the core idea of a neuron remains.
+  
+  A multilayer perceptron (MLP) stacks neurons in multiple layers that are connected in the forward direction from the input to the output layer. An MLP includes an input layer of neurons with linear or non-linear activation functions, one or more hidden layers, and an output layer. The layered network learns the weights of the connections through backpropagation. 
+  
+  An important class of ANNs are deep neural networks (DNN), called "deep" because they include many hidden layers. MLPs are a subclass of DNNs; other classes include, for instance, convolutional NNs (CNN) and recurrent NNs (RNN), which are particularly useful in speech recognition since they are capable of modelling long-term time dependencies in data. Both language models and acoustic models ought to capture dependencies across many time steps, and RNNs have been successfully applied to these tasks.
+
+  A widely used type of recurrent NN is called a long short-term memory (LSTM) network \citep{hochreiter1997long}. The term "short-term" alludes to the activations of recurrent connections as type of memory, in contrast with "long-term" memory in the form of the weights of the connections that change by learning. The short-term memory is made longer than in the usual RNN memory by utilising special gate layers that comprise a memory cell unit. 
+
+  \textbf{todo: lstm, tdnn, attention}
+
+
+
+
+
+
+
 
 
 \clearpage
@@ -527,7 +550,11 @@
 
   \paragraph*{Cepstral mean and variance normalisation}
 
-    The cepstral mean normalisation (CMN) \citep{rosenberg1994cepstral} and cepstral mean and variance normalisation (CMVN) \citep{viikki1998cepstral} are methods to make the features more useful in noisy conditions. In these techniques, the MFCC feature vectors are normalised to have a zero mean, and in CMVN unit variance, over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments. The variance of the MFCCs of a noisy speech signal is generally lower than the variance of those of a clean signal. By requiring the variance be constantly unity, noisy and clean speech MFCCs resemble each other more closely. Similarly, when noise is added to a signal, the mean changes, and by requiring the mean to be zero the characteristics of clean and noisy signals become more alike. Normalising variability between the speech signals is in general important in training an ASR system that ought to recognise different types of speech by different speakers in different recording conditions. The topic of handling meaningless variability (i.e., variability that does not contribute to the phoneme content of the utterance)  between the utterances is revisited in Section \ref{sec:adaptive_training} which describes speaker adaptive training.
+    The cepstral mean normalisation (CMN) \citep{rosenberg1994cepstral} and cepstral mean and variance normalisation (CMVN) \citep{viikki1998cepstral} are methods to make the features more useful in noisy conditions. In these techniques, the MFCC feature vectors are normalised to have a zero mean, and in CMVN unit variance, over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
+    
+    The variance of the MFCCs of a noisy speech signal is generally lower than the variance of those of a clean signal. By requiring the variance be constantly unity, noisy and clean speech MFCCs resemble each other more closely. Similarly, when noise is added to a signal, the mean changes, and by requiring the mean to be zero the characteristics of clean and noisy signals become more alike. Normalising variability between the speech signals is in general important in training an ASR system that ought to recognise different types of speech by different speakers in different recording conditions.
+    
+    The topic of handling meaningless variability, i.e., variability that does not contribute to the phoneme content of the utterance, between the utterances is revisited in Section \ref{sec:adaptive_training} which describes speaker adaptive training.
 
 
 
@@ -579,9 +606,9 @@
 
   HMMs are used to model sequences, but observations are independent of past observations. Instead, the regime has a memory, although the shortest possible: the probability of being a certain state in the next time step depends only on the current state and not the previous states. This independence of the previous transitions is called the Markov assumption. Each hidden state pair (an arc from a state to another) is associated with a transition probability $a_{ij}$ that describes how probable it is to move from state $i$ to state $j$. 
 
-  A HMM is defined by ...
-
+  All in all, a HMM is defined by the set of states $S=s_1,s_2,...s_N$, the transition probability matrix $A=a_{11},...,a_{ij},...,a_{NN}$, the emission probabilities $B=b_i(\boldsymbol{o}_t)$, and the initial probability distribution $\pi=\pi_1,\pi_2,...\pi_N$ that models the probability of a state being the first state in the hidden sequence.
   
+  % The observations $\boldsymbol{O}=\boldsymbol{o}_1,\boldsymbol{o}_2,...,\boldsymbol{o}_T$ 
 
   % in Kaldi 
   % http://kaldi-asr.org/doc/hmm.html
@@ -693,25 +720,23 @@
   % AS stated in the Kaldi documentation, computed alignment is a sequence of transitions that corresponds to an utterance. 
 
 
-\subsubsection{Phones in context} \label{sec:triphone} 
-  Phones of the same phoneme sound different when flanked by different phonemes. For this reason, contextual information is modelled, too, by assigning each triphone a HMM. \citep{schwartz1985context}
+\subsubsection{Phone context, state tying, and phonetic decision trees} \label{sec:triphone}
+  Phones of the same phoneme sound different when flanked by different phonemes. For this reason, contextual information is modelled, too, by taking into account the preceding and subsequent phonemes of the modelled phoneme. These phonemes with left and right context of one are called triphones, and each can be assigned a HMM \citep{schwartz1985context}.
 
-  The monophone models are first trained
+  % The monophone models are first trained
   % (with single-component Gaussians?)
-  and the triphone models are initialised with the monophone model set parameters. The number of Gaussians in the triphone models is increased gradually and the parameters are re-estimated.
+  % and
+  % The triphone models are initialised with the monophone model set parameters. The number of Gaussians in the triphone models is increased gradually and the parameters are re-estimated.
 
   % transition modelling
   % The transition probabilities from a state to another are essentially the counts of the transitions seen in the training corpus.
 
-
-\subsubsection{State tying and phonetic decision trees} 
   % tying
-  The states of the phoneme HMMs are can be tied together so that the parameters of the output distributions of those states are shared. This makes the estimation of the parameters more robust because there are more training data occurrences, and also makes the total system more compact with fewer parameters \citep{young1992general}. States are clustered based on some metric of similarity.  
+  When considering triphones instead of monophones, the number of possible phonemes increases to the power of three. This means each class of triphone will include fewer instances in the training data, which brings difficulties in estimating the state output PDFs. To alleviate the data sparseness, the states of the phoneme HMMs are can be tied together so that the parameters of the output distributions of those states are shared. This makes the estimation of the parameters more robust because there are more training data occurrences, and also makes the total system more compact with fewer parameters \citep{young1992general}. States are clustered based on a chosen metric of similarity.  
 
   % http://kaldi-asr.org/doc/tree_externals.html
   In tree-based clustering as described by \citet{young1994tree}, the states are divided into branches in a top-down optimisation procedure. Starting from the root node, the question that maximises the likelihood is selected for the node, with the data on each side of the divide being modelled by a single Gaussian.
-  In a phonetic decision trees the questions are about the context of the phone, e.g. "Is the phone on the left of the current phone a fricative?". 
-
+  In phonetic decision trees the questions are about the context of the phone, e.g. "Is the phone on the left of the current phone a fricative?". 
   After the procedure, the leaves of the tree are the state clusters in which the states are tied. In the final stage, leaves can be merged if the likelihood does not decrease more than a threshold value.
 
   After a tree has been constructed for the states of the triphone models, also previously unseen triphones can be synthesised by traversing the tree to the appropriate leaf node, i.e. cluster, by answering the questions about that triphone's context and using the tied states of that cluster.
@@ -914,8 +939,9 @@
 
 \subsubsection{Deep neural networks for acoustic modelling} \label{sec:dnn_am}
 
-  In the previous decade, deep neural networks achieved state-of-the-art results in acoustic modelling, supplanting the Gaussian mixture models as the most accurate method to classify observations into phoneme classes. In the HMM/DNN hybrid approach, DNNs provide \emph{pseudo-likelihoods} of the observations for each HMM state. This is due to DNNs being discriminative instead of generative like GMMs.
-  The approach defined in Eq. \ref{eq:asr-bayes-2} works well for traditional ASR systems that use GMMs for acoustic modelling. However, if the generative model is replaced with a discriminative neural network model, it does not produce an acoustic likelihood $P(\boldsymbol{o}_t|\boldsymbol{s}(t))$ but a state level posterior probability $P(\boldsymbol{s}(t)|\boldsymbol{o}_t)$, which is a problem because the decoding (Eq. \ref{eq:asr-bayes-2}) relies on the likelihoods. This mismatch can be bypassed by applying the Bayes' rule to produce pseudo-likelihoods:
+  In the previous decade, deep neural networks achieved state-of-the-art results in acoustic modelling, supplanting the Gaussian mixture models as the most accurate method to classify observations into phoneme classes. In the HMM/DNN hybrid approach, DNNs provide \emph{pseudo-likelihoods} of the observations for each HMM state.
+  % This is due to DNNs being discriminative instead of generative like GMMs.
+  The approach defined in Eq. \ref{eq:asr-bayes-2} works well for traditional ASR systems that use GMMs for acoustic modelling. However, if the generative GMM is replaced with a discriminative neural network model, it does not produce an acoustic likelihood $P(\boldsymbol{o}_t|\boldsymbol{s}(t))$ but a state level posterior probability $P(\boldsymbol{s}(t)|\boldsymbol{o}_t)$, which is a problem because the decoding (Eq. \ref{eq:asr-bayes-2}) relies on the likelihoods. This mismatch can be bypassed by applying the Bayes' rule to produce pseudo-likelihoods:
   \begin{equation}
     P(\boldsymbol{x}_t|\boldsymbol{s}(t)) =
     \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)P(\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))} \propto	 
@@ -923,20 +949,32 @@
   \end{equation}
   The state priors $P(\boldsymbol{s}(t))$ can be gathered from corpus frequencies \citep{Bourlard1994}. 
 
+  \paragraph*{TDNNs and RNNs}
+    Two common types of DNN used for acoustic modelling are RNNs and time delay neural networks (TDNN). Both RNNs and TDNNs are inherently suited to modelling time-series data, where it is important to capture long-term time dependencies, such as speech. However, the two types of DNN are different in how they achieve this.
 
+    RNNs (see Section \ref{sec:rnn})
 
-  Two common types of DNNs used for acoustic modelling are RNNs and time delay neural networks (TDNN). Both RNNs and TDNNs are inherently suited to model time-series data where the previous time steps are relevant when producing the output for the current time step. (explaining RNNs and TDNNs in previous sections?)
+    TDNNs 
 
-  Currently, the state-of-the-art implementations of DNNs in Kaldi are trained using lattice-free MMI (LF-MMI) training criterion, as described by \citet{povey2016purely}. These are called "chain" models in Kaldi. LF-MMI is a sequence discriminative criterion, which means that the aim is to maximise the conditional log-likelihood (Eq. \ref{eq:mmi}) of the correct transcript on the sequence level. In the traditional MMI approach, a cross-entropy system is trained to  generate lattices for a weak language model. The lattices are used to approximate the possible word sequences for the discriminative objective function denominator. In LF-MMI, the possible word sequences are not approximated with a lattice, but a phone-level language model is computed so that the sum in the denominator is not approximated, but computed exactly. The phone LM is represented as an FST, created in a similar manner as the normal decoding FST described in Section \ref{sec:wfst}. In this case there is no lexicon and grammar FSTs but a phone grammar FST, so the graph consists of the component FSTs $H$, $C$, and $P$. The numerator FST uses a lattice to represent the utterance. The numerator FST is composed with the denominator FST so that the phoneme LM of the denominator removes illegal output sequences. The composition also ensures that the objective function value is negative. 
-  % https://desh2608.github.io/2019-05-21-chain/
+    \citep{peddinti2015time}
 
-  Regularisation is important in DNN training to impede overfitting. Kaldi chain models incorporate a number of regularisation methods in the DNN architectures. One of the methods is called \emph{L2-regularisation}, which applies the euclidean norm to penalise elements in the output vector that tend to blow up. This is achieved by subtracting $\frac{1}{2}c\boldsymbol{y}\boldsymbol{y}$ from the objective function of each frame output $\boldsymbol{y}$ \citep{povey2016purely}. In Kaldi, L2-regularisation is applied on the outputs; this method is different from, and should not be confused with, the L2-regularisation of the weights, which is another commonly used regularisation method.
-  
-  Another widely used regularisation method for deep neural nets are \emph{dropout layers} which randomly sample a subset of the neurons and their connections which are omitted, dropped out, during an iteration of the training \citep{srivastava2014dropout}. This prevents the neurons from relying on the other neuron's outputs too much, i.e., prevents too much \emph{co-adaptation} among the parameters. Dropping out random units in training shifts the unit of adaptation down from large groups of neurons to individual neurons, since it is not guaranteed that the other neurons are present. This principle is explained through an analogy to sexual selection, in the above mentioned original paper. Since genes are mixed randomly with another set of genes from a conspecific between every generation, individual genes cannot rely on specific other genes to be present in the future. This inhibits aggregation of large interdependent gene complexes, in which genes function well only with the group of co-adapted genes. These kinds of complexes would become rigid, and fragile to the inevitable mutations that will always occur quite randomly: new genes would be difficult to incorporate in the complex. This kind of rigidity is analogous to overfitting to the training data and failing to find generalisable rules that apply to new data samples from the hidden distribution, which regularisation attempts to lessen.
+  % (explaining RNNs and TDNNs in previous sections?)
 
-  % It has been empirically shown that dropout layers 
+  \paragraph*{Sequence-level lattice-free MMI}
+    Currently, the state-of-the-art implementations of DNNs in Kaldi are trained using lattice-free MMI (LF-MMI) training criterion, as described by \citet{povey2016purely}. These are called "chain" models in Kaldi. LF-MMI is a sequence discriminative criterion, which means that the aim is to maximise the conditional log-likelihood (Eq. \ref{eq:mmi}) of the correct transcript on the sequence level. In the traditional MMI approach, a cross-entropy system is trained to  generate lattices for a weak language model, and the lattices are used to approximate the possible word sequences for the discriminative objective function denominator. In LF-MMI, however, the possible word sequences are not approximated with a lattice, but a phone-level language model is computed so that the sum in the denominator is not approximated, but can be computed exactly. This is possible since a phone-level LM requires significantly less mamory than a normal word-level LM.  The phone LM is represented as an FST, created in a similar manner as the normal decoding FST described in Section \ref{sec:wfst}. In this case there is no lexicon and grammar FSTs but a phone grammar FST, so the graph consists of the component FSTs $H$, $C$, and $P$. The numerator FST uses a lattice to represent the utterance. The numerator FST is composed with the denominator FST so that the phoneme LM of the denominator removes illegal output sequences. The composition also ensures that the objective function value is negative. 
+    % https://desh2608.github.io/2019-05-21-chain/
 
-  A third type of regularisation technique is called \emph{leaky HMM} in Kaldi. Transitioning from any state $a$ to any state $b$ is allowed once per frame with the probability of a \emph{leaky-hmm-coefficient} times the inherent probability of state $b$. The motivation is to effect a gradual forgetting of the context, since transitioning to a random state is equal to stopping and restarting the HMM \citep{povey2016purely}. This reduces overfitting.
+  \paragraph*{Regularisation of DNN AMs}
+    Regularisation is important in DNN training to impede overfitting. Kaldi chain models incorporate a number of regularisation methods in the DNN architectures. One of the methods is called \emph{L2-regularisation}, which applies the euclidean norm to penalise elements in the output vector that tend to blow up. This is achieved by subtracting $\frac{1}{2}c||\boldsymbol{y}||_2^2$ from the objective function of each frame output $\boldsymbol{y}$, where $c$ is a user-set scaling factor, e.g. 0.005 \citep{povey2016purely}. In Kaldi, L2-regularisation is applied on the outputs; note that this method is different from the L2-regularisation applied to the weights, which is another commonly used regularisation method.
+    
+    Another widely used regularisation method for deep neural nets are \emph{dropout layers} which randomly sample a subset of the neurons and their connections which are omitted, dropped out, during an iteration of the training \citep{srivastava2014dropout}. This prevents the neurons from relying on the other neuron's outputs too much, i.e., prevents too much \emph{co-adaptation} among the parameters. Dropping out random units in training shifts the unit of adaptation down from large groups of neurons to individual neurons, since it is not guaranteed that the other neurons are present. This principle is explained through an analogy to sexual selection, in the above mentioned original paper. Since genes are mixed randomly with another set of genes from a conspecific between every generation, individual genes cannot rely on specific other genes to be present in the future. This inhibits aggregation of large interdependent gene complexes, in which genes function well only with the group of co-adapted genes. These kinds of complexes would become rigid, and fragile to the inevitable mutations that will always occur quite randomly: new genes would be difficult to incorporate in the complex. This kind of rigidity is analogous to overfitting to the training data and failing to find generalisable rules that apply to new data samples from the hidden distribution, which regularisation attempts to lessen.
+
+    % It has been empirically shown that dropout layers 
+
+    A third type of regularisation technique is called \emph{leaky HMM} in Kaldi. Transitioning from any state $a$ to any state $b$ is allowed once per frame with the probability of a small (typically around 0.01) \emph{leaky-hmm-coefficient} times the probability of state $b$. The aim is to effect a gradual forgetting of the context, since transitioning to a random state is equal to stopping and restarting the HMM \citep{povey2016purely}. This reduces the overfitting caused by too much memorising of the training data sequences.
+
+    Another technique to regularise the sequence-level training is to add a separate output layer to the network that learns the cross entropy objective, as well as a separate last hidden layer. This means the network has two output branches with two separate weight matrices in each branch. After the training, the cross entropy branch can be discarded, and the main, sequence output branch is left to be used in decoding.
+    This technique is abbreviated as \textt{xent\_regularize} in the Kaldi code, and the associated hyperparameter is a scaling factor for the cross entropy objective, typically 0.1 because its dynamic range is naturally larger than that of the MMI objective function \citep{povey2016purely}.
 
 
 
@@ -1006,6 +1044,8 @@
 \subsubsection{HMM/DNN acoustic model architecture and training}
 
   The DNN AM inputs higher-resolution features than the GMM AM. 40-dimensional MFCCs are extracted from the data set, which has been augmented using speed perturbation.
+
+  The DNN is a Kaldi chain model, trained on the LF-MMI objective
   
   % The first layer of the DNN
 
