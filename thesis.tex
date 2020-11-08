@@ -280,6 +280,7 @@
   VAD           & voice activity detection, here synonymous with speech activity detection \\
   WER           & word error rate \\
   WFST          & weighted finite-state transducer \\
+  VT            & Viterbi training \\
   VTLN          & vocal tract length normalisation \\
   \end{tabular}
 
@@ -360,10 +361,11 @@
 
 \subsubsection{Optimisation} 
 
-  Depending on the criterium for an optimal model, a optimisation method is chosen and applied to tune the free parameters of a model. When the model to be estimated includes latent variables, the maximum likelihood estimate can be computed using the expectation maximisation (EM) algorithm. A latent (i.e., hidden) variable is a variable that is not directly observed, but can affect the observed variables. A general example of a latent variable is some phenomenon in the real world that is not directly observed, but whose properties are inferred from measurements that are observable. Two types of models that include latent variables are GMMs and HMMs, both of which are central to the conventional implementation methods in automatic speech recognition. In GMMs, the identity of the mixture component $c$ of a data point $o$ is a latent variable, and the probability distribution $P(o)$ is determined by the joint distribution $P(o,c)=P(o|c)P(c)$. Hidden Markov models are named after the latent, hidden sequence that generates an observed sequence\footnote{They are also named after the Russian mathematician Andrey Markov.}; in speech recognition the hidden sequence can be a sequence of phones that generate the sequence of processed audio signal chunks referred to as features.
+  Depending on the criterion for an optimal model, a optimisation method is chosen and applied to tune the free parameters of a model. When the model to be estimated includes latent variables, the maximum likelihood estimate can be computed using the expectation maximisation (EM) algorithm. A latent (i.e., hidden) variable is a variable that is not directly observed, but can affect the observed variables. A general example of a latent variable is some phenomenon in the real world that is not directly observed, but whose properties are inferred from measurements that are observable. Two types of models that include latent variables are GMMs and HMMs, both of which are central to the conventional implementation methods in automatic speech recognition. In GMMs, the identity of the mixture component $c$ of a data point $o$ is a latent variable, and the probability distribution $P(o)$ is determined by the joint distribution $P(o,c)=P(o|c)P(c)$. Hidden Markov models are named after the latent, hidden sequence that generates an observed sequence\footnote{They are also named after the Russian mathematician Andrey Markov.}; in speech recognition the hidden sequence can be a sequence of phones that generate the sequence of processed audio signal chunks referred to as features.
   % 'Maximum likelihood modeling with Gaussian distributions for classification'
   % gupta2011theory
 
+  Maximising the expectedness of the data can be turned around and seen as minimising how surprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to finding a local maximum for the likelihood of a set of data given a model.
 
 
   The EM algorithm consists of iterating the expectation step (E-step) and the maximisation step (M-step). The E-step 
@@ -373,7 +375,7 @@
   % cross entropy
   % 
 
-\subsubsection{Artificial neural networks and deep learning}
+\subsubsection{Artificial neural networks and deep learning} \label{sec:dnn_intro}
 
   Artificial neural networks (ANN) are a family of model types, historically based on the concept of a perceptron \citep{rosenblatt1957perceptron}, which functions similarly to a biological neuron, and is therefore called an artificial neuron, or just neuron.
   The core functioning, common to the perceptron and the biological neuron, is that an input either activates the output or not based on an activation function. In the case of a perceptron, the activation function is a unit step function: if the input is above a scalar threshold the output is activated. Perceptron learns a binary classifier by tuning this threshold based on information from training examples. The idea of a perceptron has since been generalised and extended into the wide range of different kinds of artificial neural networks, but the core idea of a neuron remains.
@@ -385,13 +387,6 @@
   A widely used type of recurrent NN is called a long short-term memory (LSTM) network \citep{hochreiter1997long}. The term "short-term" alludes to the activations of recurrent connections as type of memory, in contrast with "long-term" memory in the form of the weights of the connections that change by learning. The short-term memory is made longer than in the usual RNN memory by utilising special gate layers that comprise a memory cell unit. 
 
   \textbf{todo: lstm, tdnn, attention}
-
-
-
-
-
-
-
 
 
 \clearpage
@@ -425,7 +420,6 @@
   %   \hat{\boldsymbol{w}} = \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
   %   \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
   % \end{equation} 
-
 
 
 \subsection{Statistical language modelling} \label{sec:lm} 
@@ -467,7 +461,7 @@
   \end{equation}
   This is called the maximum likelihood estimate of $P(w_i|w_{i-(n-1)},...,w_{i-1})$ since it maximises the likelihood of 
   % the language model for 
-  this specific training data set\citep{chen1998empirical}. As in machine learning in general, however, the aim is to use the training data to distil from it a generalisable model, which predicts patterns also in previously unseen data, instead of building a model that maximally accounts for the training data set. 
+  this specific training data set\citep{chen1998empirical}. As in machine learning in general, however, the aim is to use the training data to distil from it a generalising model which predicts patterns also in previously unseen data instead of building a model that maximally accounts for the training data set. 
   
   % problems aimed to be fixed by smoothing
 
@@ -540,7 +534,7 @@
     Thus, it is useful to add information to the feature vectors about how the signal changes in time. 
     Information about temporal change and about change of temporal change is extracted from the MFCCs by calculating the differences and second-order differences of adjacent coefficients. These features are called the delta ($\boldsymbol{\Delta}$) and delta-delta ($\boldsymbol{\Delta\Delta}$), or acceleration, features. 
     % The $\boldsymbol{\Delta}$s and $\boldsymbol{\Delta\Delta}$s are concatenated with the MFCC vectors, increasing the feature vector length threefold.
-    The delta feature vector $\boldsymbol{\Delta}_t$ corresponding to the MFCC vector $\boldsymbol{c}_t$ (or the time step if that vector) is calculated by subtracting the weighted previous vector(s) from the weighted subsequent vector(s) and normalising the sum:
+    The delta feature vector $\boldsymbol{\Delta}_t$ corresponding to the MFCC vector $\boldsymbol{c}_t$ (or the time step of that vector) is calculated by subtracting the weighted previous vector(s) from the weighted subsequent vector(s) and normalising the sum:
     \begin{equation}
     \boldsymbol{\Delta}_t = \frac{\sum_{\theta=1}^{\Theta}
     \theta(\boldsymbol{c}_{t+\theta}-\boldsymbol{c}_{t-\theta})}{2\sum_{\theta=1}^{\Theta}\theta^2}
@@ -560,7 +554,7 @@
 
   \paragraph*{Dimensionality reduction and feature-space transforms}
 
-    Features can be compressed by a dimensionality reduction method. Two common methods for this are the principal component analysis (PCA) \citep{pearson1901liii} and linear discriminant analysis (LDA) also called Fisher discriminant analysis \citep{martinez2001pca}.
+    Features can be compressed by a dimensionality reduction method. Two common methods for this are the principal component analysis (PCA) \citep{pearson1901liii} and linear discriminant analysis (LDA), also called Fisher discriminant analysis \citep{martinez2001pca}.
     % The general idea behind PCA is that a feature vector contains interdependencies between its elements, which means there is redundant information that can be lessened by making the elements (i.e., dimensions) more independent. 
     The general idea of these methods is to find a linear combination of variables that best explain the observations.
     PCA achieves this by performing an orthogonal transformation that transforms the data matrix into a space where the dimensions, called the principal components, are ordered by their variances in decreasing order. After this, dimensionality reduction is achieved by pruning the dimensions with the lowest variance since they contribute the least to the information content of the features. LDA, on the other hand, searches for those dimensions that best discriminate between classes. For LDA, labelled training data is needed. 
@@ -601,10 +595,9 @@
       \boldsymbol{\Sigma}^{-1} 
       (\boldsymbol{o} - \boldsymbol{\mu})}
   \end{equation}
+  Because a mixture of Gaussians can assume arbitrary shapes, they can model non-Gaussian phenomena; no restricting assumption is made about the shape of the PDF when a GMM is used.
 
-  Because a mixture of Gaussians can assume arbitrary shapes, they can model non-Gaussian phenomena. 
-
-  HMMs are used to model sequences, but observations are independent of past observations. Instead, the regime has a memory, although the shortest possible: the probability of being a certain state in the next time step depends only on the current state and not the previous states. This independence of the previous transitions is called the Markov assumption. Each hidden state pair (an arc from a state to another) is associated with a transition probability $a_{ij}$ that describes how probable it is to move from state $i$ to state $j$. 
+  HMMs are used to model sequences, but an observation is independent of past observations. Instead, the regime has a memory, although the shortest possible: the probability of being a certain state in the next time step depends only on the current state and not the previous states. This independence of the previous transitions is called the Markov assumption. Each hidden state pair, represented in Kaldi by an arc from a state to another, is associated with a transition probability $a_{ij}$ that describes how probable it is to move from state $i$ to state $j$. 
 
   All in all, a HMM is defined by the set of states $S=s_1,s_2,...s_N$, the transition probability matrix $A=a_{11},...,a_{ij},...,a_{NN}$, the emission probabilities $B=b_i(\boldsymbol{o}_t)$, and the initial probability distribution $\pi=\pi_1,\pi_2,...\pi_N$ that models the probability of a state being the first state in the hidden sequence.
   
@@ -619,18 +612,18 @@
   After initialising a HMM for each phoneme, the parameters, i.e. means, covariances and mixture weights need to be estimated in the process referred to as "training" of the model.
 
 
-\subsubsection{Finding the best hidden state sequence and training HMMs} \label{sec:hmm_est} 
+\subsubsection{Finding the maximum likelihood hidden state sequence and training HMM/GMM AMs} \label{sec:hmm_est} 
 
-  The speech recognition system is trained in a supervised manner, meaning that the training data consists of a parallel corpus of speech audio and corresponding correct transcription. However, the task of the acoustic model is not as straightforward as finding a label for an input vector\footnote{In End-to-end ASR the whole ASR task is simplified to outputting an arbitrary length grapheme sequence given the sequence of observed features}. The reference transcription can be of arbitrary length but the AM is required to map each observation to a HMM state, generating an equal-length \emph{alignment} of observations and states. The states correspond to phonemes, so an alignment can be mapped to a transcription of the audio.
+  The speech recognition system is trained in a supervised manner, meaning that the training data consists of a parallel corpus of speech audio and corresponding correct transcription. However, the task of the acoustic model is not as straightforward as finding a label for an input vector\footnote{In End-to-end ASR the whole ASR task is simplified to outputting an arbitrary length grapheme sequence given the sequence of observed features}. The reference transcription can be of arbitrary length but the AM is required to map each observation to a HMM state, generating an equal-length \emph{alignment} of observations and states. The states correspond to phonemes, so an alignment can be mapped to a transcription of the audio, given a lexicon that maps the phoneme sequences to word sequences.
 
-  ML is one criterium of finding the best HMM parameters; others include the MMI (see Section \ref{sec:mmi}) and the MAP criteria.
+  ML is one criterion of determining the best HMM parameters; others include the MMI criterion which is discussed in Section \ref{sec:mmi}. Section \ref{sec:ml} was a brief discussion about different fitness criteria and optimisation algorithms. It was noted there that for finding the maximum likelihood estimate of a model with latent variables, expectation maximisation is a commonly used optimisation algorithm.
 
-  % Baum-Welch algorithm
-  The Baum-Welch algorithm is an expectation-maximisation algorithm for estimating the HMM parameters. Maximising the expectedness of the data can be turned around and seen as minimising how surprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to finding a local maximum for the likelihood of a set of data given a model.  Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the parameters of
+  \paragraph*{The Baum-Welch algorithm}
+  The Baum-Welch algorithm is an expectation maximisation algorithm for estimating the HMM parameters.  Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the parameters of
   the HMM $M$. % here all HMMs, viterbi: only the best ?
   If the HMM had only one state $j$, the maximum likelihood estimate $\hat{\boldsymbol{\mu}}_j$ would simply be the average of the observations, and $\hat{\boldsymbol{\Sigma}}_j$, too, could be determined directly, using the covariance definition.
   In practice, there are many states which is why the parameters need to be estimated numerically, iteratively. 
-  However, the initial parameter values can be taken from simple statistics of the observations. The observations are divided equally between the states and the means and variances of the states are taken from the average values.
+  However, the initial parameter values can be taken from simple statistics of the observations. Initially, the observations are divided equally between the states and the means and variances of the states are taken from the average values.
 
   The maximum likelihood estimates for the parameters are 
   \begin{equation}\label{eq:mu_hat}
@@ -644,7 +637,7 @@
       (\boldsymbol{o}_t - \boldsymbol{\mu}_j)^\top }
       {\sum^T_{t=1}L_j(t)}
   \end{equation}
-  The numerator and denominator sums are \emph{accumulated} from the observations.
+  The numerator and denominator sums for both parameter groups are \emph{accumulated} from the observations. This is the M-step in this expectation maximisation algorithm. The E-step includes finding the optimal alignment given the current HMM parameters. This is achieved by the forward-backward algorithm.
 
   % kaldi: gmm-init, HTK: Hinit
 
@@ -664,7 +657,7 @@
     \beta_j(t) &= P(\boldsymbol{o}_{t+1},...,\boldsymbol{o}_T|x(t)=j,M) \label{eq:back}
   \end{align}
   Spelled out, $\alpha_j(t)$ is the probability of the partial observation sequence up to time $t$ and that $M$ is in state $j$ at the time step. The backward probability is the probability of the partial observation sequence at the subsequent time steps up to the last vector, given that at the current time the model state is $j$. 
-  The forward probability is a joint probability of the observations and the state, whereas the backward probability of the observations is conditional on the state. This allows for the state occupation probability to be determined by the product of the forward and backward probabilities (from Eqs. \ref{eq:occ} \ref{eq:forward} and \ref{eq:back})
+  The forward probability is a joint probability of the observations and the state, whereas the backward probability of the observations is conditional on the state. This allows for the state occupation probability to be determined by the product of the forward and backward probabilities (from Eqs. \ref{eq:occ}, \ref{eq:forward}, and \ref{eq:back})
   \begin{align}\label{}
     L_j(t) = \frac{ \alpha_j(t) \beta_j(t) }{P(\boldsymbol{O}|M)}
   \end{align}
@@ -687,12 +680,14 @@
     \alpha_N(T) &= \sum^{N-1}_{i=2}\alpha_i(T)a_{iN} \label{eq:afinal} \\
     \beta_1(1) &= \sum^{N-1}_{j=2} a_{1j} b_j(\boldsymbol{o}_1) \beta_j(1) \label{eq:bfinal}
   \end{align}
-  where the limits of the sums exclude the states $1$ and $N$ because they are non-emitting. The recursion \ref{eq:alpha_recurs} calculates the forward probabilities (of seeing the specified observations and being at the state $j$) by summing all possible forward probabilities for all possible predecessor states $i$ weighted by the transition probability $a_{ij}$.
+  where the limits of the sums exclude the states $1$ and $N$ because they are non-emitting. The recursion of Eq. \ref{eq:alpha_recurs} calculates the forward probabilities (of seeing the specified observations and being at the state $j$) by summing all possible forward probabilities for all possible predecessor states $i$ weighted by the transition probability $a_{ij}$.
 
-  From \ref{eq:forward}, \ref{eq:afinal} and \ref{eq:bfinal} it follows that calculating the forward probability also yields the total likelihood $P(\boldsymbol{O}|M)=\alpha_N(T)$.
+  From Eqs. \ref{eq:forward}, \ref{eq:afinal}, and \ref{eq:bfinal} it follows that calculating the forward probability also yields the total likelihood $P(\boldsymbol{O}|M)=\alpha_N(T)$.
+  % By calculating the forward probability the best hidden path can be determined. The forward-backward algorithm is therefore the E-step that finds the optimal alignment given the HMM parameters.
+  % The M-step consists of accumulating the averages from training examples
 
-  % Viterbi training
-  An alternative approach to the B-W algorithm is an iterative procedure called Viterbi training, also called Viterbi extraction or Baum-Viterbi algorithm since it involves the Baum re-estimation (Eqs. \label{eq:mu_hat} and \label{eq:sigma_hat}) and the Viterbi algorithm \citep{lember2008adjusted}. Instead of maximising the likelihood of all the data as in Eq. \ref{eq:alpha_recurs}, in VT the probability of only the most likely hidden sequence is maximised
+  \paragraph*{Viterbi training}
+  An alternative approach to the Baum-Welch algorithm is an iterative procedure called Viterbi training (VT), also called Viterbi extraction or Baum-Viterbi algorithm since it involves the Baum re-estimation (Eqs. \ref{eq:mu_hat} and \ref{eq:sigma_hat}) and the Viterbi algorithm \citep{lember2008adjusted}. Instead of maximising the likelihood of all the data as in Eq. \ref{eq:alpha_recurs}, in VT the probability of only the most likely hidden sequence is maximised
   \begin{equation}
     \phi_N(T) = \max_i \{ \phi_i(T)a_{iN} \}
   \end{equation}
@@ -705,19 +700,47 @@
     &\phi_1(1) = 1 \\
     &\phi_j(1) = a_{1j}b_j(\boldsymbol{o}_t).
   \end{align}
-  for $1<j<N$. This alignment process finds an arc $ij$ for each observation $\boldsymbol{o}_t$ so that the last
+  for $1<j<N$. This alignment process finds an arc $ij$ for each observation $\boldsymbol{o}_t$.
+  % so that the last 
 
-  This results in an approximation of the maximum likelihood estimate (which was computed in the B-W algorithm)
-  % ?
-  .
-  The Viterbi training is computationally less expensive than the B-W algorithm.
-  In Viterbi training, the HMM parameters and the most probable hidden state sequence, both unknown, are estimated alternately. After updating the HMM parameters, the training data observations are aligned with the states. The new alignment is then used for estimating the HMM parameters again, and so on. 
+  This results in an approximation of the maximum likelihood estimate, which was computed in the Baum-Welch algorithm. The approximation is convenient, since using only the best hidden sequence for updating the HMM parameters makes the Viterbi training is computationally less expensive than the Baum-Welch algorithm. Viterbi training is used in the Kaldi toolkit for estimating the HMM/GMM acoustic models in the standard recipes.
+
+  % In Viterbi training, the HMM parameters and the most probable hidden state sequence, both unknown, are estimated alternately. After updating the HMM parameters, the training data observations are aligned with the states. The new alignment is then used for estimating the HMM parameters again, and so on. 
   % Within each state, a further alignment is made to align observations with mixture components. 
   % Using the Viterbi algorithm, the states are aligned with the observation sequence by maximising
 
 
 
   % AS stated in the Kaldi documentation, computed alignment is a sequence of transitions that corresponds to an utterance. 
+
+
+\subsubsection{A discriminative training criterion: MMI} \label{sec:mmi} 
+
+  % The maximum likelihood method aims to  
+  % Typically?
+  % Discriminative training is based on an objective function which is minimised or maximised using an optimisation algorithm.
+
+  The MLE method described in Section \ref{sec:hmm_est} aims to maximise the likelihood of the observed sequence given the most probable HMM in Viterbi training, or all the possible HMMs in Baum-Welch.
+  % This method results in a model that predicts the training data by determining a probability distribution over the feature space, i.e., over all possible observations. This is called a generative model since the distribution can be sampled for predictions. However, the ability to produce examples of the modelled data is redundant in classification tasks.
+  % Furthermore, t
+  The MLE method maximises the likelihood of the observations for all of the competing HMMs independently of each other. However, the underlying task is to find the HMM that most accurately models the observation sequence, so it makes sense to also try to find the meaningful differences between HMMs.
+  % The HMMs competing for being the most accurate model of the observations are not compared to each other.
+  In discriminative training, instead of maximising the likelihood of the data given a generative model, a model is trained to discriminate between the classes, which in this case are different phoneme sequences. This way more of the model capacity is used to model the boundaries between different HMMs, instead of using it to model just the relations between individual HMMs and alignments. 
+
+  The objective function can be simply the difference between the correct classifications (e.g., a phoneme sequence) for a set of examples and the classifications assigned to them by the model. This is called the minimum classification error (MCE) criterion \citep{juang1997minimum}.
+  Another type of objective function is the maximum mutual information (MMI) \citep{bahl1986maximum} criterion
+  \begin{equation} \label{eq:mmi}
+    \mathcal{F}_{\textup{MMI}}(M) = \sum_{r=1}^R \log 
+      \frac{P(\boldsymbol{w}_r)P(\boldsymbol{O}_r|\boldsymbol{w}_r)}
+        {\sum_{\boldsymbol{w}} P(\boldsymbol{w})P(\boldsymbol{O}_r|\boldsymbol{w})}
+  \end{equation}
+  where $\boldsymbol{w}_r$ is the correct transcription for the $r$'th speech file \citep{povey2005discriminative}. The numerator is the log-probability of the output sequence, and the denominator is the log-probability of all possible output sequences. This way the probability of a particular sequence is normalised by the probability of all sequences.
+  % equivalent to conditional maximum likelihood 
+  % extended b-w
+  
+  % vesely2013sequence
+
+  % Traditionally this has been done by training a cross-entropy system, generating word lattices with a weak language model, and using these lattices as an approx- imation for all possible word sequences in the discriminative objective function– as was done when Gaussian Mixture Mod- els were the state of the art povey2016purely
 
 
 \subsubsection{Phone context, state tying, and phonetic decision trees} \label{sec:triphone}
@@ -819,36 +842,6 @@
     % First, a transform is generated for each speaker. 
 
 
-
-\subsubsection{Discriminative training} \label{sec:mmi} 
-
-  % The maximum likelihood method aims to  
-  % Typically?
-  % Discriminative training is based on an objective function which is minimised or maximised using an optimisation algorithm.
-
-  The MLE method described in Section \ref{sec:hmm_est} aims to maximise the likelihood of the observed sequence given the most probable HMM in Viterbi training, or all the possible HMMs in Baum-Welch.
-  % This method results in a model that predicts the training data by determining a probability distribution over the feature space, i.e., over all possible observations. This is called a generative model since the distribution can be sampled for predictions. However, the ability to produce examples of the modelled data is redundant in classification tasks.
-  % Furthermore, t
-  The MLE method maximises the likelihood of the observations for all of the competing HMMs independently of each other. However, the underlying task is to find the HMM that most accurately models the observation sequence, so it makes sense to also try to find the meaningful differences between HMMs.
-  % The HMMs competing for being the most accurate model of the observations are not compared to each other.
-  In discriminative training, instead of maximising the likelihood of the data given a generative model, a model is trained to discriminate between the classes, which in this case are different phoneme sequences. This way more capacity is used to model the boundaries between different HMMs, instead of using it to model just the relations between individual HMMs and alignments. 
-
-  The objective function can be simply the difference between the correct classifications (e.g., a phoneme sequence) for a set of examples and the classifications assigned to them by the model. This is called the minimum classification error (MCE) criterion \citep{juang1997minimum}.
-  Another type of objective function is the maximum mutual information (MMI) \citep{bahl1986maximum} criterion
-  \begin{equation} \label{eq:mmi}
-    \mathcal{F}_{\textup{MMI}}(M) = \sum_{r=1}^R \log 
-      \frac{P(\boldsymbol{w}_r)P(\boldsymbol{O}_r|\boldsymbol{w}_r)}
-        {\sum_{\boldsymbol{w}} P(\boldsymbol{w})P(\boldsymbol{O}_r|\boldsymbol{w})}
-  \end{equation}
-  where $\boldsymbol{w}_r$ is the correct transcription for the $r$'th speech file \citep{povey2005discriminative}. The numerator is the log-probability of the output sequence, and the denominator is the log-probability of all possible output sequences. This way the probability of a particular sequence is normalised by the probability of all sequences.
-  % equivalent to conditional maximum likelihood 
-  % extended b-w
-  
-  % vesely2013sequence
-
-  % Traditionally this has been done by training a cross-entropy system, generating word lattices with a weak language model, and using these lattices as an approx- imation for all possible word sequences in the discriminative objective function– as was done when Gaussian Mixture Mod- els were the state of the art povey2016purely
-
-
 \subsubsection{Mapping words to phoneme sequences} \label{sec:lexicon} 
 
   The hidden state sequence decoded from a HMM corresponds to a phoneme sequence, but the ultimate aim is to generate a word sequence for a given observation sequence. For mapping words to phoneme sequences, the ASR system uses a \emph{lexicon}, also referred to as \emph{pronouncing dictionary}, or just \emph{dictionary}. 
@@ -885,7 +878,6 @@
     \label{}
   \end{table}
 
-  
 
 \subsubsection{Weighted finite-state transducers in Kaldi} \label{sec:wfst} 
 
@@ -978,21 +970,18 @@
 
 
 
-
 % \subsubsection{Speaker recognition} \label{sec:spk_id}
 
 %   Section \ref{sec:adaptive_training} discussed the differences between speakers and how the differences are modelled in adaptive training. 
 
 
-
 \subsection{Spoken and written conversations in Finnish} \label{sec:conv}
 
+  
 
 
 % \clearpage
 % \section{Methods}
-
-
 
 
 \clearpage
