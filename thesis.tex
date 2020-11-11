@@ -65,6 +65,7 @@
   
 
   \DeclareMathOperator*{\argmax}{argmax}
+  \DeclareMathOperator*{\tanh}{tanh}
 
   % \university{Aalto-yliopisto}
   % \school{Sähkötekniikan korkeakoulu}
@@ -197,7 +198,6 @@
   \mysection{Symbols and abbreviations}
 
   \subsection*{Symbols}
-
   \begin{tabular}{ll}
   % examples
   % $\mathbf{B}$  & magnetic flux density  \\
@@ -218,24 +218,7 @@
   
   \end{tabular}
 
-  % \subsection*{Operators}
-
-  % \begin{tabular}{ll}
-  % examples
-  % $\nabla \times \mathbf{A}$                  & curl of vectorin $\mathbf{A}$\\
-  % $\displaystyle\frac{\mbox{d}}{\mbox{d} t}$  & derivative with respect to 
-  %                                               variable $t$\\[3mm]
-  % $\displaystyle\frac{\partial}{\partial t}$  & partial derivative with respect 
-  %                                               to variable $t$ \\[3mm]
-  % $\sum_i $                                   & sum over index $i$\\
-  % $\mathbf{A} \cdot \mathbf{B}$               & dot product of vectors $\mathbf{A}$ and 
-  %                                               $\mathbf{B}$ \\
-  % /examples
-
-  % \end{tabular}
-
   \subsection*{Abbreviations}
-
   \begin{tabular}{ll}
   AM            & acoustic model \\
   ANN           & artificial neural network \\
@@ -300,7 +283,7 @@
   Automatic speech recognition (ASR) is the task of converting speech into text.
   The difficulty of the task depends on how varied the speech audio signals are. The restricted problem of recognising a few different words pronounced clearly by one speaker recorded in noise-free conditions was solved years ago. Speech recognition becomes more difficult when the speech is continuous and recorded in differing noise conditions from many speakers. Current state-of-the-art ASR systems are nearing the human-level recognition accuracy also in continuous speech recognition tasks if the speech is planned and pronounced clearly, as it is, for example, in broadcast news or parliament discussions. However, spontaneous, informal conversations remain a challenging type of speech to transcribe automatically, and the gap between human and machine accuracy is still very large. This thesis explores methods for improving ASR for conversational Finnish.
 
-\subsection{The basic structure of an ASR system} 
+  % \subsection{The basic structure of an ASR system} 
 
   The conventional ASR system includes two main component systems: the acoustic model (AM) and the language model (LM). The LM generates an \emph{a priori} probability distribution over possible word sequences. For example, the transciption "en minä tiedä" should probably be assigned a larger probability than "en sinä tiedä" even before any speech audio is processed. The AM outputs \emph{a posteriori} probabilities for phoneme sequences based on the speech audio. A dictionary is used to map the phoneme sequences to words, or more accurately, the same grapheme units that the LM uses, which can also be subword units or characters, for instance. The probabilities of the LM and AM are combined to estimate the most likely transcription of the speech audio.
 
@@ -320,26 +303,27 @@
   Other language modelling experiments in this work include evaluating word and subword vocabularies, tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs), and experimenting with topic modelling (see e.g., \citet{xiong2018session, xing2016topic}).
 
 
+\clearpage
+\section{Machine learning} \label{sec:ml} 
 
-\subsection{Machine learning} \label{sec:ml} 
+  % \subsection{Statistical models} 
 
-\subsubsection{Statistical models} 
+  %   A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
+  %   A model can be statistical, conceptual, mathematical ...
+  %   Model of any of these kinds, however, is ...
 
-  A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
-  A model can be statistical, conceptual, mathematical ...
-  Model of any of these kinds, however, is ...
+  %   Creating models of phenomena in an environment is the basis for being able to understand, predict, or act in the environment. Brains have evolved to build both unconscious and  consciously accessible models of consequential things, such as animals, weather, or phonemes that compose a language.
+  %   % of plants, of the body that contains the brain, of weather, water etc.
+  %   % representations of time, space, temperature etc. 
 
-  Creating models of phenomena in an environment is the basis for being able to understand, predict, or act in the environment. Brains have evolved to build both unconscious and  consciously accessible models of consequential things, such as animals, weather, or phonemes that compose a language.
-  % of plants, of the body that contains the brain, of weather, water etc.
-  % representations of time, space, temperature etc. 
+  %   The abstraction and simplification can happen by grouping similar things into one. For example, a mental model of a tree integrates many individual leaves into one foliage, and
+  %   % , more fundamentally, 
+  %   a visual model of a leaf integrates many chloroplasts and other small things into one green surface that is perceived when looking at a leaf.
 
-  The abstraction and simplification can happen by grouping similar things into one. For example, a mental model of a tree integrates many individual leaves into one foliage, and
-  % , more fundamentally, 
-  a visual model of a leaf integrates many chloroplasts and other small things into one green surface that is perceived when looking at a leaf.
+  %   A model can be a function that generates an output given an input, emulating how the real-world phenomenon behaves. Inputting a knife into a coconut outputs coconut milk, and an accurate mental model of a coconut should be able to predict that a coconut will function in this manner. More generally, a model can be any kind of mapping from a domain to another.
+    
+  %   % ; via lowering the resolution: a mental model of a 
 
-  A model can be a function that generates an output given an input, emulating how the real-world phenomenon behaves. Inputting a knife into a coconut outputs coconut milk, and an accurate mental model of a coconut should be able to predict that a coconut will function in this manner. More generally, a model can be any kind of mapping from a domain to another.
-  
-  % ; via lowering the resolution: a mental model of a 
 
 % \subsubsection{Estimating models statistically}
 
@@ -351,7 +335,7 @@
   % For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
 
 
-\subsubsection{Fitness criterion} 
+\subsection{Fitness criterion} 
 
   The mapping from input to output is determined by the parameters $\theta$ that are learned. There are different approaches to defining how good a model is, given a training dataset. Using the maximum likelihood estimation (MLE), the parameters are adjusted to maximise how probable the model judges the data set. The maximum likelihood estimate $\theta_{\textup{ML}}$ of the model parameters is the point in the parameter space that maximises the likelihood of the observed data. The confidence of how good the point estimate is is related to its variance. If alternative samplings of the observations are likely to change the estimate, the variance is larger. In contrast to the MLE approach,
   % and frequentist statistics in general,
@@ -359,7 +343,7 @@
   
   % incorporate the degree of certainty to the model itself
 
-\subsubsection{Optimisation} 
+\subsection{Optimisation} 
 
   Depending on the criterion for an optimal model, a optimisation method is chosen and applied to tune the free parameters of a model. When the model to be estimated includes latent variables, the maximum likelihood estimate can be computed using the expectation maximisation (EM) algorithm. A latent (i.e., hidden) variable is a variable that is not directly observed, but can affect the observed variables. A general example of a latent variable is some phenomenon in the real world that is not directly observed, but whose properties are inferred from measurements that are observable. Two types of models that include latent variables are GMMs and HMMs, both of which are central to the conventional implementation methods in automatic speech recognition. In GMMs, the identity of the mixture component $c$ of a data point $o$ is a latent variable, and the probability distribution $P(o)$ is determined by the joint distribution $P(o,c)=P(o|c)P(c)$. Hidden Markov models are named after the latent, hidden sequence that generates an observed sequence\footnote{They are also named after the Russian mathematician Andrey Markov.}; in speech recognition the hidden sequence can be a sequence of phones that generate the sequence of processed audio signal chunks referred to as features.
   % 'Maximum likelihood modeling with Gaussian distributions for classification'
@@ -375,18 +359,60 @@
   % cross entropy
   % 
 
-\subsubsection{Artificial neural networks and deep learning} \label{sec:dnn_intro}
+\subsection{Artificial neural networks} \label{sec:dnn_intro}
 
   Artificial neural networks (ANN) are a family of model types, historically based on the concept of a perceptron \citep{rosenblatt1957perceptron}, which functions similarly to a biological neuron, and is therefore called an artificial neuron, or just neuron.
   The core functioning, common to the perceptron and the biological neuron, is that an input either activates the output or not based on an activation function. In the case of a perceptron, the activation function is a unit step function: if the input is above a scalar threshold the output is activated. Perceptron learns a binary classifier by tuning this threshold based on information from training examples. The idea of a perceptron has since been generalised and extended into the wide range of different kinds of artificial neural networks, but the core idea of a neuron remains.
   
   A multilayer perceptron (MLP) stacks neurons in multiple layers that are connected in the forward direction from the input to the output layer. An MLP includes an input layer of neurons with linear or non-linear activation functions, one or more hidden layers, and an output layer. The layered network learns the weights of the connections through backpropagation. 
   
-  An important class of ANNs are deep neural networks (DNN), called "deep" because they include many hidden layers. MLPs are a subclass of DNNs; other classes include, for instance, convolutional NNs (CNN) and recurrent NNs (RNN), which are particularly useful in speech recognition since they are capable of modelling long-term time dependencies in data. Both language models and acoustic models ought to capture dependencies across many time steps, and RNNs have been successfully applied to these tasks.
+  An important class of ANNs are deep neural networks (DNN), called "deep" because they include many hidden layers. MLPs are a subclass of DNNs; other subclasses include, for instance, convolutional NNs (CNN) and recurrent NNs (RNN), which are particularly useful in speech recognition since they are capable of modelling long-term time dependencies in data.
+  
 
-  A widely used type of recurrent NN is called a long short-term memory (LSTM) network \citep{hochreiter1997long}. The term "short-term" alludes to the activations of recurrent connections as type of memory, in contrast with "long-term" memory in the form of the weights of the connections that change by learning. The short-term memory is made longer than in the usual RNN memory by utilising special gate layers that comprise a memory cell unit. 
+\subsubsection{Recurrence} \label{sec:rnn} 
 
-  \textbf{todo: lstm, tdnn, attention}
+  Feedforward networks feed the output of a layer to the next layer until the output layer. The network output at time $t$ is therefore dependent only on the input at $t$. In natural languages, each unit of speech or text is strongly connected to the previous units. Both language models and acoustic models ought to capture dependencies across many time steps, and RNNs have been successfully applied to these tasks. In a simple RNN, the output of a layer is fed back to the same layer in the next time step, creating a type of memory of previous states of the network. Other recurrence methods are also possible, but all RNNs are based on some type of cycle between the network connections, creating a dependence of the current output on the previous outputs. This enables modelling dependencies between time steps.
+
+  \paragraph*{Long short-term memory}
+  A widely used type of recurrent NN is called a long short-term memory (LSTM) network \citep{hochreiter1997long}. The term "short-term" alludes to the activations of recurrent connections as type of memory, in contrast with "long-term" memory in the form of the weights of the connections that change by learning. The short-term memory is made longer and more expressive than in the usual RNN memory by utilising special gate layers that comprise a memory cell unit. The LSTM cell contains in total four neural network layers that perform different gating functions and interact to jointly learn which information should be memorised, i.e., which of the processed previous inputs contain the relevant \emph{context} that the next output should depend on. The gate layers are called the forget gate, the add gate, the input gate, and the output gate.
+
+  The forget gate inputs the previous hidden state $h_{t-1}$ and the current input $x_t$ and outputs a vector that decides which elements in the previous context vector (aka cell state) $c_{t-1}$ should be kept in the memory and how completely, on a scale from 0 to 1.
+  \begin{align}
+    f_t &= \sigma(U_f h_{t-1} + W_f x_t) \\
+    k_t &=  f_t \circ c_{t-1}
+  \end{align}
+  where $\circ$ represents the element-wise (also called Hadamard) product of the vectors.
+
+  The add gate extracts from  $h_{t-1}$ and $x_t$ a new candidate context vector $\hat{c}_t$ that could be added to the context in lieu of the forgot information. The hyperbolic tangent squishes the values between -1 and 1. The input gate $i_t$ selects from $\hat{c}_t$ the new context that is added to the context.
+  \begin{align}
+    \hat{c}_t &= \tanh(U_c h_{t-1} + W_c x_t) \\
+    i_t &= \sigma(U_i h_{t-1} + W_i x_t) \\
+    j_t &= \hat{c}_t \circ i_t \\
+    c_t &= k_t + j_t
+  \end{align}
+
+  The output gate $o_t$ generates the current hidden state $h_t$ from the newly computed current context $c_t$:
+  \begin{align}
+    o_t &= \sigma(U_o h_{t-1} + W_o x_t) \\
+    h_t &= o_t \circ \tanh(c_t)
+  \end{align}
+
+  Figure \ref{fig:lstm} illustrates the LSTM cell with its four gate layers.
+  \begin{figure}[htb]
+    \centering
+    \includegraphics[width=14cm]{lstm-cell}
+    \caption{A LSTM cell.}
+    \label{fig:lstm}
+  \end{figure}
+
+
+% \subsubsection{Convolution}
+
+\subsubsection{Attention} \label{sec:attention}
+
+  \citet{bahdanau2014neural} introduced a mechanism that has been widely adopted in speech and language processing systems, called \emph{attention}. 
+
+
 
 
 \clearpage
@@ -506,11 +532,17 @@
 
   The ARPA (named after DARPA which was previously named ARPA) backoff n-gram format is used ... \footnote{\url{http://www.speech.sri.com/projects/srilm/manpages/ngram-format.5.html}}
 
-\subsubsection{Recurrent and convolutional neural language models} \label{sec:rnn} 
 
-\subsubsection{Attentive neural language models} \label{sec:attention} 
+\subsubsection{Neural language models}
 
-  % \citet{dai2019transformer}
+  n-gram language models 
+
+  % The LSTM \ref{sec:rnn}
+    
+
+  \paragraph*{Transformers} \label{sec:attention} 
+
+    % \citet{dai2019transformer}
 
 
 \subsection{Automatic speech recognition using the Kaldi toolkit} \label{sec:am}
@@ -562,9 +594,10 @@
 
     % MLLT and LDA \citep{somervuo2003feature, pylkkonen2006lda} transforms 
     
-    MLLT is a feature orthogonalizing transform that makes the features more accurately modeled by diagonal-covariance Gaussians ->Improved feature processing for Deep Neural Networks
+    MLLT is a feature orthogonalizing transform that makes the features more accurately modeled by diagonal-covariance Gaussians
+    % ->Improved feature processing for Deep Neural Networks
 
-    The intuition behind LDA is that defining new axes that maximise variance between speakers makes discriminating easier.
+    % The intuition behind LDA is that defining new axes that maximise variance between speakers makes discriminating easier.
 
   \paragraph*{Differences between GMM and DNN input}
 
@@ -857,11 +890,13 @@
 
   The hidden state sequence decoded from a HMM corresponds to a phoneme sequence, but the ultimate aim is to generate a word sequence for a given observation sequence. For mapping words to phoneme sequences, the ASR system applies a \emph{lexicon}, also referred to as \emph{pronouncing dictionary}, or just \emph{dictionary}. 
 
-  In Finnish there is generally a one-to-one mapping from letters to phonemes. This makes creating a lexicon very simple, as each letter can be assigned to a phoneme, and the word-to-phonemes mapping follows trivially.
+  In Finnish there is generally a one-to-one mapping from letters to phonemes. In the jargon of linguistics, Finnish has a \emph{phonemic orthography}. This makes creating a lexicon very simple, as each letter can be assigned to a phoneme, and the word-to-phonemes mapping follows trivially.
 
-  A lexicon for a language like English has to be constructed largely by hand, as most of the mapping from letters to phonemes does not have a sound\footnote{Ignore the pun, please.} logic behind it. This is due to historical change in the pronunciations of words that was not translated into corresponding change in their written forms (e.g., during the Great Vowel Shift) as well as loan words from other languages which have different rules of orthography \citep{english}.
+  A lexicon for a language like English has to be constructed largely by hand, as most of the mapping from letters to phonemes does not have a sound
+  % \footnote{Ignore the pun, please.}
+  logic behind it. This is due to historical change in the pronunciations of words that was not translated into corresponding change in their written forms (e.g., during the Great Vowel Shift) as well as loan words from other languages which have different rules of orthography \citep{english}.
   
-  Similar change can be observed in Finnish as words are imported from other languages, mainly from English. Loan words often do not follow the Finnish phonetic orthography, which means that the one-to-one mapping from letters to phonemes is no longer accurate for these words. For example, "googlata" is pronounced "G U U G L A T A"\footnote{These are not official phonetic alphabet (they are the phoneme symbols that are used in this thesis) but hopefully the example still makes sense.} instead of following the Finnish orthographic rules to pronounce it "G O O G L A T A", or alternatively spelling it "guuglata". In this study these inaccuracies are ignored, and the Finnish lexicon is generated automatically using the simple letter-to-phoneme correspondence, where a letter correspond to a single phoneme, usually denoted by itself (with a few exceptions: e.g., "c"->"K", "q"->"K V"). Table \ref{tab:lexicon} is an example of a few lexicon entries that follow the word-to-phoneme mapping used in the experiments of this thesis.
+  Similar change can be observed in Finnish as words are imported from other languages, mainly from English. Loan words often do not follow the Finnish orthography, which means that the one-to-one mapping from letters to phonemes is no longer accurate for these words. For example, "googlata" is pronounced "G U U G L A T A"\footnote{These are not official phonetic alphabet (they are the phoneme symbols that are used in this thesis) but hopefully the example still makes sense.} instead of following the Finnish orthographic rules to pronounce it "G O O G L A T A", or alternatively spelling it "guuglata". In this study these inaccuracies are ignored, and the Finnish lexicon is generated automatically using the simple letter-to-phoneme correspondence, where a letter correspond to a single phoneme, usually denoted by itself (with a few exceptions: e.g., "c"->"K", "q"->"K V"). Table \ref{tab:lexicon} is an example of a few lexicon entries that follow the word-to-phoneme mapping used in the experiments of this thesis.
 
   \begin{table}[htb]
     \centering
@@ -889,7 +924,7 @@
     \label{tab:lexicon}
   \end{table}
 
-  For a language that does not have a phonetic orthography, a machine learning approach can also be used to learn a mapping for the dictionary.
+  For a language that does not have a phonemic orthography, a machine learning approach can also be used to learn a mapping for the dictionary.
    
 
 \subsubsection{Weighted finite-state transducers in Kaldi} \label{sec:wfst} 
@@ -903,7 +938,9 @@
   \end{figure}
   The example transducer has three states, the initial state (0) denoted with a bold circle and final state (2) with a double circle. The arcs between states have input labels \{a, b, c\}, output labels \{x, y, z\}, and real number (floating point) weights associated with them. Also the final state has a weight. This transducer would map the input sequence "ac" to the output sequence "xz" with the weight calculated by summing the individual arc weights, in this case adding up to 6.5.
 
-  FSTs are used in Kaldi to encode many of the components of the ASR system. In training, the lexicon is represented as a FST. In decoding, the complete ASR system is encoded into a FST, called a \emph{decoding graph} before the actual decoding, as the graph creation is typically the most resource-hungry step in the process.
+  FSTs are used in Kaldi to encode many of the components of the ASR system. In training, the lexicon is represented as a FST. In decoding, the complete ASR system is encoded into a FST, called a \emph{decoding graph} before the actual decoding, as the graph creation is typically the most resource-hungry step in the process. In Kaldi chain models, FSTs are used in the LF-MMI training to encode the denominator and numerator of the objective function (see Section \ref{sec:dnn_am}).
+
+  \paragraph*{Kaldi decoding graph creation}
   Kaldi composes the $HCLG$ decoding graph from four component transducers: the HMM $H$, the context $C$, the lexicon $L$, and the LM (or grammar) $G$ \citep{povey2012wfst}. 
 
   The n-gram language model that is used in decoding
@@ -918,7 +955,8 @@
 
   The grammar acceptor $G$ and lexicon transducer $L$ are combined to compose a new transducer $LG$ that maps a phoneme sequence input to a word sequence output. The composition is done in the program \texttt{fsttablecompose}, and the new transducer is determinised in the program \texttt{fstdeterminizestar}.
 
-  $C$ is the transducer from context-dependent phonemes to context-independent phonemes. By composing $C$ with 
+  $C$ is the transducer from context-dependent phonemes to context-independent phonemes. By composing $C$ with $LG$, the triphones are mapped to words. $C$ is built dynamically in the process of composing it with the existing $LG$ FST.
+  The final FST is the HMM, which maps the state transitions to triphones, or more generally any context-dependent phonemes. After $H$ is composed with the $CLG$, the $HCLG$ is complete and can be used for lattice generation and decoding.
 
 
   % , for example, in the lexicon FST (the file L.fst) to transduce a phoneme sequence to a (sub)word token sequence. A grammar or a language model is encoded in a finite-state acceptor (G.fst) since its purpose is to define the possible sequences without transducing sequences from a domain to another. 
@@ -930,15 +968,24 @@
   % \end{figure}
 
 
+\subsubsection{Lattices and n-best lists} \label{sec:lattice} 
+
+  The decoding graph built by the Kaldi programs encodes all possible word sequences and the corresponding HMM state sequences. A sequence of observations is decoded with the graph in the manner described by \citet{povey2012wfst}. First, a WFSA $U$ is built from the observations that encodes the acoustic weights for each arc of each state transition that can emit each observation in the sequence. $U$  includes
+  % about\footnote{not necessarily exactly due to $\epsilon$ labels.}
+  $T+1$ states with arcs between the states that correspond to the HMM states at the time step $t$. The costs of the arcs encode the acoustic log-likelihoods. The utterance-specific \emph{search graph} $S$ that is traversed during decoding is generated by composing $U$ with the decoding graph. The search graph is not searched completely, but a subset of the best paths are selected by \emph{beam pruning}.
+  When generating the lattice that encodes the subset of the best paths, some of the desiderata are: that the lattice includes all word sequences within the beam size $\alpha$ that represents a log-likelihood difference to the optimal path; that the scores and alignments in the lattice are accurate; that the lattice does not contain duplicate paths of the same word sequence \citep{povey2012wfst}.
+
+  An alternative to a word lattice is to simply create lists of $n$ best transcriptions of the utterance. Though sometimes simpler to create and use, n-best lists are less efficient than lattices. In n-best lists, there are often transcriptions that differ only by a few words, which is redundant. n-best lists are capable of encoding far fewer transcriptions than lattices in the same amount of memory, and are therefore usually much more restrictive when, for instance, doing rescoring with a language model.
+
+
 \subsubsection{Silence and pronunciation probability modelling} \label{sec:sil_prob} 
 
-  The Kaldi toolkit allows also for modelling the probability of silence between specific words, and the probability of different pronunciations of a word. This has found to improve WER results by a small but consistent margin \citep{chen2015pronunciation}. 
+  The Kaldi toolkit allows also for modelling the probability of an optional silence between specific words, and the probability of different pronunciations of a word. These methods have been found to improve WER results by a small but consistent margin \citep{chen2015pronunciation}. 
 
   Differences of pronunciation are significant in many languages. However, in Finnish, which has a phonemic orthography (see Section \ref{sec:lexicon}), pronunciation probabilities are not applicable. If the mapping from phonemes to graphemes is one-to-one, there are no alternative pronunciations for a word.
 
-  The probability of a silence phone between two words is estimated from statistics collected from alignments. 
-
-  When using a subword vocabulary, the it is important to indicate which boundaries are actual word boundaries \citep{smit2017improved}, otherwise the silences might 
+  The probability of an optional silence phone between two words is estimated from statistics collected from alignments. 
+  When using a subword vocabulary, it is important to indicate which boundaries are actual word boundaries, because the optional silence should not be inserted in the middle of a word. \citet{smit2017improved} described and implemented a method to build the lexicon FST in such a way that restricts the use optional silence to only word boundaries.
 
 
 \subsubsection{Deep neural networks for acoustic modelling} \label{sec:dnn_am}
@@ -953,7 +1000,7 @@
   \end{equation}
   The state priors $P(\boldsymbol{s}(t))$ can be gathered from corpus frequencies \citep{Bourlard1994}. 
 
-  \paragraph*{TDNNs and RNNs}
+  \paragraph*{TDNNs and RNNs} 
     Two common types of DNN used for acoustic modelling are RNNs and time delay neural networks (TDNN). Both RNNs and TDNNs are inherently suited to modelling time-series data, where it is important to capture long-term time dependencies, such as speech. However, the two types of DNN are different in how they achieve this.
 
     RNNs (see Section \ref{sec:rnn})
@@ -964,11 +1011,11 @@
 
   % (explaining RNNs and TDNNs in previous sections?)
 
-  \paragraph*{Sequence-level lattice-free MMI}
+  \paragraph*{Sequence-level lattice-free MMI} 
     Currently, the state-of-the-art implementations of DNNs in Kaldi are trained using lattice-free MMI (LF-MMI) training criterion, as described by \citet{povey2016purely}. These are called "chain" models in Kaldi. LF-MMI is a sequence discriminative criterion, which means that the aim is to maximise the conditional log-likelihood (Eq. \ref{eq:mmi}) of the correct transcript on the sequence level. In the traditional MMI approach, a cross-entropy system is trained to  generate lattices for a weak language model, and the lattices are used to approximate the possible word sequences for the discriminative objective function denominator. In LF-MMI, however, the possible word sequences are not approximated with a lattice, but a phone-level language model is computed so that the sum in the denominator is not approximated, but can be computed exactly. This is possible since a phone-level LM requires significantly less mamory than a normal word-level LM.  The phone LM is represented as an FST, created in a similar manner as the normal decoding FST described in Section \ref{sec:wfst}. In this case there is no lexicon and grammar FSTs but a phone grammar FST, so the graph consists of the component FSTs $H$, $C$, and $P$. The numerator FST uses a lattice to represent the utterance. The numerator FST is composed with the denominator FST so that the phoneme LM of the denominator removes illegal output sequences. The composition also ensures that the objective function value is negative. 
     % https://desh2608.github.io/2019-05-21-chain/
 
-  \paragraph*{Regularisation of DNN AMs}
+  \paragraph*{Regularisation of DNN AMs} 
     Regularisation is important in DNN training to impede overfitting. Kaldi chain models incorporate a number of regularisation methods in the DNN architectures. One of the methods is called \emph{L2-regularisation}, which applies the euclidean norm to penalise elements in the output vector that tend to blow up. This is achieved by subtracting $\frac{1}{2}c||\boldsymbol{y}||_2^2$ from the objective function of each frame output $\boldsymbol{y}$, where $c$ is a user-set scaling factor, e.g. 0.005 \citep{povey2016purely}. In Kaldi, L2-regularisation is applied on the outputs; note that this method is different from the L2-regularisation applied to the weights, which is another commonly used regularisation method.
     
     Another widely used regularisation method for deep neural nets are \emph{dropout layers} which randomly sample a subset of the neurons and their connections which are omitted, dropped out, during an iteration of the training \citep{srivastava2014dropout}. This prevents the neurons from relying on the other neuron's outputs too much, i.e., prevents too much \emph{co-adaptation} among the parameters. Dropping out random units in training shifts the unit of adaptation down from large groups of neurons to individual neurons, since it is not guaranteed that the other neurons are present. This principle is explained through an analogy to sexual selection, in the above mentioned original paper. Since genes are mixed randomly with another set of genes from a conspecific between every generation, individual genes cannot rely on specific other genes to be present in the future. This inhibits aggregation of large interdependent gene complexes, in which genes function well only with the group of co-adapted genes. These kinds of complexes would become rigid, and fragile to the inevitable mutations that will always occur quite randomly: new genes would be difficult to incorporate in the complex. This kind of rigidity is analogous to overfitting to the training data and failing to find generalisable rules that apply to new data samples from the hidden distribution, which regularisation attempts to lessen.
@@ -981,20 +1028,14 @@
     This technique is abbreviated as \textt{xent\_regularize} in the Kaldi code, and the associated hyperparameter is a scaling factor for the cross entropy objective, typically 0.1 because its dynamic range is naturally larger than that of the MMI objective function \citep{povey2016purely}.
 
 
-
-% \subsubsection{Speaker recognition} \label{sec:spk_id}
-
-%   Section \ref{sec:adaptive_training} discussed the differences between speakers and how the differences are modelled in adaptive training. 
-
-
 \subsection{Spoken and written conversations in Finnish} \label{sec:conv}
 
+  Informal Finnish 
 
 
 
 % \clearpage
 % \section{Methods}
-
 
 \clearpage
 \section{Experiments}
@@ -1083,7 +1124,7 @@
 
   \paragraph*{i-vector extractor trained on the conversational Finnish data}
 
-    % The Kaldi recipes include 
+    Most of Kaldi recipes for training a HMM/DNN model include i-vectors as the speaker-adaptation method. In this thesis, the extractor for the baseline i-vectors is trained similarly to the Switchboard recipe. The extractor is trained on the same data as the acoustic model for extracting online i-vectors. The speed perturbation data augmentation is used also for the extractor training data. 
 
 
 
@@ -1097,6 +1138,18 @@
     Replacing the last hidden layer of the extractor model was experimented on, but this did not improve the WER results. Adding a new layer after the 7th layer was also tried, but here too the results were worse than for the pretrained model.
     
     
+  \begin{table}[ht!]
+      \begin{tabularx}{\columnwidth}{|X|l|l|}
+          \hline
+          \textbf{Speaker embedding} & 1st-pass WER & Oracle WER \\ \hline
+          None & 27.3 &  \\ \hline
+          x-vecs conv speech & 26.3 & \\ \hline
+          x-vec VoxCelec pretrained & 25.5 & \\ \hline
+          x-vec Voxceleb pretrained and conv speech finetuned & 25.3 &  \\ \hline
+      \end{tabularx}
+      \caption{}
+      \label{tab:spk_emb}
+  \end{table}
 
    
 
@@ -1116,7 +1169,11 @@
       \label{}
   \end{table}
 
+\subsubsection{n-gram language model}
 
+\subsubsection{LSTM language model}
+
+\subsubsection{Transformer-XL}
 
 \clearpage
 \section{Results}
