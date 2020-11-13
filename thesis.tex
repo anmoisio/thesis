@@ -66,6 +66,7 @@
 
   \DeclareMathOperator*{\argmax}{argmax}
   \DeclareMathOperator*{\tanh}{tanh}
+  \DeclareMathOperator*{\exp}{exp}
 
   % \university{Aalto-yliopisto}
   % \school{Sähkötekniikan korkeakoulu}
@@ -287,6 +288,9 @@
 
   The conventional ASR system includes two main component systems: the acoustic model (AM) and the language model (LM). The LM generates an \emph{a priori} probability distribution over possible word sequences. For example, the transciption "en minä tiedä" should probably be assigned a larger probability than "en sinä tiedä" even before any speech audio is processed. The AM outputs \emph{a posteriori} probabilities for phoneme sequences based on the speech audio. A dictionary is used to map the phoneme sequences to words, or more accurately, the same grapheme units that the LM uses, which can also be subword units or characters, for instance. The probabilities of the LM and AM are combined to estimate the most likely transcription of the speech audio.
 
+  % history of ASR
+  % typical ASR system
+
   In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results. An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon although they benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and the thesis explores methods in this paradigm.
 
 % 3. What will be your methodology?
@@ -354,6 +358,7 @@
 
   The EM algorithm consists of iterating the expectation step (E-step) and the maximisation step (M-step). The E-step 
 
+  % Goodfellow-et-al-2016
 
   % bayesing, MAP
   % cross entropy
@@ -405,12 +410,43 @@
     \label{fig:lstm}
   \end{figure}
 
+  The LSTM cells constitute a layer ...
 
-% \subsubsection{Convolution}
+\subsubsection{Convolution} \label{sec:cnn}
+
+
+
 
 \subsubsection{Attention} \label{sec:attention}
 
-  \citet{bahdanau2014neural} introduced a mechanism that has been widely adopted in speech and language processing systems, called \emph{attention}. 
+  \citet{bahdanau2014neural} developed a mechanism that has been widely adopted in speech and language processing systems, called \emph{attention}. The term refers to a search technique, in which a model learns to determine which parts of the input are most relevant for an output at a particular time step: which parts of the input should be attended to when generating an output.
+  
+  Attention was introduced in the context of machine translation with sequence-to-sequence \citep{sutskever2014sequence} encoder-decoder systems. "Sequence-to-sequence" means that the system maps an input sequence to an output sequence; in machine translation these are a sentence in two different languages. "Encoder-decoder" is a neural network architecture type that first encodes the input sequence as a hidden representation and then a decodes the output from the hidden representation vector. The encoder can use, for example,  a feedforward neural net to project the tokens in the sequence into an embedding space and an LSTM network to turn the word embedding sequence (multiple vectors) into the hidden encoder representation vector. The decoder could be an LSTM network and a softmax layer to generate the output word sequence $\boldsymbol{w}$ by determining a probability distribution $p(w_i|{w_1,...,w_{i-1}},\boldsymbol{h})$ over the words given the encoder context\footnote{The term "context" is used in the context LSTMs and attention; it denotes different kinds context vectors in LSTMs and in an attention layer.} vector $\boldsymbol{c}$ and previous outputs.
+  \begin{equation}
+    p(\boldsymbol{w}) = \prod_{i=1}^N p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c})
+  \end{equation}
+  If the decoder is an LSTM network, the probability distribution depends on the previous output $w_{i-1}$, the encoder output $\boldsymbol{c}$, and the LSTM state $\boldsymbol{h}_i$, call this function $g$:
+  \begin{equation}
+  p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c}) = g(w_{i-1}, \boldsymbol{h}_i, \boldsymbol{c})
+  \end{equation}
+  
+  Attention can be used between the encoder and decoder to help the decoder to find the relevant information from the encoder output. Whereas the traditional decoder bases the output word probabilities on the single $\boldsymbol{c}$ common to one sequence, attention computes separate $\boldsymbol{c}_i$ vectors for each output $i$. The probability is
+  \begin{equation}
+  p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c}) = g(w_{i-1}, \boldsymbol{c}_i, \boldsymbol{h}_i)
+  \end{equation}
+  The decoder LSTM network hidden state is  computed by 
+  \begin{equation}
+  \boldsymbol{h}_i = f(w_{i-1}, \boldsymbol{h}_{i-1}, \boldsymbol{c}_i)
+  \end{equation}
+  The context vector $\boldsymbol{c}_i$ is a weighted sum of annotations $\boldsymbol{h}^b_i$, which are the concatenated hidden states of the forward and backward layers in a bi-directional LSTM network. The weights $\alpha_{ij}$ are calculated from the previous decoder state and the current annotation:
+  \begin{align}
+    e_{ij} &= a() \\
+    \alpha_{ij} &= \frac{\exp(e_{ij})} {\sum  \exp(e_{ij})} \\
+    \boldsymbol{c}_i &= \sum_j \alpha_{ij} \boldsymbol{h}_i
+  \end{align}
+
+
+
 
 
 
@@ -538,9 +574,13 @@
   n-gram language models 
 
   % The LSTM \ref{sec:rnn}
+
+  \paragraph*{Word embeddings}
     
 
-  \paragraph*{Transformers} \label{sec:attention} 
+  \paragraph*{Transformers} 
+
+  \ref{sec:attention}
 
     % \citet{dai2019transformer}
 
@@ -896,7 +936,7 @@
   % \footnote{Ignore the pun, please.}
   logic behind it. This is due to historical change in the pronunciations of words that was not translated into corresponding change in their written forms (e.g., during the Great Vowel Shift) as well as loan words from other languages which have different rules of orthography \citep{english}.
   
-  Similar change can be observed in Finnish as words are imported from other languages, mainly from English. Loan words often do not follow the Finnish orthography, which means that the one-to-one mapping from letters to phonemes is no longer accurate for these words. For example, "googlata" is pronounced "G U U G L A T A"\footnote{These are not official phonetic alphabet (they are the phoneme symbols that are used in this thesis) but hopefully the example still makes sense.} instead of following the Finnish orthographic rules to pronounce it "G O O G L A T A", or alternatively spelling it "guuglata". In this study these inaccuracies are ignored, and the Finnish lexicon is generated automatically using the simple letter-to-phoneme correspondence, where a letter correspond to a single phoneme, usually denoted by itself (with a few exceptions: e.g., "c"->"K", "q"->"K V"). Table \ref{tab:lexicon} is an example of a few lexicon entries that follow the word-to-phoneme mapping used in the experiments of this thesis.
+  Similar change can be observed in Finnish as words are imported from other languages, mainly from English. Loan words often do not follow the Finnish orthography, which means that the one-to-one mapping from letters to phonemes is no longer accurate for these words. For example, "googlata" is pronounced "G U U G L A T A"\footnote{These are not official phonetic alphabet (they are the phoneme symbols that are used in this thesis) but hopefully the example still makes sense.} instead of following the Finnish orthographic rules to pronounce it "G O O G L A T A", or alternatively spelling it "guuglata". In this study these inaccuracies are ignored, and the Finnish lexicon is generated automatically using the simple letter-to-phoneme correspondence, where a letter corresponds to a single phoneme, usually denoted by itself (with a few exceptions, e.g., "c"->"K", "q"->"K V"). Table \ref{tab:lexicon} is an example of a few lexicon entries that follow the word-to-phoneme mapping used in the experiments of this thesis.
 
   \begin{table}[htb]
     \centering
