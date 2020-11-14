@@ -330,34 +330,33 @@
 
   \subsection{Machine learning} \label{sec:ml} 
 
-    % \subsection{Statistical models} 
+  %
+    % \subsubsection{Statistical models} 
 
-    %   A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
-    %   A model can be statistical, conceptual, mathematical ...
-    %   Model of any of these kinds, however, is ...
+    %     A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
+    %     A model can be statistical, conceptual, mathematical ...
+    %     Model of any of these kinds, however, is ...
 
-    %   Creating models of phenomena in an environment is the basis for being able to understand, predict, or act in the environment. Brains have evolved to build both unconscious and  consciously accessible models of consequential things, such as animals, weather, or phonemes that compose a language.
-    %   % of plants, of the body that contains the brain, of weather, water etc.
-    %   % representations of time, space, temperature etc. 
+    %     Creating models of phenomena in an environment is the basis for being able to understand, predict, or act in the environment. Brains have evolved to build both unconscious and  consciously accessible models of consequential things, such as animals, weather, or phonemes that compose a language.
+    %     % of plants, of the body that contains the brain, of weather, water etc.
+    %     % representations of time, space, temperature etc. 
 
-    %   The abstraction and simplification can happen by grouping similar things into one. For example, a mental model of a tree integrates many individual leaves into one foliage, and
-    %   % , more fundamentally, 
-    %   a visual model of a leaf integrates many chloroplasts and other small things into one green surface that is perceived when looking at a leaf.
+    %     The abstraction and simplification can happen by grouping similar things into one. For example, a mental model of a tree integrates many individual leaves into one foliage, and
+    %     % , more fundamentally, 
+    %     a visual model of a leaf integrates many chloroplasts and other small things into one green surface that is perceived when looking at a leaf.
 
-    %   A model can be a function that generates an output given an input, emulating how the real-world phenomenon behaves. Inputting a knife into a coconut outputs coconut milk, and an accurate mental model of a coconut should be able to predict that a coconut will function in this manner. More generally, a model can be any kind of mapping from a domain to another.
-      
-    %   % ; via lowering the resolution: a mental model of a 
+    %     A model can be a function that generates an output given an input, emulating how the real-world phenomenon behaves. Inputting a knife into a coconut outputs coconut milk, and an accurate mental model of a coconut should be able to predict that a coconut will function in this manner. More generally, a model can be any kind of mapping from a domain to another.
+        
+    %     % ; via lowering the resolution: a mental model of a 
 
+    % \subsubsection{Estimating models statistically}
 
-  % \subsubsection{Estimating models statistically}
+    %   There are two directions, ways to create a model of a phenomenon: top-down or bottom-up. Top-down design of models is an exclusively human undertaking, and a much rarer way to build a model. A top-down designed model could be, for example, a recipe for a dish, which is then used to cook up the real thing. This way the simplified model is created without the real phenomenon existing yet, or ever. However, top-down design depends on previous models that have ultimately been estimated from bottom up. 
+    %   A bottom-up generation of a model is the more usual way models come to being. In this approach, the abstract model is estimated from data gathered from the manifest world. In this example, a recipe for the dish can be developed by experimenting with random recipes in some finite search space of possible recipes, tasting the finished product, and iteratively narrowing down the search space, homing in on an optimal experience. Once a cook has done enough bottom-up design, top-down design becomes possible by deducing from the mental model what a never-before-experienced combination of ingredients will taste like. In mathematics, solving a function in a top-down fashion is called an analytical or a symbolic solution, and bottom up a numerical solution. 
 
-    % There are two directions, ways to create a model of a phenomenon: top-down or bottom-up. Top-down design of models is an exclusively human undertaking, and a much rarer way to build a model. A top-down designed model could be, for example, a recipe for a dish, which is then used to cook up the real thing. This way the simplified model is created without the real phenomenon existing yet, or ever. However, top-down design depends on previous models that have ultimately been estimated from bottom up. 
-    % A bottom-up generation of a model is the more usual way models come to being. In this approach, the abstract model is estimated from data gathered from the manifest world. In this example, a recipe for the dish can be developed by experimenting with random recipes in some finite search space of possible recipes, tasting the finished product, and iteratively narrowing down the search space, homing in on an optimal experience. Once a cook has done enough bottom-up design, top-down design becomes possible by deducing from the mental model what a never-before-experienced combination of ingredients will taste like. In mathematics, solving a function in a top-down fashion is called an analytical or a symbolic solution, and bottom up a numerical solution. 
-
-    % In computer science, top-down design has been the usual way to develop systems.
-    % % If the function to be estimated is simple enough
-    % For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
-
+    %   In computer science, top-down design has been the usual way to develop systems.
+    %   % If the function to be estimated is simple enough
+    %   For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
 
   \subsubsection{Fitness criterion} 
 
@@ -398,20 +397,19 @@
   % 3. What will be your methodology?
   \subsection{Related work and methodology}
 
-  The purpose of the thesis is to experiment with some of the latest acoustic and language modelling methods to improve upon the previous best results obtained for an informal, spontaneous Finnish conversation speech data set. Both the speech data set used in this thesis and the previous best results are described by \citet{enarvi2017automatic}. In their work, the acoustic models are trained on 85 hours of speech using the Kaldi toolkit. A first pass of large-vocabulary decoding and word lattice generation is done using an n-gram language model trained on a conversational Finnish text corpus collected by \citet{enarvi2013studies}. A second pass of rescoring the lattices and generating transcripts is done using a recurrent neural network language model trained on the same text corpus. Subword-vocabulary language models based on statistical segmentation of words \citep{creutz2002unsupervised, creutz2007unsupervised} were found to perform better than a word vocabulary.
+    The purpose of the thesis is to experiment with some of the latest acoustic and language modelling methods to improve upon the previous best results obtained for an informal, spontaneous Finnish conversation speech data set. Both the speech data set used in this thesis and the previous best results are described by \citet{enarvi2017automatic}. In their work, the acoustic models are trained on 85 hours of speech using the Kaldi toolkit. A first pass of large-vocabulary decoding and word lattice generation is done using an n-gram language model trained on a conversational Finnish text corpus collected by \citet{enarvi2013studies}. A second pass of rescoring the lattices and generating transcripts is done using a recurrent neural network language model trained on the same text corpus. Subword-vocabulary language models based on statistical segmentation of words \citep{creutz2002unsupervised, creutz2007unsupervised} were found to perform better than a word vocabulary.
 
-  The baseline system is the same in this thesis, and the work begun by replicating the previous results. The Kaldi toolkit includes acoustic model training pipelines, called "recipes", that are tuned to achieve optimal results for a particular speech data set. In the past three years after the above mentioned previous best results were achieved, the Kaldi recipes have been developed further, and the latest machine learning algorithms have been implemented in the toolkit. By applying the latest Kaldi recipes for the Finnish speech data used in this thesis, the previous best results can be improved. Other acoustic modelling experiments of this work include modelling the speaker and channel variability using i-vectors \citep{ivector} and x-vectors \citep{snyder2018x}.
+    The baseline system is the same in this thesis, and the work begun by replicating the previous results. The Kaldi toolkit includes acoustic model training pipelines, called "recipes", that are tuned to achieve optimal results for a particular speech data set. In the past three years after the above mentioned previous best results were achieved, the Kaldi recipes have been developed further, and the latest machine learning algorithms have been implemented in the toolkit. By applying the latest Kaldi recipes for the Finnish speech data used in this thesis, the previous best results can be improved. Other acoustic modelling experiments of this work include modelling the speaker and channel variability using i-vectors \citep{ivector} and x-vectors \citep{snyder2018x}.
 
-  \citet{vaswani2017attention} introduced a neural network architecture for language modelling called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type.
-  One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the commonly used recurrent neural networks, since their hidden states do not depend on the hidden states of previous time steps.
-  In this thesis, a Transformer-XL \citep{dai2019transformer} LM is trained and evaluated in the ASR task, in a similar manner as described by \citet{jain2020finnish}.
+    \citet{vaswani2017attention} introduced a neural network architecture for language modelling called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type.
+    One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the commonly used recurrent neural networks, since their hidden states do not depend on the hidden states of previous time steps.
+    In this thesis, a Transformer-XL \citep{dai2019transformer} LM is trained and evaluated in the ASR task, in a similar manner as described by \citet{jain2020finnish}.
 
-  Other language modelling experiments in this work include evaluating word and subword vocabularies, tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs), and experimenting with topic modelling (see e.g., \citet{xiong2018session, xing2016topic}).
+    Other language modelling experiments in this work include evaluating word and subword vocabularies, tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs), and experimenting with topic modelling (see e.g., \citet{xiong2018session, xing2016topic}).
 
 
 \clearpage
 \section{Statistical language modelling} \label{sec:lm} 
-
 
   %
     A language model defines the probability distribution\footnote{This would be a probability mass function since word sequences are discrete but, since there is no limit to how long the sequences can be, there is an infinite set of possible word sequences.} $P(\boldsymbol{w})$, from Eq. \ref{eq:asr-bayes}, over word sequences $\boldsymbol{w} = w_1,...,w_N$.
@@ -419,7 +417,6 @@
     
 
     What constitutes the context depends on the method. The constant-order n-gram model uses a simple context of $n-1$ previous tokens. In more involved models, the context can also be of variable length and include subsequent tokens (bi-directional context).
-
 
   \subsection{Choice of vocabulary} \label{sec:vocab} 
 
@@ -513,7 +510,7 @@
     \begin{figure}[htb]
       \centering
       \includegraphics[width=14cm]{lstm-cell}
-      \caption{A LSTM cell. At time step $t$ the cell inputs the input vector $\boldsymbol{x}_t$, the previous output (the high-level representation)}
+      \caption{An LSTM cell. At time step $t$ the cell inputs the input vector $\boldsymbol{x}_t$, the previous output (the high-level representation) $\boldsymbol{h}_{t-1}$, and the previous  context vector $\boldsymbol{c}_{t-1}$.}
       \label{fig:lstm}
     \end{figure}
 
@@ -522,7 +519,7 @@
       f_t &= \sigma(U_f h_{t-1} + W_f x_t) \\
       k_t &=  f_t \circ c_{t-1}
     \end{align}
-    where $\circ$ represents the element-wise (also known as Hadamard) product of the vectors. In a simpler version of the LSTM, the forget gate is omitted and replaced with a self-recurrent connection, which is equivalent to $f$ being always unity. This is called the \emph{constant error carousel} because it retains information from the previous cell states and alleviates the problem of vanishing or exploding gradients.
+    where $\circ$ represents the element-wise (also known as Hadamard) product of the vectors. In a first version of the LSTM published by \citet{hochreiter1997long}, there is no forget gate but a self-recurrent connection, which is equivalent to $f$ being always unity. This is called the \emph{constant error carousel} because it retains information from the previous cell states and alleviates the problem of vanishing or exploding gradients. \citet{gers1999learning} introduced the forget gate to avoid problems caused by continual input streams that are not segmented by ends at which the LSTM state could reset. The forget gate incorporates to the LSTM cell learnable parameters whose purpose is to discard information when it becomes useless.
 
     The add gate extracts from  $h_{t-1}$ and $x_t$ a new candidate context vector $\hat{c}_t$ that could be added to the context in lieu of the forgot information. The hyperbolic tangent squishes the values between -1 and 1. The input gate $i_t$ selects from $\hat{c}_t$ the new context that is added to the context.
     \begin{align}
@@ -541,7 +538,8 @@
 
 
     The LSTM cells can be stacked on top of each other to create a deep LSTM network. Each layer feeds the output to the input of the next layer, and the recurrent connection feeds the context vector and the output vector also to the same cell in the next time step.
-    
+
+    LSTMs are inherently uni-directional, as the input sequence units are processed one-by-one. If an application benefits from bi-directional context, two separate cells can be used for the two directions.    
     Figure \ref{fig:blstm} illustrates a bidirectional LSTM network.
     \begin{figure}[htb]
       \centering
@@ -551,42 +549,80 @@
     \end{figure}
 
 
-
   \subsubsection{Attention} \label{sec:attention}
-    \citet{bahdanau2014neural} developed a mechanism that has been widely adopted in speech and language processing systems, called \emph{attention}. The term refers to a search technique, in which a model learns to determine which parts of the input are most relevant for an output at a particular time step: which parts of the input should be attended to when generating an output.
+    \citet{bahdanau2014neural} developed a mechanism that has been widely adopted in speech and language processing systems, called \emph{attention}. The term refers to a search technique in which a model learns to determine which parts of the input are most relevant for an output at a particular time step: which parts of the input should be attended to when generating an output.
     
     \paragraph*{Background: seq2seq encoder-decoder models}
-    Attention was introduced in the context of machine translation with sequence-to-sequence \citep{sutskever2014sequence} encoder-decoder systems. "Sequence-to-sequence" means that the system maps an input sequence to an output sequence; in machine translation these are a sentence in two different languages. "Encoder-decoder" is a neural network architecture type that first encodes the input sequence as a hidden representation and then a decodes the output from the hidden representation vector. The encoder can use, for example,  a feedforward neural net to project the tokens in the sequence into an embedding space and an LSTM network to turn the word embedding sequence (multiple vectors) into the hidden encoder representation vector $\boldsymbol{h}^e$. 
-    % , called the context\footnote{The term "context" is used in the context LSTMs and attention; it denotes different kinds context vectors in LSTMs and in an attention layer.}.
-    Typically, $\boldsymbol{h}$ is the output of LSTM cell after processing the last input, as described in Section \ref{sec:rnn}.
-    % , but $\boldsymbol{h}$ can be generated differently
-    The decoder could be an LSTM network and a softmax layer to generate the output word sequence $\boldsymbol{w}={w_1,...,w_{N}$ by determining a probability distribution $p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c})$ over the words given the context vector and previous outputs.
+    Attention was introduced in the context of machine translation with sequence-to-sequence \citep{sutskever2014sequence} encoder-decoder systems. "Sequence-to-sequence" means that the system maps an input sequence to an output sequence; in machine translation these are a sentence in two different languages. "Encoder-decoder" is a neural network architecture type that first encodes the input sequence as a high-level representation and then a decodes the output using this representation vector. The encoder typically uses a feedforward neural network to project the tokens in the sequence into an embedding space and an RNN, e.g., an LSTM network, to turn the word embedding sequence (multiple vectors) into the single context\footnote{The term "context" is used in the context LSTMs and attention; it denotes different kinds context vectors in LSTMs and in the attention mechanism.} vector $\boldsymbol{c}$. 
+    % , called the context.
+
+    Also the decoder is usually  an LSTM network, followed by a softmax layer to generate the output word sequence $\boldsymbol{w}={w_1,...,w_{N}$ by determining a probability distribution $p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c})$ over the words given the context vector and previous outputs.
     \begin{equation}
       p(\boldsymbol{w}) = \prod_{i=1}^N p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c})
     \end{equation}
+
+    In the conventional encoder-decoder model, the context vector is the output of the encoder LSTM (or GRU) cell, as described in Section \ref{sec:rnn}, after processing the last input token, and the context vector initialises the first decoder state: 
+    \begin{align}
+      \boldsymbol{c} &= \boldsymbol{h}^e_N \\
+      \boldsymbol{h}^d_0 &= \boldsymbol{c}
+    \end{align}
+    where the superscripts $e$ and $d$ distinguish the encoder and decoder state vectors.
+    % , but $\boldsymbol{h}$ can be generated differently
+
+
+
     If the decoder is an LSTM network, the probability distribution depends on the previous output $w_{i-1}$, the encoder output $\boldsymbol{c}$, and the decoder LSTM state $\boldsymbol{h}^d_i$, call this function $g$:
-    \begin{equation}
-    p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c}) = g(w_{i-1}, \boldsymbol{h}^d_i, \boldsymbol{c})
+    \begin{equation} \label{eq:decoder_prob}
+      p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c}) = g(w_{i-1}, \boldsymbol{h}^d_i, \boldsymbol{c}) 
     \end{equation}
     
     \paragraph*{An attentive decoder}
-    Attention can be used in the decoder to help find the relevant information from the encoder output. Whereas the traditional decoder bases the output word probabilities on the single $\boldsymbol{c}$ common to one sequence, attention computes separate $\boldsymbol{c}_i$ vectors for each output $i$, and uses all of the encoder hidden states $H^e=\boldsymbol{h}^e_1,...,\boldsymbol{h}^e_U$ to generate the context vectors. The probability is
+    Attention can be used in the decoder to help find the relevant information from the encoder output. Whereas the traditional decoder bases the output word probabilities on the single context vector $\boldsymbol{c}$ common to one sequence, attention computes separate $\boldsymbol{c}_i$ vectors for time step $i$, and uses all of the encoder  states $H^e=\boldsymbol{h}^e_1,...,\boldsymbol{h}^e_U$ to generate the context vectors $\boldsymbol{c}_1,...,\boldsymbol{c}_N$. The output probability distribution from Eq. \ref{eq:decoder_prob} becomes
     \begin{equation}
-    p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c}_i) = g(w_{i-1}, \boldsymbol{c}_i, H^e)
+      p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c}_i) = g(w_{i-1}, \boldsymbol{c}_i, H^e)
     \end{equation}
-    The decoder LSTM network hidden state is  computed by 
+    The decoder LSTM network state depends on the current context vector, along with the previous decoder state and the previous output:
     \begin{equation}
-    \boldsymbol{h}^d_i = f(w_{i-1}, \boldsymbol{h}^d_{i-1}, \boldsymbol{c}_i)
+      \boldsymbol{h}^d_i = f(w_{i-1}, \boldsymbol{h}^d_{i-1}, \boldsymbol{c}_i)
     \end{equation}
-    The context vector $\boldsymbol{c}_i$ is a weighted sum of annotations $\boldsymbol{h}^b_i$, which are the concatenated hidden states of the forward and backward layers in a bi-directional LSTM network. The weights $\alpha_{ij}$ are calculated from the previous decoder state and the current annotation:
+    The context vector $\boldsymbol{c}_j$ is a weighted sum of annotations $\boldsymbol{h}^{e}_i$, which are typically the concatenated  outputs of the forward and backward layers in a bi-directional LSTM network.
+    \begin{equation}
+    \boldsymbol{h}^{e}_j = [ \overrightarrow{\boldsymbol{h}}^{e}_j ;
+                              \overleftarrow{\boldsymbol{h}}^{e}_j ]
+    \end{equation}
+
+    
+    The weights $\alpha_{ij}$ aim to capture how relevant each encoder state $\boldsymbol{h}^{e}_i$ is to the decoder output at the current time step. First, a scoring function gives the pair of encoder and decoder state vectors a value $e_{ij}$ that indicates how relevant the encoder state at index $j$ is to the decoder state at index $i$. This could be achieved by a simple dot product of the vectors, but a more adaptive way to assess the similarity is to learn the similarity function. The scoring function is parametrised with a weight matrix $W_s$:
     \begin{align}
-      e_{ij} &= a() \\
-      \alpha_{ij} &= \frac{\exp(e_{ij})} {\sum  \exp(e_{ij})} \\
-      \boldsymbol{c}_i &= \sum_j \alpha_{ij} \boldsymbol{h}_i
+    score(\boldsymbol{h}^{d}_{i-1},\boldsymbol{h}^{e}_j) &= 
+          \boldsymbol{h}^{d}_{i-1} W_s \boldsymbol{h}^{e}_j \\
+    e_{ij} &= score(\boldsymbol{h}^d_{i-1},
+            \boldsymbol{h}^e_{j}) 
     \end{align}
+    The scoring function is called the \emph{alignment model} by \citet{bahdanau2014neural} as it aligns the encoder states with the decoder outputs. As the encoder states are dependent on the inputs at the same time step, the alignment is between the input sequence and the output sequence. In the application of machine translation, this means an alignment of the words in the source and target languages. If the application is end-to-end ASR, the alignment would be between observations and output tokens (e.g., characters, as in the influential paper by \citet{chan2016listen}). The alignment is soft, i.e., each input affects many outputs with variable weights.
+    The scores are normalised with the usual softmax function so that a probability is generated:
+    \begin{equation}
+      \alpha_{ij} = \frac{\exp(e_{ij})}
+              {\sum_k \exp(e_{ij})}
+    \end{equation}
+    Finally, the context vector is calculated by the weighted sum of the encoder states: 
+    \begin{align}
+      \alpha_{ij} &= \frac{\exp(e_{ij})}
+              {\sum_k \exp(e_{ij})} \\
+      \boldsymbol{c}_i &= \sum_j \alpha_{ij}
+          \boldsymbol{h}^e_j
+    \end{align}
+    Figure \ref{fig:attention} illustrates the attention mechanism used in an encoder-decoder model.
+    \begin{figure}[htb]
+      \centering
+      \includegraphics[width=14cm]{attention}
+      \caption{}
+      \label{fig:attention}
+    \end{figure}
+
+    \paragraph*{Self-attention and Transformers} 
 
 
-    \paragraph*{Transformers} 
 
       % \citet{dai2019transformer}
 
@@ -595,6 +631,7 @@
   %
     Kaldi is a toolkit for automatic speech recognition, used in the ASR experiments in this study. This chapter aims to give an overview of the most relevant theoretical underpinnings of Kaldi ASR systems, as well as some of the practical details of implementing the systems.
 
+    % "Kaldi" is one in the series of coffee-related names for computer science projects. The Kaldi documentation explains: "According to legend, Kaldi was the Ethiopian goatherder who discovered the coffee plant."
 
   \subsection{Feature extraction} \label{sec:feats} 
 
