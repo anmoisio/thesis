@@ -552,77 +552,75 @@
   \subsubsection{Attention} \label{sec:attention}
     \citet{bahdanau2014neural} developed a mechanism that has been widely adopted in speech and language processing systems, called \emph{attention}. The term refers to a search technique in which a model learns to determine which parts of the input are most relevant for an output at a particular time step: which parts of the input should be attended to when generating an output.
     
-    \paragraph*{Background: seq2seq encoder-decoder models}
-    Attention was introduced in the context of machine translation with sequence-to-sequence \citep{sutskever2014sequence} encoder-decoder systems. "Sequence-to-sequence" means that the system maps an input sequence to an output sequence; in machine translation these are a sentence in two different languages. "Encoder-decoder" is a neural network architecture type that first encodes the input sequence as a high-level representation and then a decodes the output using this representation vector. The encoder typically uses a feedforward neural network to project the tokens in the sequence into an embedding space and an RNN, e.g., an LSTM network, to turn the word embedding sequence (multiple vectors) into the single context\footnote{The term "context" is used in the context LSTMs and attention; it denotes different kinds context vectors in LSTMs and in the attention mechanism.} vector $\boldsymbol{c}$. 
-    % , called the context.
+    \paragraph*{Background: seq2seq encoder-decoder models} 
+      Attention was introduced in the context of machine translation with sequence-to-sequence \citep{sutskever2014sequence} encoder-decoder systems. "Sequence-to-sequence" means that the system maps an input sequence to an output sequence; in machine translation these are a sentence in two different languages. "Encoder-decoder" is a neural network architecture type that first encodes the input sequence as a high-level representation and then a decodes the output using this representation vector. The encoder typically uses a feedforward neural network to project the tokens in the sequence into an embedding space and an RNN, e.g., an LSTM network, to turn the word embedding sequence (multiple vectors) into the single context\footnote{The term "context" is used in the context LSTMs and attention; it denotes different kinds context vectors in LSTMs and in the attention mechanism.} vector $\boldsymbol{c}$. 
+      % , called the context.
 
-    Also the decoder is usually  an LSTM network, followed by a softmax layer to generate the output word sequence $\boldsymbol{w}={w_1,...,w_{N}$ by determining a probability distribution $p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c})$ over the words given the context vector and previous outputs.
-    \begin{equation}
-      p(\boldsymbol{w}) = \prod_{i=1}^N p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c})
-    \end{equation}
+      Also the decoder is usually  an LSTM network, followed by a softmax layer to generate the output word sequence $\boldsymbol{w}={w_1,...,w_{N}$ by determining a probability distribution $p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c})$ over the words given the context vector and previous outputs.
+      \begin{equation}
+        p(\boldsymbol{w}) = \prod_{i=1}^N p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c})
+      \end{equation}
 
-    In the conventional encoder-decoder model, the context vector is the output of the encoder LSTM (or GRU) cell, as described in Section \ref{sec:rnn}, after processing the last input token, and the context vector initialises the first decoder state: 
-    \begin{align}
-      \boldsymbol{c} &= \boldsymbol{h}^e_N \\
-      \boldsymbol{h}^d_0 &= \boldsymbol{c}
-    \end{align}
-    where the superscripts $e$ and $d$ distinguish the encoder and decoder state vectors.
-    % , but $\boldsymbol{h}$ can be generated differently
+      In the conventional encoder-decoder model, the context vector is the output of the encoder LSTM (or GRU) cell, as described in Section \ref{sec:rnn}, after processing the last input token, and the context vector initialises the first decoder state: 
+      \begin{align}
+        \boldsymbol{c} &= \boldsymbol{h}^e_N \\
+        \boldsymbol{h}^d_0 &= \boldsymbol{c}
+      \end{align}
+      where the superscripts $e$ and $d$ distinguish the encoder and decoder state vectors.
+      % , but $\boldsymbol{h}$ can be generated differently
 
-
-
-    If the decoder is an LSTM network, the probability distribution depends on the previous output $w_{i-1}$, the encoder output $\boldsymbol{c}$, and the decoder LSTM state $\boldsymbol{h}^d_i$, call this function $g$:
-    \begin{equation} \label{eq:decoder_prob}
-      p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c}) = g(w_{i-1}, \boldsymbol{h}^d_i, \boldsymbol{c}) 
-    \end{equation}
+      If the decoder is an LSTM network, the probability distribution depends on the previous output $w_{i-1}$, the encoder output $\boldsymbol{c}$, and the decoder LSTM state $\boldsymbol{h}^d_i$, call this function $g$:
+      \begin{equation} \label{eq:decoder_prob}
+        p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c}) = g(w_{i-1}, \boldsymbol{h}^d_i, \boldsymbol{c}) 
+      \end{equation}
+      The decoder is therefore an \emph{autoregressive} generator of the output sequence, generating one unit in the sequence at a time based on the previously generated units \citep{graves2013generating}.
     
-    \paragraph*{An attentive decoder}
-    Attention can be used in the decoder to help find the relevant information from the encoder output. Whereas the traditional decoder bases the output word probabilities on the single context vector $\boldsymbol{c}$ common to one sequence, attention computes separate $\boldsymbol{c}_i$ vectors for time step $i$, and uses all of the encoder  states $H^e=\boldsymbol{h}^e_1,...,\boldsymbol{h}^e_U$ to generate the context vectors $\boldsymbol{c}_1,...,\boldsymbol{c}_N$. The output probability distribution from Eq. \ref{eq:decoder_prob} becomes
-    \begin{equation}
-      p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c}_i) = g(w_{i-1}, \boldsymbol{c}_i, H^e)
-    \end{equation}
-    The decoder LSTM network state depends on the current context vector, along with the previous decoder state and the previous output:
-    \begin{equation}
-      \boldsymbol{h}^d_i = f(w_{i-1}, \boldsymbol{h}^d_{i-1}, \boldsymbol{c}_i)
-    \end{equation}
-    The context vector $\boldsymbol{c}_j$ is a weighted sum of annotations $\boldsymbol{h}^{e}_i$, which are typically the concatenated  outputs of the forward and backward layers in a bi-directional LSTM network.
-    \begin{equation}
-    \boldsymbol{h}^{e}_j = [ \overrightarrow{\boldsymbol{h}}^{e}_j ;
-                              \overleftarrow{\boldsymbol{h}}^{e}_j ]
-    \end{equation}
+    \paragraph*{An attentive decoder} 
+      Attention can be used in the decoder to help find the relevant information from the encoder output. Whereas the traditional decoder bases the output word probabilities on the single context vector $\boldsymbol{c}$ common to one sequence, attention computes separate $\boldsymbol{c}_i$ vectors for time step $i$, and uses all of the encoder  states $H^e=\boldsymbol{h}^e_1,...,\boldsymbol{h}^e_U$ to generate the context vectors $\boldsymbol{c}_1,...,\boldsymbol{c}_N$. The output probability distribution from Eq. \ref{eq:decoder_prob} becomes
+      \begin{equation}
+        p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c}_i) = g(w_{i-1}, \boldsymbol{c}_i, H^e)
+      \end{equation}
+      The decoder LSTM network state depends on the current context vector, along with the previous decoder state and the previous output:
+      \begin{equation}
+        \boldsymbol{h}^d_i = f(w_{i-1}, \boldsymbol{h}^d_{i-1}, \boldsymbol{c}_i)
+      \end{equation}
+      The context vector $\boldsymbol{c}_j$ is a weighted sum of annotations $\boldsymbol{h}^{e}_i$, which are typically the concatenated  outputs of the forward and backward layers in a bi-directional LSTM network.
+      \begin{equation}
+      \boldsymbol{h}^{e}_j = [ \overrightarrow{\boldsymbol{h}}^{e}_j ;
+                                \overleftarrow{\boldsymbol{h}}^{e}_j ]
+      \end{equation}
 
-    
-    The weights $\alpha_{ij}$ aim to capture how relevant each encoder state $\boldsymbol{h}^{e}_i$ is to the decoder output at the current time step. First, a scoring function gives the pair of encoder and decoder state vectors a value $e_{ij}$ that indicates how relevant the encoder state at index $j$ is to the decoder state at index $i$. This could be achieved by a simple dot product of the vectors, but a more adaptive way to assess the similarity is to learn the similarity function. The scoring function is parametrised with a weight matrix $W_s$:
-    \begin{align}
-    score(\boldsymbol{h}^{d}_{i-1},\boldsymbol{h}^{e}_j) &= 
-          \boldsymbol{h}^{d}_{i-1} W_s \boldsymbol{h}^{e}_j \\
-    e_{ij} &= score(\boldsymbol{h}^d_{i-1},
-            \boldsymbol{h}^e_{j}) 
-    \end{align}
-    The scoring function is called the \emph{alignment model} by \citet{bahdanau2014neural} as it aligns the encoder states with the decoder outputs. As the encoder states are dependent on the inputs at the same time step, the alignment is between the input sequence and the output sequence. In the application of machine translation, this means an alignment of the words in the source and target languages. If the application is end-to-end ASR, the alignment would be between observations and output tokens (e.g., characters, as in the influential paper by \citet{chan2016listen}). The alignment is soft, i.e., each input affects many outputs with variable weights.
-    The scores are normalised with the usual softmax function so that a probability is generated:
-    \begin{equation}
-      \alpha_{ij} = \frac{\exp(e_{ij})}
-              {\sum_k \exp(e_{ij})}
-    \end{equation}
-    Finally, the context vector is calculated by the weighted sum of the encoder states: 
-    \begin{align}
-      \alpha_{ij} &= \frac{\exp(e_{ij})}
-              {\sum_k \exp(e_{ij})} \\
-      \boldsymbol{c}_i &= \sum_j \alpha_{ij}
-          \boldsymbol{h}^e_j
-    \end{align}
-    Figure \ref{fig:attention} illustrates the attention mechanism used in an encoder-decoder model.
-    \begin{figure}[htb]
-      \centering
-      \includegraphics[width=14cm]{attention}
-      \caption{}
-      \label{fig:attention}
-    \end{figure}
+      
+      The weights $\alpha_{ij}$ aim to capture how relevant each encoder state $\boldsymbol{h}^{e}_i$ is to the decoder output at the current time step. First, a scoring function gives the pair of encoder and decoder state vectors a value $e_{ij}$ that indicates how relevant the encoder state at index $j$ is to the decoder state at index $i$. This could be achieved by a simple dot product of the vectors, but a more adaptive way to assess the similarity is to learn the similarity function. The scoring function is parametrised with a weight matrix $W_s$:
+      \begin{align}
+      score(\boldsymbol{h}^{d}_{i-1},\boldsymbol{h}^{e}_j) &= 
+            \boldsymbol{h}^{d}_{i-1} W_s \boldsymbol{h}^{e}_j \\
+      e_{ij} &= score(\boldsymbol{h}^d_{i-1},
+              \boldsymbol{h}^e_{j}) 
+      \end{align}
+      The scoring function is called the \emph{alignment model} by \citet{bahdanau2014neural} as it aligns the encoder states with the decoder outputs. As the encoder states are dependent on the inputs at the same time step, the alignment is between the input sequence and the output sequence. In the application of machine translation, this means an alignment of the words in the source and target languages. If the application is end-to-end ASR, the alignment would be between observations and output tokens (e.g., characters, as in the influential paper by \citet{chan2016listen}). The alignment is soft, i.e., each input affects many outputs with variable weights.
+      The scores are normalised with the usual softmax function so that they add up to one:
+      \begin{equation}
+        \alpha_{ij} = \frac{\exp(e_{ij})}
+                {\sum_k \exp(e_{ik})}
+      \end{equation}
+      Finally, the context vector is calculated by the weighted sum of the encoder states: 
+      \begin{align}
+        \boldsymbol{c}_i &= \sum_j \alpha_{ij}
+            \boldsymbol{h}^e_j
+      \end{align}
+      Figure \ref{fig:attention} illustrates the attention mechanism used in an encoder-decoder model.
+      \begin{figure}[htb]
+        \centering
+        \includegraphics[width=14cm]{attention}
+        \caption{}
+        \label{fig:attention}
+      \end{figure}
 
-    \paragraph*{Self-attention and Transformers} 
+    \paragraph*{Self-attention and transformers} 
 
-
+      \citet{vaswani2017attention} asserted that "Attention Is All You Need", in the title of their paper describing the transformer network. 
+      The encoder-decoder described in the previous subsection applies the attention mechanism in between two recurrent neural networks. The network architecture proposed in their paper evades the use of recurrence altogether, applying instead feedforward networks and \emph{multi-head self-attention} blocks, which are briefly described in this subsection. One good reason to avoid recurrence is its inherently sequential nature: the state of an LSTM cell depends on the previous state, which means they need to be computed in succession. Attention mechanism has no such restriction, which enables parallelising the computation, decreasing significantly the required training time.
 
       % \citet{dai2019transformer}
 
