@@ -726,164 +726,203 @@
     After initialising a HMM for each phoneme, the parameters, i.e. means, covariances and mixture weights need to be estimated in the process referred to as "training" of the model.
 
 
-  \subsection{Finding the maximum likelihood hidden state sequence and training HMM/GMM AMs} \label{sec:hmm_est} 
+  \subsection{Finding the hidden state sequence and training HMM/GMM AMs} \label{sec:hmm_est} 
 
     The speech recognition system is trained in a supervised manner, meaning that the training data consists of a parallel corpus of speech audio and corresponding correct transcription. However, the task of the acoustic model is not as straightforward as finding a label for an input vector\footnote{In End-to-end ASR the whole ASR task is simplified to outputting an arbitrary length grapheme sequence given the sequence of observed features}. The reference transcription can be of arbitrary length but the AM is required to map each observation to a HMM state, generating an equal-length \emph{alignment} of observations and states. The states correspond to phonemes, so an alignment can be mapped to a transcription of the audio, given a lexicon that maps the phoneme sequences to word sequences.
 
     ML is one criterion of determining the best HMM parameters; others include the MMI criterion which is discussed in Section \ref{sec:mmi}. Section \ref{sec:ml} was a brief discussion about different fitness criteria and optimisation algorithms. It was noted there that for finding the maximum likelihood estimate of a model with latent variables, expectation maximisation is a commonly used optimisation algorithm.
 
-    \paragraph*{The Baum-Welch algorithm}
-    The Baum-Welch algorithm is an expectation maximisation algorithm for estimating the HMM parameters.  Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the parameters of
-    the HMM $M$. % here all HMMs, viterbi: only the best ?
-    If the HMM had only one state $j$, the maximum likelihood estimate $\hat{\boldsymbol{\mu}}_j$ would simply be the average of the observations, and $\hat{\boldsymbol{\Sigma}}_j$, too, could be determined directly, using the covariance definition.
-    In practice, there are many states which is why the parameters need to be estimated numerically, iteratively. 
-    However, the initial parameter values can be taken from simple statistics of the observations. Initially, the observations are divided equally between the states and the means and variances of the states are taken from the average values.
+    \subsubsection{The Baum-Welch algorithm} 
+      The Baum-Welch algorithm is an expectation maximisation algorithm for estimating the HMM parameters.  Here, the task is to maximise the likelihood $P(\boldsymbol{O}|M)$ of the observations $\boldsymbol{O}$  given the parameters of
+      the HMM $M$. % here all HMMs, viterbi: only the best ?
+      If the HMM had only one state $j$, the maximum likelihood estimate $\hat{\boldsymbol{\mu}}_j$ would simply be the average of the observations, and $\hat{\boldsymbol{\Sigma}}_j$, too, could be determined directly, using the covariance definition.
+      In practice, there are many states which is why the parameters need to be estimated numerically, iteratively. 
+      However, the initial parameter values can be taken from simple statistics of the observations. Initially, the observations are divided equally between the states and the means and variances of the states are taken from the average values.
 
-    The maximum likelihood estimates for the parameters are 
-    \begin{equation}\label{eq:mu_hat}
-      \hat{\boldsymbol{\mu}}_j = \frac{\sum^T_{t=1}L_j(t)\boldsymbol{o}_t}
-        {\sum^T_{t=1}L_j(t)}
-    \end{equation}
-    and
-    \begin{equation}\label{eq:sigma_hat}
-      \hat{\boldsymbol{\Sigma}}_j = \frac{\sum^T_{t=1}L_j(t)
-        (\boldsymbol{o}_t - \boldsymbol{\mu}_j)
-        (\boldsymbol{o}_t - \boldsymbol{\mu}_j)^\top }
-        {\sum^T_{t=1}L_j(t)}
-    \end{equation}
-    The numerator and denominator sums for both parameter groups are \emph{accumulated} from the observations. This is the M-step in this expectation maximisation algorithm. The E-step includes finding the optimal alignment given the current HMM parameters. This is achieved by the forward-backward algorithm.
+      The maximum likelihood estimates for the parameters are 
+      \begin{equation}\label{eq:mu_hat}
+        \hat{\boldsymbol{\mu}}_j = \frac{\sum^T_{t=1}L_j(t)\boldsymbol{o}_t}
+          {\sum^T_{t=1}L_j(t)}
+      \end{equation}
+      and
+      \begin{equation}\label{eq:sigma_hat}
+        \hat{\boldsymbol{\Sigma}}_j = \frac{\sum^T_{t=1}L_j(t)
+          (\boldsymbol{o}_t - \boldsymbol{\mu}_j)
+          (\boldsymbol{o}_t - \boldsymbol{\mu}_j)^\top }
+          {\sum^T_{t=1}L_j(t)}
+      \end{equation}
+      The numerator and denominator sums for both parameter groups are \emph{accumulated} from the observations. This is the M-step in this expectation maximisation algorithm. The E-step includes finding the optimal alignment given the current HMM parameters. This is achieved by the forward-backward algorithm.
 
-    % kaldi: gmm-init, HTK: Hinit
+      % kaldi: gmm-init, HTK: Hinit
 
-      % 
-    
-    % The training starts with some trial values of the parameters, for which
+        % 
+      
+      % The training starts with some trial values of the parameters, for which
 
-    % , for which the likelihood is calculated, given each training example.
-    
-    The state occupation probability
-    \begin{equation}\label{eq:occ}
-      L_j(t) = P(x(t)=j|\boldsymbol{O},M),
-    \end{equation}
-    i.e., the probability of being in state $j$ at time $t$, is calculated using using the forward-backward algorithm. The forward probability $\alpha_j(t)$ and backward probability $\beta_j(t)$ are defined as 
-    \begin{align}
-      \alpha_j(t) &= P(\boldsymbol{o}_1,...,\boldsymbol{o}_t,x(t)=j|M)  \label{eq:forward} \\
-      \beta_j(t) &= P(\boldsymbol{o}_{t+1},...,\boldsymbol{o}_T|x(t)=j,M) \label{eq:back}
-    \end{align}
-    Spelled out, $\alpha_j(t)$ is the probability of the partial observation sequence up to time $t$ and that $M$ is in state $j$ at the time step. The backward probability is the probability of the partial observation sequence at the subsequent time steps up to the last vector, given that at the current time the model state is $j$. 
-    The forward probability is a joint probability of the observations and the state, whereas the backward probability of the observations is conditional on the state. This allows for the state occupation probability to be determined by the product of the forward and backward probabilities (from Eqs. \ref{eq:occ}, \ref{eq:forward}, and \ref{eq:back})
-    \begin{align}\label{}
-      L_j(t) = \frac{ \alpha_j(t) \beta_j(t) }{P(\boldsymbol{O}|M)}
-    \end{align}
-    
-    $\alpha$ and $\beta$ are calculated respectively using the recursions
-    \begin{align}
-      \alpha_j(t) &= \bigg[ \sum^{N-1}_{i=2}\alpha_i(t-1)a_{ij} \bigg] b_j(\boldsymbol{o}_t)
-      \label{eq:alpha_recurs} \\
-      \beta_i(t) &= \sum^{N-1}_{j=2} \beta_j(t+1) a_{ij} b_j(\boldsymbol{o}_{t+1}) 
-      \label{eq:beta_recurs}
-    \end{align}
-    and the initial conditions,
-    \begin{align}
-      \alpha_1(1) &= 1, \; \; \; \; \alpha_j(1) = a_{ij} b_j(\boldsymbol{o}_1) 
-      \label{eq:alpha_init} \\
-      \beta_i(T) &= a_{iN} \label{eq:beta_init}
-    \end{align}
-    for $1<j<N$ and the final conditions
-    \begin{align}
-      \alpha_N(T) &= \sum^{N-1}_{i=2}\alpha_i(T)a_{iN} \label{eq:afinal} \\
-      \beta_1(1) &= \sum^{N-1}_{j=2} a_{1j} b_j(\boldsymbol{o}_1) \beta_j(1) \label{eq:bfinal}
-    \end{align}
-    where the limits of the sums exclude the states $1$ and $N$ because they are non-emitting. The recursion of Eq. \ref{eq:alpha_recurs} calculates the forward probabilities (of seeing the specified observations and being at the state $j$) by summing all possible forward probabilities for all possible predecessor states $i$ weighted by the transition probability $a_{ij}$.
+      % , for which the likelihood is calculated, given each training example.
+      
+      The state occupation probability
+      \begin{equation}\label{eq:occ}
+        L_j(t) = P(x(t)=j|\boldsymbol{O},M),
+      \end{equation}
+      i.e., the probability of being in state $j$ at time $t$, is calculated using using the forward-backward algorithm. The forward probability $\alpha_j(t)$ and backward probability $\beta_j(t)$ are defined as 
+      \begin{align}
+        \alpha_j(t) &= P(\boldsymbol{o}_1,...,\boldsymbol{o}_t,x(t)=j|M)  \label{eq:forward} \\
+        \beta_j(t) &= P(\boldsymbol{o}_{t+1},...,\boldsymbol{o}_T|x(t)=j,M) \label{eq:back}
+      \end{align}
+      Spelled out, $\alpha_j(t)$ is the probability of the partial observation sequence up to time $t$ and that $M$ is in state $j$ at the time step. The backward probability is the probability of the partial observation sequence at the subsequent time steps up to the last vector, given that at the current time the model state is $j$. 
+      The forward probability is a joint probability of the observations and the state, whereas the backward probability of the observations is conditional on the state. This allows for the state occupation probability to be determined by the product of the forward and backward probabilities (from Eqs. \ref{eq:occ}, \ref{eq:forward}, and \ref{eq:back})
+      \begin{align}\label{}
+        L_j(t) = \frac{ \alpha_j(t) \beta_j(t) }{P(\boldsymbol{O}|M)}
+      \end{align}
+      
+      $\alpha$ and $\beta$ are calculated respectively using the recursions
+      \begin{align}
+        \alpha_j(t) &= \bigg[ \sum^{N-1}_{i=2}\alpha_i(t-1)a_{ij} \bigg] b_j(\boldsymbol{o}_t)
+        \label{eq:alpha_recurs} \\
+        \beta_i(t) &= \sum^{N-1}_{j=2} \beta_j(t+1) a_{ij} b_j(\boldsymbol{o}_{t+1}) 
+        \label{eq:beta_recurs}
+      \end{align}
+      and the initial conditions,
+      \begin{align}
+        \alpha_1(1) &= 1, \; \; \; \; \alpha_j(1) = a_{ij} b_j(\boldsymbol{o}_1) 
+        \label{eq:alpha_init} \\
+        \beta_i(T) &= a_{iN} \label{eq:beta_init}
+      \end{align}
+      for $1<j<N$ and the final conditions
+      \begin{align}
+        \alpha_N(T) &= \sum^{N-1}_{i=2}\alpha_i(T)a_{iN} \label{eq:afinal} \\
+        \beta_1(1) &= \sum^{N-1}_{j=2} a_{1j} b_j(\boldsymbol{o}_1) \beta_j(1) \label{eq:bfinal}
+      \end{align}
+      where the limits of the sums exclude the states $1$ and $N$ because they are non-emitting. The recursion of Eq. \ref{eq:alpha_recurs} calculates the forward probabilities (of seeing the specified observations and being at the state $j$) by summing all possible forward probabilities for all possible predecessor states $i$ weighted by the transition probability $a_{ij}$.
 
-    From Eqs. \ref{eq:forward}, \ref{eq:afinal}, and \ref{eq:bfinal} it follows that calculating the forward probability also yields the total likelihood $P(\boldsymbol{O}|M)=\alpha_N(T)$.
-    % By calculating the forward probability the best hidden path can be determined. The forward-backward algorithm is therefore the E-step that finds the optimal alignment given the HMM parameters.
-    % The M-step consists of accumulating the averages from training examples
+      From Eqs. \ref{eq:forward}, \ref{eq:afinal}, and \ref{eq:bfinal} it follows that calculating the forward probability also yields the total likelihood $P(\boldsymbol{O}|M)=\alpha_N(T)$.
+      % By calculating the forward probability the best hidden path can be determined. The forward-backward algorithm is therefore the E-step that finds the optimal alignment given the HMM parameters.
+      % The M-step consists of accumulating the averages from training examples
 
-    \paragraph*{Viterbi training}
-    An alternative approach to the Baum-Welch algorithm is an iterative procedure called Viterbi training (VT), also called Viterbi extraction or Baum-Viterbi algorithm since it involves the Baum re-estimation (Eqs. \ref{eq:mu_hat} and \ref{eq:sigma_hat}) and the Viterbi algorithm \citep{lember2008adjusted}. Instead of maximising the likelihood of all the data as in Eq. \ref{eq:alpha_recurs}, in VT the probability of only the most likely hidden sequence is maximised
+    \subsubsection{Viterbi training} 
+      An alternative approach to the Baum-Welch algorithm is an iterative procedure called Viterbi training (VT), also called Viterbi extraction or Baum-Viterbi algorithm since it involves the Baum re-estimation (Eqs. \ref{eq:mu_hat} and \ref{eq:sigma_hat}) and the Viterbi algorithm \citep{lember2008adjusted}. Instead of maximising the likelihood of all the data as in Eq. \ref{eq:alpha_recurs}, in VT the probability of only the most likely hidden sequence is maximised
+      \begin{equation}
+        \phi_N(T) = \max_i \{ \phi_i(T)a_{iN} \}
+      \end{equation}
+      for $1<i<N$ where
+      \begin{equation}
+        \phi_j(t) = \max_i \{ \phi_i(t-1)a_{ij} \} b_j(\boldsymbol{o}_t)
+      \end{equation}
+      and initially
+      \begin{align}
+        &\phi_1(1) = 1 \\
+        &\phi_j(1) = a_{1j}b_j(\boldsymbol{o}_t).
+      \end{align}
+      for $1<j<N$. This alignment process finds an arc $ij$ for each observation $\boldsymbol{o}_t$.
+      % so that the last 
+
+      This results in an approximation of the maximum likelihood estimate, which was computed in the Baum-Welch algorithm. The approximation is convenient, since using only the best hidden sequence for updating the HMM parameters makes the Viterbi training is computationally less expensive than the Baum-Welch algorithm. Viterbi training is used in the Kaldi toolkit for estimating the HMM/GMM acoustic models in the standard recipes.
+
+      % In Viterbi training, the HMM parameters and the most probable hidden state sequence, both unknown, are estimated alternately. After updating the HMM parameters, the training data observations are aligned with the states. The new alignment is then used for estimating the HMM parameters again, and so on. 
+      % Within each state, a further alignment is made to align observations with mixture components. 
+      % Using the Viterbi algorithm, the states are aligned with the observation sequence by maximising
+
+
+
+      % AS stated in the Kaldi documentation, computed alignment is a sequence of transitions that corresponds to an utterance. 
+
+    \subsubsection{A discriminative training criterion: MMI} \label{sec:mmi} 
+
+      % The maximum likelihood method aims to  
+      % Typically?
+      % Discriminative training is based on an objective function which is minimised or maximised using an optimisation algorithm.
+
+      The MLE method described in Section \ref{sec:hmm_est} aims to maximise the likelihood of the observed sequence given the most probable HMM in Viterbi training, or all the possible HMMs in Baum-Welch.
+      % This method results in a model that predicts the training data by determining a probability distribution over the feature space, i.e., over all possible observations. This is called a generative model since the distribution can be sampled for predictions. However, the ability to produce examples of the modelled data is redundant in classification tasks.
+      % Furthermore, t
+      The MLE method maximises the likelihood of the observations for all of the competing HMMs independently of each other. However, the ultimate aim is to find the HMM that most accurately models the observation sequence, so it would make sense to also try to find meaningful differences between HMMs.
+      % The HMMs competing for being the most accurate model of the observations are not compared to each other.
+      In discriminative training, instead of maximising the likelihood of the data given the
+      % generative
+      model, a model is trained to discriminate between the classes, which in this case are different phoneme sequences, corresponding to the HMMs. This way, in principle, more of the model capacity is used to model the boundaries between different HMMs, instead of using it to model just the relations between individual HMMs and alignments. 
+
+      The discriminative objective function can be simply the difference between the correct classifications (e.g., a phoneme sequence) for a set of examples and the classifications assigned to them by the model. This is called the minimum classification error (MCE) criterion \citep{juang1997minimum}.
+      Another type of objective function is the maximum mutual information (MMI) \citep{bahl1986maximum} criterion
+      \begin{equation} \label{eq:mmi}
+        \mathcal{F}_{\textup{MMI}}(M) = \sum_{r=1}^R \log 
+          \frac{P(\boldsymbol{w}_r)P(\boldsymbol{O}_r|\boldsymbol{w}_r)}
+            {\sum_{\boldsymbol{w}} P(\boldsymbol{w})P(\boldsymbol{O}_r|\boldsymbol{w})}
+      \end{equation}
+      where $\boldsymbol{w}_r$ is the correct transcription for the $r$'th speech file \citep{povey2005discriminative}. The numerator is the log-probability of the output sequence, and the denominator is the log-probability of all possible output sequences. This way the probability of a particular sequence is normalised by the probability of all sequences. In other words, the probability of all possible sequences is \emph{minimised}, while maximising the probability of the correct output sequence. Since the correct sequence is included also in the denominator, the maximum value of the objective function is zero.
+      % equivalent to conditional maximum likelihood 
+      % extended b-w
+
+      Optimisation w.r.t the MMI criterion is achieved by the extended Baum-Welch (EBW) algorithm. The Gaussian parameter updating formulas are reminiscent of the Baum-Welch updating formulas (Eqs. \ref{eq:mu_hat} and \ref{eq:sigma_hat}), whence the name. The EBW is described for example by \citet{jiang2010discriminative}.
+      % woodland2002large
+
+      % pylkkonen2012analysis
+      
+      % vesely2013sequence
+
+      % Traditionally this has been done by training a cross-entropy system, generating word lattices with a weak language model, and using these lattices as an approx- imation for all possible word sequences in the discriminative objective function– as was done when Gaussian Mixture Mod- els were the state of the art povey2016purely
+
+
+    \subsubsection{Phone context, state tying, and phonetic decision trees} \label{sec:triphone} 
+      Phones of the same phoneme sound different when flanked by different phonemes. For this reason, contextual information is modelled, too, by taking into account the preceding and subsequent phonemes of the modelled phoneme. These phonemes with left and right context of one are called triphones, and each can be assigned a HMM \citep{schwartz1985context}.
+
+      % The monophone models are first trained
+      % (with single-component Gaussians?)
+      % and
+      % The triphone models are initialised with the monophone model set parameters. The number of Gaussians in the triphone models is increased gradually and the parameters are re-estimated.
+
+      % transition modelling
+      % The transition probabilities from a state to another are essentially the counts of the transitions seen in the training corpus.
+
+      % tying
+      When considering triphones instead of monophones, the number of possible phonemes increases to the power of three. This means each class of triphone will include fewer instances in the training data, which brings difficulties in estimating the state output PDFs. To alleviate the data sparseness, the states of the phoneme HMMs are can be tied together so that the parameters of the output distributions of those states are shared. This makes the estimation of the parameters more robust because there are more training data occurrences, and also makes the total system more compact with fewer parameters \citep{young1992general}. States are clustered based on a chosen metric of similarity.  
+
+      % http://kaldi-asr.org/doc/tree_externals.html
+      In tree-based clustering as described by \citet{young1994tree}, the states are divided into branches in a top-down optimisation procedure. Starting from the root node, the question that maximises the likelihood is selected for the node, with the data on each side of the divide being modelled by a single Gaussian.
+      In phonetic decision trees the questions are about the context of the phone, e.g. "Is the phone on the left of the current phone a fricative?". 
+      After the procedure, the leaves of the tree are the state clusters in which the states are tied. In the final stage, leaves can be merged if the likelihood does not decrease more than a threshold value.
+
+      After a tree has been constructed for the states of the triphone models, also previously unseen triphones can be synthesised by traversing the tree to the appropriate leaf node, i.e. cluster, by answering the questions about that triphone's context and using the tied states of that cluster.
+
+
+  \subsection{Deep neural networks for acoustic modelling} \label{sec:dnn_am} 
+
+    In the previous decade, deep neural networks achieved state-of-the-art results in acoustic modelling, supplanting the Gaussian mixture models as the most accurate method to classify observations into phoneme classes. In the HMM/DNN hybrid approach, DNNs provide \emph{pseudo-likelihoods} of the observations for each HMM state.
+    % This is due to DNNs being discriminative instead of generative like GMMs.
+    The approach defined in Eq. \ref{eq:asr-bayes-2} works well for traditional ASR systems that use GMMs for acoustic modelling. However, if the generative GMM is replaced with a discriminative neural network model, it does not produce an acoustic likelihood $P(\boldsymbol{o}_t|\boldsymbol{s}(t))$ but a state level posterior probability $P(\boldsymbol{s}(t)|\boldsymbol{o}_t)$, which is a problem because the decoding (Eq. \ref{eq:asr-bayes-2}) relies on the likelihoods. This mismatch can be bypassed by applying the Bayes' rule to produce pseudo-likelihoods:
     \begin{equation}
-      \phi_N(T) = \max_i \{ \phi_i(T)a_{iN} \}
+      P(\boldsymbol{x}_t|\boldsymbol{s}(t)) =
+      \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)P(\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))} \propto	 
+      \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))}
     \end{equation}
-    for $1<i<N$ where
-    \begin{equation}
-      \phi_j(t) = \max_i \{ \phi_i(t-1)a_{ij} \} b_j(\boldsymbol{o}_t)
-    \end{equation}
-    and initially
-    \begin{align}
-      &\phi_1(1) = 1 \\
-      &\phi_j(1) = a_{1j}b_j(\boldsymbol{o}_t).
-    \end{align}
-    for $1<j<N$. This alignment process finds an arc $ij$ for each observation $\boldsymbol{o}_t$.
-    % so that the last 
+    The state priors $P(\boldsymbol{s}(t))$ can be gathered from corpus frequencies \citep{Bourlard1994}. 
 
-    This results in an approximation of the maximum likelihood estimate, which was computed in the Baum-Welch algorithm. The approximation is convenient, since using only the best hidden sequence for updating the HMM parameters makes the Viterbi training is computationally less expensive than the Baum-Welch algorithm. Viterbi training is used in the Kaldi toolkit for estimating the HMM/GMM acoustic models in the standard recipes.
+    \subsubsection{TDNNs and RNNs} 
+      Two common types of DNN used for acoustic modelling are RNNs and time delay neural networks (TDNN). Both RNNs and TDNNs are inherently suited to modelling time-series data, where it is important to capture long-term time dependencies, such as speech. However, the two types of DNN are different in how they achieve this.
 
-    % In Viterbi training, the HMM parameters and the most probable hidden state sequence, both unknown, are estimated alternately. After updating the HMM parameters, the training data observations are aligned with the states. The new alignment is then used for estimating the HMM parameters again, and so on. 
-    % Within each state, a further alignment is made to align observations with mixture components. 
-    % Using the Viterbi algorithm, the states are aligned with the observation sequence by maximising
+      RNNs (see Section \ref{sec:rnn})
 
+      TDNNs 
 
+      \citep{peddinti2015time}
 
-    % AS stated in the Kaldi documentation, computed alignment is a sequence of transitions that corresponds to an utterance. 
+    % (explaining RNNs and TDNNs in previous sections?)
 
+    \subsubsection{Sequence-level lattice-free MMI} 
+      Currently, the state-of-the-art implementations of DNNs in Kaldi are trained using lattice-free MMI (LF-MMI) training criterion, as described by \citet{povey2016purely}. These are called "chain" models in Kaldi. LF-MMI is a sequence discriminative criterion, which means that the aim is to maximise the conditional log-likelihood (Eq. \ref{eq:mmi}) of the correct transcript on the sequence level. In the traditional MMI approach, a cross-entropy system is trained to  generate lattices for a weak language model, and the lattices are used to approximate the possible word sequences for the discriminative objective function denominator. In LF-MMI, however, the possible word sequences are not approximated with a lattice, but a phone-level language model is computed so that the sum in the denominator is not approximated, but can be computed exactly. This is possible since a phone-level LM requires significantly less mamory than a normal word-level LM.  The phone LM is represented as an FST, created in a similar manner as the normal decoding FST described in Section \ref{sec:wfst}. In this case there is no lexicon and grammar FSTs but a phone grammar FST, so the graph consists of the component FSTs $H$, $C$, and $P$. The numerator FST uses a lattice to represent the utterance. The numerator FST is composed with the denominator FST so that the phoneme LM of the denominator removes illegal output sequences. The composition also ensures that the objective function value is negative. 
+      % https://desh2608.github.io/2019-05-21-chain/
 
-  \subsection{A discriminative training criterion: MMI} \label{sec:mmi} 
+    \subsubsection{Regularisation of DNN AMs} 
+      Regularisation is important in DNN training to impede overfitting. Kaldi chain models incorporate a number of regularisation methods in the DNN architectures. One of the methods is called \emph{L2-regularisation}, which applies the euclidean norm to penalise elements in the output vector that tend to blow up. This is achieved by subtracting $\frac{1}{2}c||\boldsymbol{y}||_2^2$ from the objective function of each frame output $\boldsymbol{y}$, where $c$ is a user-set scaling factor, e.g. 0.005 \citep{povey2016purely}. In Kaldi, L2-regularisation is applied on the outputs; note that this method is different from the L2-regularisation applied to the weights, which is another commonly used regularisation method.
+      
+      Another widely used regularisation method for deep neural nets are \emph{dropout layers} which randomly sample a subset of the neurons and their connections which are omitted, dropped out, during an iteration of the training \citep{srivastava2014dropout}. This prevents the neurons from relying on the other neuron's outputs too much, i.e., prevents too much \emph{co-adaptation} among the parameters. Dropping out random units in training shifts the unit of adaptation down from large groups of neurons to individual neurons, since it is not guaranteed that the other neurons are present. This principle is explained through an analogy to sexual selection, in the above mentioned original paper. Since genes are mixed randomly with another set of genes from a conspecific between every generation, individual genes cannot rely on specific other genes to be present in the future. This inhibits aggregation of large interdependent gene complexes, in which genes function well only with the group of co-adapted genes. These kinds of complexes would become rigid, and fragile to the inevitable mutations that will always occur quite randomly: new genes would be difficult to incorporate in the complex. This kind of rigidity is analogous to overfitting to the training data and failing to find generalisable rules that apply to new data samples from the hidden distribution, which regularisation attempts to lessen.
 
-    % The maximum likelihood method aims to  
-    % Typically?
-    % Discriminative training is based on an objective function which is minimised or maximised using an optimisation algorithm.
+      % It has been empirically shown that dropout layers 
 
-    The MLE method described in Section \ref{sec:hmm_est} aims to maximise the likelihood of the observed sequence given the most probable HMM in Viterbi training, or all the possible HMMs in Baum-Welch.
-    % This method results in a model that predicts the training data by determining a probability distribution over the feature space, i.e., over all possible observations. This is called a generative model since the distribution can be sampled for predictions. However, the ability to produce examples of the modelled data is redundant in classification tasks.
-    % Furthermore, t
-    The MLE method maximises the likelihood of the observations for all of the competing HMMs independently of each other. However, the ultimate aim is to find the HMM that most accurately models the observation sequence, so it would make sense to also try to find meaningful differences between HMMs.
-    % The HMMs competing for being the most accurate model of the observations are not compared to each other.
-    In discriminative training, instead of maximising the likelihood of the data given the
-    % generative
-    model, a model is trained to discriminate between the classes, which in this case are different phoneme sequences, corresponding to the HMMs. This way, in principle, more of the model capacity is used to model the boundaries between different HMMs, instead of using it to model just the relations between individual HMMs and alignments. 
+      A third type of regularisation technique is called \emph{leaky HMM} in Kaldi. Transitioning from any state $a$ to any state $b$ is allowed once per frame with the probability of a small (typically around 0.01) \emph{leaky-hmm-coefficient} times the probability of state $b$. The aim is to effect a gradual forgetting of the context, since transitioning to a random state is equal to stopping and restarting the HMM \citep{povey2016purely}. This reduces the overfitting caused by too much memorising of the training data sequences.
 
-    The discriminative objective function can be simply the difference between the correct classifications (e.g., a phoneme sequence) for a set of examples and the classifications assigned to them by the model. This is called the minimum classification error (MCE) criterion \citep{juang1997minimum}.
-    Another type of objective function is the maximum mutual information (MMI) \citep{bahl1986maximum} criterion
-    \begin{equation} \label{eq:mmi}
-      \mathcal{F}_{\textup{MMI}}(M) = \sum_{r=1}^R \log 
-        \frac{P(\boldsymbol{w}_r)P(\boldsymbol{O}_r|\boldsymbol{w}_r)}
-          {\sum_{\boldsymbol{w}} P(\boldsymbol{w})P(\boldsymbol{O}_r|\boldsymbol{w})}
-    \end{equation}
-    where $\boldsymbol{w}_r$ is the correct transcription for the $r$'th speech file \citep{povey2005discriminative}. The numerator is the log-probability of the output sequence, and the denominator is the log-probability of all possible output sequences. This way the probability of a particular sequence is normalised by the probability of all sequences. In other words, the probability of all possible sequences is \emph{minimised}, while maximising the probability of the correct output sequence. Since the correct sequence is included also in the denominator, the maximum value of the objective function is zero.
-    % equivalent to conditional maximum likelihood 
-    % extended b-w
-
-    Optimisation w.r.t the MMI criterion is achieved by the extended Baum-Welch (EBW) algorithm. The Gaussian parameter updating formulas are reminiscent of the Baum-Welch updating formulas (Eqs. \ref{eq:mu_hat} and \ref{eq:sigma_hat}), whence the name. The EBW is described for example by \citet{jiang2010discriminative}.
-    % woodland2002large
-
-    % pylkkonen2012analysis
-    
-    % vesely2013sequence
-
-    % Traditionally this has been done by training a cross-entropy system, generating word lattices with a weak language model, and using these lattices as an approx- imation for all possible word sequences in the discriminative objective function– as was done when Gaussian Mixture Mod- els were the state of the art povey2016purely
-
-
-  \subsection{Phone context, state tying, and phonetic decision trees} \label{sec:triphone}
-    Phones of the same phoneme sound different when flanked by different phonemes. For this reason, contextual information is modelled, too, by taking into account the preceding and subsequent phonemes of the modelled phoneme. These phonemes with left and right context of one are called triphones, and each can be assigned a HMM \citep{schwartz1985context}.
-
-    % The monophone models are first trained
-    % (with single-component Gaussians?)
-    % and
-    % The triphone models are initialised with the monophone model set parameters. The number of Gaussians in the triphone models is increased gradually and the parameters are re-estimated.
-
-    % transition modelling
-    % The transition probabilities from a state to another are essentially the counts of the transitions seen in the training corpus.
-
-    % tying
-    When considering triphones instead of monophones, the number of possible phonemes increases to the power of three. This means each class of triphone will include fewer instances in the training data, which brings difficulties in estimating the state output PDFs. To alleviate the data sparseness, the states of the phoneme HMMs are can be tied together so that the parameters of the output distributions of those states are shared. This makes the estimation of the parameters more robust because there are more training data occurrences, and also makes the total system more compact with fewer parameters \citep{young1992general}. States are clustered based on a chosen metric of similarity.  
-
-    % http://kaldi-asr.org/doc/tree_externals.html
-    In tree-based clustering as described by \citet{young1994tree}, the states are divided into branches in a top-down optimisation procedure. Starting from the root node, the question that maximises the likelihood is selected for the node, with the data on each side of the divide being modelled by a single Gaussian.
-    In phonetic decision trees the questions are about the context of the phone, e.g. "Is the phone on the left of the current phone a fricative?". 
-    After the procedure, the leaves of the tree are the state clusters in which the states are tied. In the final stage, leaves can be merged if the likelihood does not decrease more than a threshold value.
-
-    After a tree has been constructed for the states of the triphone models, also previously unseen triphones can be synthesised by traversing the tree to the appropriate leaf node, i.e. cluster, by answering the questions about that triphone's context and using the tied states of that cluster.
+      Another technique to regularise the sequence-level training is to add a separate output layer to the network that learns the cross entropy objective, as well as a separate last hidden layer. This means the network has two output branches with two separate weight matrices in each branch. After the training, the cross entropy branch can be discarded, and the main, sequence output branch is left to be used in decoding.
+      This technique is abbreviated as \textt{xent\_regularize} in the Kaldi code, and the associated hyperparameter is a scaling factor for the cross entropy objective, typically 0.1 because its dynamic range is naturally larger than that of the MMI objective function \citep{povey2016purely}.
 
 
   \subsection{Speaker adaptive training} \label{sec:adaptive_training} 
@@ -965,6 +1004,16 @@
       % The transform can be done when testing the final model (speaker adaptation, discussed in Section \ref{sec:adaptation}) and in the training process. The latter is called adaptive training.
       
       % First, a transform is generated for each speaker. 
+
+
+  \subsection{Silence and pronunciation probability modelling} \label{sec:sil_prob} 
+
+    The Kaldi toolkit allows also for modelling the probability of an optional silence between specific words, and the probability of different pronunciations of a word. These methods have been found to improve WER results by a small but consistent margin \citep{chen2015pronunciation}. 
+
+    Differences of pronunciation are significant in many languages. However, in Finnish, which has a phonemic orthography (see Section \ref{sec:lexicon}), pronunciation probabilities are not applicable. If the mapping from phonemes to graphemes is one-to-one, there are no alternative pronunciations for a word.
+
+    The probability of an optional silence phone between two words is estimated from statistics collected from alignments. 
+    When using a subword vocabulary, it is important to indicate which boundaries are actual word boundaries, because the optional silence should not be inserted in the middle of a word. \citet{smit2017improved} described and implemented a method to build the lexicon FST in such a way that restricts the use optional silence to only word boundaries.
 
 
   \subsection{Mapping words to phoneme sequences} \label{sec:lexicon} 
@@ -1057,56 +1106,6 @@
     When generating the lattice that encodes the subset of the best paths, some of the desiderata are: that the lattice includes all word sequences within the beam size $\alpha$ that represents a log-likelihood difference to the optimal path; that the scores and alignments in the lattice are accurate; that the lattice does not contain duplicate paths of the same word sequence \citep{povey2012wfst}.
 
     An alternative to a word lattice is to simply create lists of $n$ best transcriptions of the utterance. Though sometimes simpler to create and use, n-best lists are less efficient than lattices. In n-best lists, there are often transcriptions that differ only by a few words, which is redundant. n-best lists are capable of encoding far fewer transcriptions than lattices in the same amount of memory, and are therefore usually much more restrictive when, for instance, doing rescoring with a language model.
-
-
-  \subsection{Silence and pronunciation probability modelling} \label{sec:sil_prob} 
-
-    The Kaldi toolkit allows also for modelling the probability of an optional silence between specific words, and the probability of different pronunciations of a word. These methods have been found to improve WER results by a small but consistent margin \citep{chen2015pronunciation}. 
-
-    Differences of pronunciation are significant in many languages. However, in Finnish, which has a phonemic orthography (see Section \ref{sec:lexicon}), pronunciation probabilities are not applicable. If the mapping from phonemes to graphemes is one-to-one, there are no alternative pronunciations for a word.
-
-    The probability of an optional silence phone between two words is estimated from statistics collected from alignments. 
-    When using a subword vocabulary, it is important to indicate which boundaries are actual word boundaries, because the optional silence should not be inserted in the middle of a word. \citet{smit2017improved} described and implemented a method to build the lexicon FST in such a way that restricts the use optional silence to only word boundaries.
-
-
-  \subsection{Deep neural networks for acoustic modelling} \label{sec:dnn_am}
-
-    In the previous decade, deep neural networks achieved state-of-the-art results in acoustic modelling, supplanting the Gaussian mixture models as the most accurate method to classify observations into phoneme classes. In the HMM/DNN hybrid approach, DNNs provide \emph{pseudo-likelihoods} of the observations for each HMM state.
-    % This is due to DNNs being discriminative instead of generative like GMMs.
-    The approach defined in Eq. \ref{eq:asr-bayes-2} works well for traditional ASR systems that use GMMs for acoustic modelling. However, if the generative GMM is replaced with a discriminative neural network model, it does not produce an acoustic likelihood $P(\boldsymbol{o}_t|\boldsymbol{s}(t))$ but a state level posterior probability $P(\boldsymbol{s}(t)|\boldsymbol{o}_t)$, which is a problem because the decoding (Eq. \ref{eq:asr-bayes-2}) relies on the likelihoods. This mismatch can be bypassed by applying the Bayes' rule to produce pseudo-likelihoods:
-    \begin{equation}
-      P(\boldsymbol{x}_t|\boldsymbol{s}(t)) =
-      \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)P(\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))} \propto	 
-      \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))}
-    \end{equation}
-    The state priors $P(\boldsymbol{s}(t))$ can be gathered from corpus frequencies \citep{Bourlard1994}. 
-
-    \paragraph*{TDNNs and RNNs} 
-      Two common types of DNN used for acoustic modelling are RNNs and time delay neural networks (TDNN). Both RNNs and TDNNs are inherently suited to modelling time-series data, where it is important to capture long-term time dependencies, such as speech. However, the two types of DNN are different in how they achieve this.
-
-      RNNs (see Section \ref{sec:rnn})
-
-      TDNNs 
-
-      \citep{peddinti2015time}
-
-    % (explaining RNNs and TDNNs in previous sections?)
-
-    \paragraph*{Sequence-level lattice-free MMI} 
-      Currently, the state-of-the-art implementations of DNNs in Kaldi are trained using lattice-free MMI (LF-MMI) training criterion, as described by \citet{povey2016purely}. These are called "chain" models in Kaldi. LF-MMI is a sequence discriminative criterion, which means that the aim is to maximise the conditional log-likelihood (Eq. \ref{eq:mmi}) of the correct transcript on the sequence level. In the traditional MMI approach, a cross-entropy system is trained to  generate lattices for a weak language model, and the lattices are used to approximate the possible word sequences for the discriminative objective function denominator. In LF-MMI, however, the possible word sequences are not approximated with a lattice, but a phone-level language model is computed so that the sum in the denominator is not approximated, but can be computed exactly. This is possible since a phone-level LM requires significantly less mamory than a normal word-level LM.  The phone LM is represented as an FST, created in a similar manner as the normal decoding FST described in Section \ref{sec:wfst}. In this case there is no lexicon and grammar FSTs but a phone grammar FST, so the graph consists of the component FSTs $H$, $C$, and $P$. The numerator FST uses a lattice to represent the utterance. The numerator FST is composed with the denominator FST so that the phoneme LM of the denominator removes illegal output sequences. The composition also ensures that the objective function value is negative. 
-      % https://desh2608.github.io/2019-05-21-chain/
-
-    \paragraph*{Regularisation of DNN AMs} 
-      Regularisation is important in DNN training to impede overfitting. Kaldi chain models incorporate a number of regularisation methods in the DNN architectures. One of the methods is called \emph{L2-regularisation}, which applies the euclidean norm to penalise elements in the output vector that tend to blow up. This is achieved by subtracting $\frac{1}{2}c||\boldsymbol{y}||_2^2$ from the objective function of each frame output $\boldsymbol{y}$, where $c$ is a user-set scaling factor, e.g. 0.005 \citep{povey2016purely}. In Kaldi, L2-regularisation is applied on the outputs; note that this method is different from the L2-regularisation applied to the weights, which is another commonly used regularisation method.
-      
-      Another widely used regularisation method for deep neural nets are \emph{dropout layers} which randomly sample a subset of the neurons and their connections which are omitted, dropped out, during an iteration of the training \citep{srivastava2014dropout}. This prevents the neurons from relying on the other neuron's outputs too much, i.e., prevents too much \emph{co-adaptation} among the parameters. Dropping out random units in training shifts the unit of adaptation down from large groups of neurons to individual neurons, since it is not guaranteed that the other neurons are present. This principle is explained through an analogy to sexual selection, in the above mentioned original paper. Since genes are mixed randomly with another set of genes from a conspecific between every generation, individual genes cannot rely on specific other genes to be present in the future. This inhibits aggregation of large interdependent gene complexes, in which genes function well only with the group of co-adapted genes. These kinds of complexes would become rigid, and fragile to the inevitable mutations that will always occur quite randomly: new genes would be difficult to incorporate in the complex. This kind of rigidity is analogous to overfitting to the training data and failing to find generalisable rules that apply to new data samples from the hidden distribution, which regularisation attempts to lessen.
-
-      % It has been empirically shown that dropout layers 
-
-      A third type of regularisation technique is called \emph{leaky HMM} in Kaldi. Transitioning from any state $a$ to any state $b$ is allowed once per frame with the probability of a small (typically around 0.01) \emph{leaky-hmm-coefficient} times the probability of state $b$. The aim is to effect a gradual forgetting of the context, since transitioning to a random state is equal to stopping and restarting the HMM \citep{povey2016purely}. This reduces the overfitting caused by too much memorising of the training data sequences.
-
-      Another technique to regularise the sequence-level training is to add a separate output layer to the network that learns the cross entropy objective, as well as a separate last hidden layer. This means the network has two output branches with two separate weight matrices in each branch. After the training, the cross entropy branch can be discarded, and the main, sequence output branch is left to be used in decoding.
-      This technique is abbreviated as \textt{xent\_regularize} in the Kaldi code, and the associated hyperparameter is a scaling factor for the cross entropy objective, typically 0.1 because its dynamic range is naturally larger than that of the MMI objective function \citep{povey2016purely}.
 
 
 \clearpage
