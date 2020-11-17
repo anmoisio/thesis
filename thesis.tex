@@ -67,6 +67,7 @@
   \DeclareMathOperator*{\argmax}{argmax}
   \DeclareMathOperator*{\tanh}{tanh}
   \DeclareMathOperator*{\exp}{exp}
+  \DeclareMathOperator*{\softmax}{softmax}
 
   % \university{Aalto-yliopisto}
   % \school{Sähkötekniikan korkeakoulu}
@@ -250,6 +251,7 @@
   MLP           & multilayer perceptron \\
   MMI           & maximum mutual information \\
   MPE           & minimum phone error \\
+  NLP           & natural language processing \\
   NN            & neural network \\
   NNLM          & neural network language model \\
   OOV           & out of vocabulary \\
@@ -393,6 +395,8 @@
     An important class of ANNs are deep neural networks (DNN), called "deep" because they include many hidden layers. MLPs are a subclass of DNNs; other subclasses include, for instance, convolutional NNs (CNN) and recurrent NNs (RNN), which are particularly useful in speech recognition since they are capable of modelling long-term time dependencies in data.
     
   % \subsubsection{Convolution} \label{sec:cnn}
+  % Residual connections \citep{he2016deep}
+  % highway networks
 
   % 3. What will be your methodology?
   \subsection{Related work and methodology}
@@ -553,7 +557,7 @@
     \citet{bahdanau2014neural} developed a mechanism that has been widely adopted in speech and language processing systems, called \emph{attention}. The term refers to a search technique in which a model learns to determine which parts of the input are most relevant for an output at a particular time step: which parts of the input should be attended to when generating an output.
     
     \paragraph*{Background: seq2seq encoder-decoder models} 
-      Attention was introduced in the context of machine translation with sequence-to-sequence \citep{sutskever2014sequence} encoder-decoder systems. "Sequence-to-sequence" means that the system maps an input sequence to an output sequence; in machine translation these are a sentence in two different languages. "Encoder-decoder" is a neural network architecture type that first encodes the input sequence as a high-level representation and then a decodes the output using this representation vector. The encoder typically uses a feedforward neural network to project the tokens in the sequence into an embedding space and an RNN, e.g., an LSTM network, to turn the word embedding sequence (multiple vectors) into the single context\footnote{The term "context" is used in the context LSTMs and attention; it denotes different kinds context vectors in LSTMs and in the attention mechanism.} vector $\boldsymbol{c}$. 
+      Attention was introduced in the context of machine translation with sequence-to-sequence \citep{sutskever2014sequence} encoder-decoder systems. "Sequence-to-sequence" means that the system maps an input sequence to an output sequence; in machine translation these are a sentence in two different languages. "Encoder-decoder" is a neural network architecture type that first encodes the input sequence as a high-level representation and then a decodes the output using this representation vector. The encoder typically uses a feedforward neural network to project the tokens in the sequence into an embedding space, and an RNN, e.g., an LSTM network, to turn the word embedding sequence (multiple vectors) into the single context\footnote{The term "context" is used in the context LSTMs and attention; it denotes different kinds context vectors in LSTMs and in the attention mechanism.} vector $\boldsymbol{c}$. 
       % , called the context.
 
       Also the decoder is usually  an LSTM network, followed by a softmax layer to generate the output word sequence $\boldsymbol{w}={w_1,...,w_{N}$ by determining a probability distribution $p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c})$ over the words given the context vector and previous outputs.
@@ -563,13 +567,13 @@
 
       In the conventional encoder-decoder model, the context vector is the output of the encoder LSTM (or GRU) cell, as described in Section \ref{sec:rnn}, after processing the last input token, and the context vector initialises the first decoder state: 
       \begin{align}
-        \boldsymbol{c} &= \boldsymbol{h}^e_N \\
+        \boldsymbol{c} &= \boldsymbol{h}^e_U \\
         \boldsymbol{h}^d_0 &= \boldsymbol{c}
       \end{align}
       where the superscripts $e$ and $d$ distinguish the encoder and decoder state vectors.
       % , but $\boldsymbol{h}$ can be generated differently
 
-      If the decoder is an LSTM network, the probability distribution depends on the previous output $w_{i-1}$, the encoder output $\boldsymbol{c}$, and the decoder LSTM state $\boldsymbol{h}^d_i$, call this function $g$:
+      If the decoder is an LSTM network, the probability distribution depends on the previous output $w_{i-1}$, the encoder output $\boldsymbol{c}$, and the decoder LSTM state $\boldsymbol{h}^d_i$. Call this function $g$:
       \begin{equation} \label{eq:decoder_prob}
         p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c}) = g(w_{i-1}, \boldsymbol{h}^d_i, \boldsymbol{c}) 
       \end{equation}
@@ -594,16 +598,19 @@
       The weights $\alpha_{ij}$ aim to capture how relevant each encoder state $\boldsymbol{h}^{e}_i$ is to the decoder output at the current time step. First, a scoring function gives the pair of encoder and decoder state vectors a value $e_{ij}$ that indicates how relevant the encoder state at index $j$ is to the decoder state at index $i$. This could be achieved by a simple dot product of the vectors, but a more adaptive way to assess the similarity is to learn the similarity function. The scoring function is parametrised with a weight matrix $W_s$:
       \begin{align}
       score(\boldsymbol{h}^{d}_{i-1},\boldsymbol{h}^{e}_j) &= 
-            \boldsymbol{h}^{d}_{i-1} W_s \boldsymbol{h}^{e}_j \\
+            \boldsymbol{h}^{d}_{i-1} W_s \boldsymbol{h}^{e}_j
+            \label{eq:att_score}
+            \\
       e_{ij} &= score(\boldsymbol{h}^d_{i-1},
               \boldsymbol{h}^e_{j}) 
       \end{align}
       The scoring function is called the \emph{alignment model} by \citet{bahdanau2014neural} as it aligns the encoder states with the decoder outputs. As the encoder states are dependent on the inputs at the same time step, the alignment is between the input sequence and the output sequence. In the application of machine translation, this means an alignment of the words in the source and target languages. If the application is end-to-end ASR, the alignment would be between observations and output tokens (e.g., characters, as in the influential paper by \citet{chan2016listen}). The alignment is soft, i.e., each input affects many outputs with variable weights.
-      The scores are normalised with the usual softmax function so that they add up to one:
-      \begin{equation}
-        \alpha_{ij} = \frac{\exp(e_{ij})}
+      The scores are normalised with the usual softmax function to ensure that they are positive values which add up to one:
+      \begin{equation} \label{eq:att_softmax}
+        \alpha_{ij} = \softmax(e_{ij}) = \frac{\exp(e_{ij})}
                 {\sum_k \exp(e_{ik})}
       \end{equation}
+      The softmax also increases the relative differences between the values, drowning the irrelevant units and emphasising the relevant ones.
       Finally, the context vector is calculated by the weighted sum of the encoder states: 
       \begin{align}
         \boldsymbol{c}_i &= \sum_j \alpha_{ij}
@@ -622,6 +629,29 @@
       \citet{vaswani2017attention} asserted that "Attention Is All You Need", in the title of their paper describing the transformer network. 
       The encoder-decoder described in the previous subsection applies the attention mechanism in between two recurrent neural networks. The network architecture proposed in their paper evades the use of recurrence altogether, applying instead feedforward networks and \emph{multi-head self-attention} blocks, which are briefly described in this subsection. One good reason to avoid recurrence is its inherently sequential nature: the state of an LSTM cell depends on the previous state, which means they need to be computed in succession. Attention mechanism has no such restriction, which enables parallelising the computation, decreasing significantly the required training time.
 
+      The basic attention described in the previous section aligns the input sequence with the output sequence. Self-attention, also called intra-attention, aligns the input sequence with itself, as well as with the output sequence. By relating each unit in the input sequence with the other units, the self-attention mechanism aims to compute a more informative encoding of the units. This idea is based on the fair assumption that there are dependencies across the sequence, not necessarily related to how many indices apart the dependent units are. For example, if the input sequence is "Iris was the goddess of the rainbow and the messenger of the Olympian gods while Arke, her twin sister, became the messenger of the Titans." it is probably useful to attend to "Iris" when encoding "her", to "Arke" when encoding "messenger", and to both "Iris" and "Arke" when encoding "sister".
+
+      The self-attention mechanism is an interplay between three input vectors called \emph{key}, \emph{value} and \emph{query}, which map to an output vector. These vectors are derived from the input
+      % (word embedding in the first layer)
+      by multplying each with a single matrix of learned parameters, i.e., performing a linear projection on the input. This typically reduces the dimensionality of the input vector to the key, value and query vectors. For each position in the input sequence, the query vector of the input at that position is paired with the key of every other position. For each pair, a score is calculated. The idea here is similar to the basic attention score in the previous subsection (Eq. \ref{eq:att_score}): to determine how relevant the other input units in the sequence are when encoding this input unit.
+      The particular implementation of self-attention described by \citet{vaswani2017attention} is called scaled dot product attention, in which the score is calculated by a dot product of the key and query, scaled by the square root of the dimension of the key vector $d_k$.
+      In practice, the vectors are stacked together to compose matrices, simplifying the calculations:
+      \begin{align}
+        Attention(Q,K,V) = \softmax \left( \frac{QK^T}{\sqrt{d_k}} \right) V 
+      \end{align}
+      The score is fed through a softmax function, as in Eq. \ref{eq:att_softmax}. The softmax output, which can be thought of as probabilities of how much each position should be attended to, are multiplied by the value vectors of the particular positions, i.e., the value vectors are weighted by the softmaxed scores. The attention function outputs are summed together and normalised to create the encoding for each position.
+
+      The attention mechanism works nicely as is, but \citet{vaswani2017attention} noted that it is beneficial to compute multiple different linear projections for the keys, values and queries, and perform the attention function separately on these different branches, or \emph{heads}. The outputs of the heads are concatenated and a final linear projection generates the output of the multi-head attention.
+
+      The transformer network follows the encoder-decoder structure. The encoder includes six stacked 2-part layers that each include the multi-head self-attention mechanism followed by a fully-connected feedforward network. Residual connections \citep{he2016deep} are added around the attention and around the feedforward layers, and the layer outputs are normalised. The residual connections require that the outputs and inputs are of the same dimensionality. 
+
+      The decoder is similar to the encoder, but an additional layer is integrated to it to perform multi-head attention to the encoder output. The transformer output is also fed to a multi-head attention. This output is masked so that the subsequent positions cannot be attended to, but the units depend only on the known previous positions.
+      % \paragraph*{Transformer language models}
+      \newline
+      \newline
+      After the publication of the transformer network, its variants have been applied to many natural language processing (NLP) tasks with success. One of the most prominent transformer models was developed by \citet{devlin2018bert}, called BERT or Bidirectional Encoder Representations from Transformers. BERT was designed to be applicable to many different NLP tasks such as machine translation, 
+
+
       % \citet{dai2019transformer}
 
 \clearpage
@@ -631,7 +661,7 @@
 
     % "Kaldi" is one in the series of coffee-related names for computer science projects. The Kaldi documentation explains: "According to legend, Kaldi was the Ethiopian goatherder who discovered the coffee plant."
 
-  \subsection{Feature extraction} \label{sec:feats} 
+  \subsection{Feature extraction and feature-space transforms} \label{sec:feats} 
 
     A speech audio signal contains a lot of information that is irrelevant for converting the signal to text. The first step of ASR is to find the features of the signal that contain the information about what is being said. An assumption is made that the speech signal does not change meaningfully in a time frame of about 10 milliseconds so that the signal can be divided into frames with this time resolution. The frames overlap so that each frame is about 20 or 25 milliseconds, and a tapered window function, such as Hamming, is applied to (i.e., multiplied by) each frame. This window function removes the discontinuities that occur on the borders of frames, and the overlapping compensates for the tapering of the window function so that the distorting effect on the signal statistics is minimised \citet{}. % https://wiki.aalto.fi/display/ITSP/Windowing
 
