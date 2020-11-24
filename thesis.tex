@@ -53,7 +53,7 @@
   %% two-sided printing: twoside (default is one-sided printing)
 
   \usepackage{amsfonts, amssymb, amsbsy, amsmath, natbib, graphicx, 
-              tabstackengine, tabularx}
+              tabstackengine, tabularx, longtable}
   \numberwithin{equation}{section} % amsmath equation numbering 1.1, 1.2 etc.
   \usepackage{titlesec}
   \setcounter{secnumdepth}{4}
@@ -217,17 +217,20 @@
 
 
   $\boldsymbol{o}_t$    & observation, i.e., feature vector, at time $t$ \\ 
-  $p(.)$              & probability \\
-  $P(.|.)$            & likelihood \\
+  % $p(.)$              & probability \\
+  % $P(.|.)$            & likelihood \\
+  $\boldsymbol{w} = w_1,...,w_N$ & a sequence of words or other units of text \\
   
   \end{tabular}
 
+  % \clearpage
   \subsection*{Abbreviations}
-  \begin{tabular}{ll}
+  \begin{longtable}{ll}
   AM            & acoustic model \\
   ANN           & artificial neural network \\
   ASR           & automatic speech recognition \\
   BERT          & bidirectional encoder representations from transformers \\
+  BPE           & byte pair encoding \\
   CER           & character error rate \\
   CMN           & cepstral mean normalisation \\
   CMVN          & cepstral mean and variance normalisation \\
@@ -273,7 +276,7 @@
   VTLN          & vocal tract length normalisation \\
   WER           & word error rate \\
   WFST          & weighted finite-state transducer \\
-  \end{tabular}
+  \end{longtable}
 
   %% \clearpage is similar to \newpage, but it also flushes the floats (figures
   %% and tables).
@@ -287,42 +290,39 @@
 
   \subsection{The ASR task} 
 
-    Automatic speech recognition (ASR) is the task of converting speech into text.
+    Automatic speech recognition (ASR) is the task of converting speech into text. 
+
+
+
     The difficulty of the task depends on how varied the speech audio signals are. The restricted problem of recognising a few different words pronounced clearly by one speaker recorded in noise-free conditions was solved years ago. Speech recognition becomes more difficult when the speech is continuous and recorded in differing noise conditions from many speakers. Current state-of-the-art ASR systems are nearing the human-level recognition accuracy also in continuous speech recognition tasks if the speech is planned and pronounced clearly, as it is, for example, in broadcast news or parliament discussions. However, spontaneous, informal conversations remain a challenging type of speech to transcribe automatically, and the gap between human and machine accuracy is still very large. This thesis explores methods for improving ASR for conversational Finnish.
 
     % \subsection{The basic structure of an ASR system} 
-
-    The conventional ASR system includes two main component systems: the acoustic model (AM) and the language model (LM). The LM generates an \emph{a priori} probability distribution over possible word sequences. For example, the transciption "en minä tiedä" should probably be assigned a larger probability than "en sinä tiedä" even before any speech audio is processed. The AM outputs \emph{a posteriori} probabilities for phoneme sequences based on the speech audio. A dictionary is used to map the phoneme sequences to words, or more accurately, the same grapheme units that the LM uses, which can also be subword units or characters, for instance. The probabilities of the LM and AM are combined to estimate the most likely transcription of the speech audio.
-
-    % history of ASR
-    % typical ASR system
-
-    In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results. An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon although they benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and the thesis explores methods in this paradigm.
-
-
     % \subsection{Finnish conversations to text} 
     The task of converting speech into text, or \emph{automatic speech recognition}, can be divided into
-    % four
-    subtasks: \emph{feature extraction}, \emph{acoustic modelling}, \emph{phoneme-to-grapheme mapping}, and \emph{language modelling}. The audio signal is first divided into $T$ segments, and the segments converted into feature vectors $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, also called observations, which are a compressed representation of the audio signal. 
+    subtasks: \emph{feature extraction},  \emph{phoneme-to-grapheme mapping},
+    and creating the two most significant component systems: an \emph{acoustic model} (AM) and a \emph{language model} (LM). The LM generates an \emph{a priori} probability distribution over possible word sequences. For example, the transcription "Zeus was a god" should probably be assigned a larger probability than "Zeus was a dog" even before any speech audio is processed. The AM outputs \emph{a posteriori} probabilities for phoneme sequences based on the speech audio. A dictionary is used to map the phoneme sequences to words, or more accurately, the same grapheme units that the LM uses, which can also be subword units or characters, for instance. The probabilities of the LM and AM are combined to estimate the most likely transcription of the speech audio.
+    
+    
+    The audio signal is first divided into $T$ segments, and the segments converted into feature vectors $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, also called observations, which are a compressed representation of the audio signal. 
     The task is then to find $\argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O})$, where $\boldsymbol{w}$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
     \begin{equation}\label{eq:asr-bayes}
       \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
       \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
     \end{equation}
 
-    The probability of the observations ${P(\boldsymbol{O})}$ is not relevant in finding the best transcription (the argmax) for the observations, which leaves the product, or sum in logarithmic space,
+    The probability of the observations ${P(\boldsymbol{O})}$ is not relevant in finding the best transcription (the $\argmax_{\boldsymbol{w}}$) for the observations, which leaves the product, or sum in the logarithmic domain,
     \begin{equation}\label{eq:asr-bayes-2}
       \argmax_{\boldsymbol{w}} P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})
       = \argmax_{\boldsymbol{w}}
         \log \{ P(\boldsymbol{w}) \} + \log \{ P(\boldsymbol{O}|\boldsymbol{w}) \}
     \end{equation}
-    to be estimated. Here, the former factor is the a priori probabilities of word sequences, modelled by language models, discussed in Section \ref{sec:lm}. The acoustic model determines likelihoods of observations given phoneme sequences that are mapped to grapheme sequences by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{w})$. Acoustic modelling is discussed in Section \ref{sec:am}.
+    to be estimated. Here, the former factor is the a priori probabilities of word sequences, modelled by language models, discussed in Chapter \ref{sec:lm}. The acoustic model determines likelihoods of observations given phoneme sequences that are mapped to grapheme sequences by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{w})$. Acoustic modelling is discussed in Chapter \ref{sec:am}.
     % The first
     % % four
     % sections of this chapter respectively describe the
     % % four
     % components of the conventional ASR system.
-    Section \ref{sec:conv} discusses the specifics of recognising conversational Finnish.
+    The Section \ref{sec:conv} discusses the specifics of recognising conversational Finnish.
 
     %  A language model gives an a priori probability for each word sequence: $P(\boldsymbol{w})$. The estimate $\hat{\boldsymbol{w}}$ of the best transcription given the observations is the most likely sequence 
 
@@ -331,11 +331,41 @@
     %   \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
     % \end{equation} 
 
+
+
+    % history of ASR
+    % typical ASR system
+
+
   \subsection{Spoken and written conversations in Finnish} \label{sec:conv}
 
-    Informal Finnish 
+    Finnish is a morphologically rich language. Suffices and other conjugations denote grammatical functions, such as cases, which in many Indo-European languages would be denoted by separate words, for instance. However, in colloquial Finnish, some of the suffices and other inflections are often omitted or changed systematically to an incorrect one. For example, 
+    it is common to not use the plural inflections for verbs, and instead use the passive voice verb inflection for first person plural ("me ollaan" instead of the correct form "me olemme") or the singular form for third person plural ("ne on" instead of the correct "ne ovat"). Differences between formal and informal Finnish pose difficulties when modelling informal language. Text from formal sources such as books or newspapers does not resemble colloquial Finnish very closely.
+    
+    Another feature of the Finnish language significant when building ASR systems is its phonemic orthography, i.e., the fact that one letter generally corresponds to one phoneme, and vice versa. Because of this fact, it is possible, and to a varying degree common, to also \emph{write} informal Finnish as it is pronounced. The above mentioned incorrect inflections are examples of informal Finnish that is also written in the incorrect way. Colloquial Finnish is written in online forums, especially in direct-message conversations. 
+    \citet{enarvi2013studies} collected a conversational Finnish text corpus from Internet forums by searching for key phrases that indicate informal conversations. This text corpus is used in the thesis to model conversational Finnish.
 
-  \subsection{Machine learning} \label{sec:ml} 
+
+
+
+  % 3. What will be your methodology?
+  \subsection{Related work and methodology}
+
+    The purpose of the thesis is to experiment with some of the latest acoustic and language modelling methods to improve upon the previous best results obtained for an informal, spontaneous Finnish conversation speech data set. Both the speech data set used in this thesis and the previous best results are described by \citet{enarvi2017automatic}. In their work, the acoustic models are trained on 85 hours of speech using the Kaldi toolkit. A first pass of large-vocabulary decoding and word lattice generation is done using an n-gram language model trained on a conversational Finnish text corpus collected by \citet{enarvi2013studies}. A second pass of rescoring the lattices and generating transcripts is done using a recurrent neural network language model trained on the same text corpus. Subword-vocabulary language models based on statistical segmentation of words \citep{creutz2002unsupervised, creutz2007unsupervised} were found to perform better than a word vocabulary.
+
+    In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results. An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon although they benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and the thesis explores methods in this paradigm.
+
+    The baseline system is the same in this thesis, and the work begun by replicating the previous results. The Kaldi toolkit includes acoustic model training pipelines, called "recipes", that are tuned to achieve optimal results for a particular speech data set. In the past three years after the above mentioned previous best results were achieved, the Kaldi recipes have been developed further, and the latest machine learning algorithms have been implemented in the toolkit. By applying the latest Kaldi recipes for the Finnish speech data used in this thesis, the previous best results can be improved. Other acoustic modelling experiments of this work include modelling the speaker and channel variability using i-vectors \citep{ivector} and x-vectors \citep{snyder2018x}.
+
+    \citet{vaswani2017attention} introduced a neural network architecture for language modelling called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type.
+    One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the commonly used recurrent neural networks, since their hidden states do not depend on the hidden states of previous time steps.
+    In this thesis, a Transformer-XL \citep{dai2019transformer} LM is trained and evaluated in the ASR task, in a similar manner as described by \citet{jain2020finnish}.
+
+    Other language modelling experiments in this work include evaluating word and subword vocabularies, tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs), and experimenting with topic modelling (see e.g., \citet{xiong2018session, xing2016topic}).
+
+
+  \clearpage
+  \section{Machine learning} \label{sec:ml} 
 
   %
     % \subsubsection{Statistical models} 
@@ -365,7 +395,7 @@
     %   % If the function to be estimated is simple enough
     %   For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
 
-  \subsubsection{Fitness criterion} 
+  \subsection{Fitness criterion} 
 
     The mapping from input to output is determined by the parameters $\theta$ that are learned. There are different approaches to defining how good a model is, given a training dataset. Using the maximum likelihood estimation (MLE), the parameters are adjusted to maximise how probable the model judges the data set. The maximum likelihood estimate $\theta_{\textup{ML}}$ of the model parameters is the point in the parameter space that maximises the likelihood of the observed data. The confidence of how good the point estimate is is related to its variance. If alternative samplings of the observations are likely to change the estimate, the variance is larger. In contrast to the MLE approach,
     % and frequentist statistics in general,
@@ -373,7 +403,7 @@
     
     % incorporate the degree of certainty to the model itself
 
-  \subsubsection{Optimisation} 
+  \subsection{Optimisation} 
 
     Depending on the criterion for an optimal model, a optimisation method is chosen and applied to tune the free parameters of a model. When the model to be estimated includes latent variables, the maximum likelihood estimate can be computed using the expectation maximisation (EM) algorithm. A latent (i.e., hidden) variable is a variable that is not directly observed, but can affect the observed variables. A general example of a latent variable is some phenomenon in the real world that is not directly observed, but whose properties are inferred from measurements that are observable. Two types of models that include latent variables are GMMs and HMMs, both of which are central to the conventional implementation methods in automatic speech recognition. In GMMs, the identity of the mixture component $c$ of a data point $o$ is a latent variable, and the probability distribution $P(o)$ is determined by the joint distribution $P(o,c)=P(o|c)P(c)$. Hidden Markov models are named after the latent, hidden sequence that generates an observed sequence\footnote{They are also named after the Russian mathematician Andrey Markov.}; in speech recognition the hidden sequence can be a sequence of phones that generate the sequence of processed audio signal chunks referred to as features.
     % 'Maximum likelihood modeling with Gaussian distributions for classification'
@@ -390,7 +420,7 @@
     % cross entropy
     % 
 
-  \subsubsection{Artificial neural networks} \label{sec:dnn_intro}
+  \subsection{Artificial neural networks} \label{sec:dnn_intro}
 
     Artificial neural networks (ANN) are a family of model types, historically based on the concept of a perceptron \citep{rosenblatt1957perceptron}, which functions similarly to a biological neuron, and is therefore called an artificial neuron, or just neuron.
     The core functioning, common to the perceptron and the biological neuron, is that an input either activates the output or not based on an activation function. In the case of a perceptron, the activation function is a unit step function: if the input is above a scalar threshold the output is activated. Perceptron learns a binary classifier by tuning this threshold based on information from training examples. The idea of a perceptron has since been generalised and extended into the wide range of different kinds of artificial neural networks, but the core idea of a neuron remains.
@@ -399,52 +429,44 @@
     
     An important class of ANNs are deep neural networks (DNN), called "deep" because they include many hidden layers. MLPs are a subclass of DNNs; other subclasses include, for instance, convolutional NNs (CNN) and recurrent NNs (RNN), which are particularly useful in speech recognition since they are capable of modelling long-term time dependencies in data.
     
-  % backprop gradient descent
-  % tdnn
-  % 
-  % Residual connections \citep{he2016deep}
-  % highway networks
-
-  % 3. What will be your methodology?
-  \subsection{Related work and methodology}
-
-    The purpose of the thesis is to experiment with some of the latest acoustic and language modelling methods to improve upon the previous best results obtained for an informal, spontaneous Finnish conversation speech data set. Both the speech data set used in this thesis and the previous best results are described by \citet{enarvi2017automatic}. In their work, the acoustic models are trained on 85 hours of speech using the Kaldi toolkit. A first pass of large-vocabulary decoding and word lattice generation is done using an n-gram language model trained on a conversational Finnish text corpus collected by \citet{enarvi2013studies}. A second pass of rescoring the lattices and generating transcripts is done using a recurrent neural network language model trained on the same text corpus. Subword-vocabulary language models based on statistical segmentation of words \citep{creutz2002unsupervised, creutz2007unsupervised} were found to perform better than a word vocabulary.
-
-    The baseline system is the same in this thesis, and the work begun by replicating the previous results. The Kaldi toolkit includes acoustic model training pipelines, called "recipes", that are tuned to achieve optimal results for a particular speech data set. In the past three years after the above mentioned previous best results were achieved, the Kaldi recipes have been developed further, and the latest machine learning algorithms have been implemented in the toolkit. By applying the latest Kaldi recipes for the Finnish speech data used in this thesis, the previous best results can be improved. Other acoustic modelling experiments of this work include modelling the speaker and channel variability using i-vectors \citep{ivector} and x-vectors \citep{snyder2018x}.
-
-    \citet{vaswani2017attention} introduced a neural network architecture for language modelling called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type.
-    One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the commonly used recurrent neural networks, since their hidden states do not depend on the hidden states of previous time steps.
-    In this thesis, a Transformer-XL \citep{dai2019transformer} LM is trained and evaluated in the ASR task, in a similar manner as described by \citet{jain2020finnish}.
-
-    Other language modelling experiments in this work include evaluating word and subword vocabularies, tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs), and experimenting with topic modelling (see e.g., \citet{xiong2018session, xing2016topic}).
-
+    % backprop gradient descent
+    % tdnn
+    % 
+    % Residual connections \citep{he2016deep}
+    % highway networks
 
 \clearpage
 \section{Statistical language modelling} \label{sec:lm} 
 
   %
-    A language model defines the probability distribution\footnote{This would be a probability mass function since word sequences are discrete but, since there is no limit to how long the sequences can be, there is an infinite set of possible word sequences.} $P(\boldsymbol{w})$, from Eq. \ref{eq:asr-bayes}, over word sequences $\boldsymbol{w} = w_1,...,w_N$.
-    In statistical language modelling, the distribution  is estimated based on statistics drawn from a training corpus. The statistical approach is in contrast with linguistically motivated models of language that take into account, for example, the grammaticality of a string when determining its probability. 
-    
+    A language model defines the probability distribution\footnote{This would be a probability mass function since word sequences are discrete but, since there is no limit to how long the sequences can be, there is an infinite set of possible word sequences.} $P(\boldsymbol{w})$, from Eq. \ref{eq:asr-bayes}, over word sequences $\boldsymbol{w} = w_1,...,w_N$. Typically, $P(\boldsymbol{w})$ is calculated as the product of the constituent word probabilities:
+    \begin{equation} \label{eq:lm}
+      P(w_1,...,w_N) = \prod_{i=1}^N P(w_i|context)
+    \end{equation}
+    What constitutes the context depends on the method. The constant-order n-gram model uses a simple context of $n-1$ previous tokens. In more involved models, the context can also be of variable length and include subsequent tokens (bi-directional context). Often the context encompasses the all the previous words $w_1,...,w_{i-1}$ in the sequence.
 
-    What constitutes the context depends on the method. The constant-order n-gram model uses a simple context of $n-1$ previous tokens. In more involved models, the context can also be of variable length and include subsequent tokens (bi-directional context).
+    In statistical language modelling, the distribution  is estimated based on statistics drawn from a training corpus. The statistical approach is in contrast with linguistically motivated models of language that take into account, for example, the grammaticality of a string when determining its probability. 
 
   \subsection{Choice of vocabulary} \label{sec:vocab} 
 
-    A language model defines a set of units that the output sequence can include, called the vocabulary. One natural choice of vocabulary is to include in it the word types that appear in the training corpus. However, using smaller units has some benefits over a word vocabulary. If the words are segmented into smaller pieces, or all the way to individual characters, the vocabulary is smaller. This decreases computation and memory requirements for neural language models (Sections \ref{sec:rnn} and \ref{ec:attention}),
+    A language model defines a set of units that the output sequence can include, called the vocabulary. One natural choice of vocabulary is to include in it the word types that appear in the training corpus. However, using smaller units has some benefits over a word vocabulary. If the words are segmented into smaller pieces, or all the way to individual characters, the vocabulary is smaller. This decreases computation and memory requirements for neural language models (see Section \ref{sec:nnlm}),
     % as well as the language model FSA (Section \ref{sec:wfst}),
-    for instance. Another benefit of using a \emph{subword} vocabulary is that words absent in the training corpus can possibly be composed of the subword units, which means that the out-of-vocabulary (OOV) rate is smaller. The downside of subword vocabularies is that each sentence includes a larger number of units to be processed.
+    for instance. Another benefit of using a \emph{subword} vocabulary is that words absent in the training corpus can possibly be composed of the subword units, which means that the out-of-vocabulary (OOV) rate is smaller. The downside of subword vocabularies is that each sentence includes a larger number of units to be processed. The number of units in the context should therefore be larger if the units are shorter. This creates difficulties especially with n-gram language models (Section \ref{sec:ngram}), because the number of possible n-grams increases exponentially w.r.t. $n$. NNLMs are better able to model long contexts, and the benefits of using shorter units typically outweigh the costs, which is why modern SOTA NNLMs, such as BERT (see Section \ref{sec:attention}), often use subword units.
     % , which increases the computational costs for some systems, for example when 
 
-    When segmenting words into subword units it is beneficial to 
+    The segmentation is an minimisation problem with a trade-off between two desiderata: a small vocabulary size and a small number of units in the corpus. As one of these decreases, the other increases (as a general rule), so an optimal compromise ought to be sought. When segmenting words into subword units it is therefore important to take into account the frequency of a character string or word. In general, frequent character strings should be added to the vocabulary so that the number of units in the corpus decreases.
+
+    Byte pair encoding (BPE) \citep{gage1994new} is a compression method that can be, and is commonly, applied to segmenting words into smaller pieces \citep{sennrich2015neural}. The algorithm first divides the training corpus into characters. It then combines the two characters or subwords that are most frequently adjacent and combines these into a new subword. The algorithm iterates this for a number of times to generate the vocabulary that minimises the size of the training corpus given the size of the vocabulary.  
+
+    The Morfessor family of algorithms \citep{creutz2002unsupervised, creutz2007unsupervised} segments words in a more linguistically-motivated way. The segmenting model learns an optimal way to segment words into subwords based on a criterion, for example the maximum likelihood of the training data given the model. 
 
 
   \subsection{n-gram language models} \label{sec:ngram} 
 
 
-    % An n-gram language model bases the prediction of the last token in a sequence of $n$ tokens on statistics gathered from a training corpus. 
-    The probability of a word sequence is the product of the probabilities of the constituent words, and the probability of each word is conditional on $n-1$ previous words (i.e., the context):
-    \begin{equation}\label{eq:lm}
+    An n-gram language model bases the prediction of the last token in a sequence of $n$ tokens on statistics gathered from a training corpus. 
+    The probability of a word sequence is the product of the probabilities of the constituent words, and the probability of each word is conditional on $n-1$ previous words (i.e., the context). The Eq. \ref{eq:lm} becomes
+    \begin{equation}\label{eq:ngram}
       P(w_1,...,w_N) = \prod_{i=1}^N P(w_i|w_{i-(n-1)},...,w_{i-1})
     \end{equation}
     
@@ -452,7 +474,7 @@
     A simple 
     % (the simplest of the ones that make any sense)
     method to define the probability of an n-gram is to let the probability of each word be its normalised frequency in the context:
-    \begin{equation}\label{eq:ngram}
+    \begin{equation}\label{eq:ngram-ml}
       P(w_i|w_{i-(n-1)},...,w_{i-1}) = \frac{\textup{count}(w_{i-(n-1)},...,w_{i-1}, w_i)}{\textup{count}(w_{i-(n-1)},...,w_{i-1})}
     \end{equation}
     This is called the maximum likelihood estimate of $P(w_i|w_{i-(n-1)},...,w_{i-1})$ since it maximises the likelihood of 
@@ -486,30 +508,39 @@
     The discount is normalised by the sum of the counts of all bigrams where the $w_{i-1}$ is the first word, and the normalised discount is multiplied by the number of word types that have followed $w_{i-1}$, i.e., the number of word types that have been discounted, so that $P_{\textup{KN}}(w_i|w_{i-1})$ over all $w_i$ equals to one.
 
     The bigram formulation can be generalised to higher-order n-grams:
-    \begin{equation}\label{eq:kn}
+    \begin{align}\label{eq:kn}
       P_{\textup{KN}}(w_i|w_{i-n+1}^{i-1}) = 
-          \frac{\max(\textup{count}_{\textup{KN}}(w_{i-n+1}^{i-1},w_{i})
-              - d, 0)}{\sum_{w'} \textup{count}_{\textup{KN}}(w_{i-n+1}^{i-1},w')} + 
-          \lambda(w_{i-n+1}^{i-1})
+          &\frac{\max(\textup{count}_{\textup{KN}}(w_{i-n+1}^{i-1},w_{i})
+              - d, 0)}{\sum_{w'} \textup{count}_{\textup{KN}}(w_{i-n+1}^{i-1},w')}
+              \nonumber \\[5pt]
+          &+ \ \lambda(w_{i-n+1}^{i-1})
           P_{\textup{KN}}(w_i|w_{i-n+2}^{i-1})
-    \end{equation}
+    \end{align}
     where $w_{i-n+1}^{i-1}$ is the $n-1$ words before $w_i$ and $\textup{count}_{\textup{KN}}$ is the count for the highest order and the number of different words that precede the n-gram for the lower orders \citep{Jurafsky2019}.
 
     In the modified Kneser-Ney smoothing, introduced by \citet{chen1998empirical}, the discount constants are different for n-grams that have one, two, or more than two occurrences, changing also $\lambda$ for the distribution to still sum to one. This is motivated by empirical results suggesting that the optimal $d$ depends on the frequency.
 
-    A common approach to making an n-gram model more efficient is to \emph{prune} n-grams that do not contribute to the 
-    \citep{siivola2007growing}
+    A common approach to making an n-gram model more efficient is to \emph{prune} n-grams that are least relevant. The simplest way to prune n-grams from the model is to use a frequency cut-off below which the n-grams are omitted from the model. Other methods include comparing the log-probability of the model and the model where an n-gram has been removed, and removing the n-gram if the difference is small \citep{siivola2007growing}. 
 
-    The ARPA (named after DARPA which was previously named ARPA) backoff n-gram format is used ... \footnote{\url{http://www.speech.sri.com/projects/srilm/manpages/ngram-format.5.html}}
+    % The ARPA (named after DARPA which was previously named ARPA) backoff n-gram format is used ... \footnote{\url{http://www.speech.sri.com/projects/srilm/manpages/ngram-format.5.html}}
 
 
-  \subsection{Neural language models} 
+  \subsection{Neural language models}  \label{sec:nnlm}
 
-    n-gram language models 
+    n-gram language models treat each word as an element in a set with no other attributes besides an ID. 
 
-    % The LSTM \ref{sec:rnn}
+    \citet{bengio2003neural} proposed a method able to take into account the similarity of words, and able to generalise exploiting the similarities. Words can be similar to each other in different ways: "cat" is similar to "dog", and "cat" is similar to "whiskers", but in a different way. Different kinds of similarities can be represented as dimensions in a vector that encodes a word. By this method, words are embedded into a vector space that encodes relations between words. Similarity  of words corresponds to proximity in the embedding space, and can be measured by the cosine similarity of two vectors $\boldsymbol{a}$ and $\boldsymbol{b}$
+    \begin{equation}
+      \cos(\theta) = {\boldsymbol{a} \cdot \boldsymbol{b} \over \|\boldsymbol{a}\| \|\boldsymbol{b}\|} 
+    \end{equation}
+    or some other similarity metric.
+    Being able to measure the similarity of two words allows for generalising from word sequences in the language modelling training text to sequences that have not been encountered. If an embedding space holds the information that "cat" is similar to "dog" in the particular way that "cat" is, the language model can generalise from a seen sentence "the cat is running" to a new sentence "the dog is running". 
 
-    \paragraph*{Word embeddings}
+    One of the seminal word embedding models was published by \citet{mikolov2013efficient}, called Word2Vec. The goal of this model is to be able to train word embeddings using large data sets of billions of words and to create embedding spaces that encode multiple degrees of similarity between words. Substructures of the embedding space can be probed by the word analogy task, for example asking which word is closest in the vector space when the word "man" is subtracted from "king", and the word "woman" is added. The intuitive answer "queen" is given by Word2Vec embedding space
+    % whereas LSA embedding space is not able to preserve this kind of information
+    \citep{mikolov2013efficient}. The paper introduced two methods for computing the Word2Vec embeddings. In both methods the idea is to train a shallow feedforward neural network with one hidden layer for a classification task and then use the learned hidden layer weights as the vector representation of the word. The Continuous Bag-of-Words Model (CBOW) learns the embeddings by predicting the current word given a few (e.g. 4) previous words and a few next words. The method uses a bag-of-words, i.e. the order of the words is not taken into account. The continuous Skip-gram model is similar to the CBOW, but instead of predicting the current word given a context, the training task is to predict the context of a given word. Using the negative sampling method \citep{mikolov2013distributed}, a small subset of the words outside the context are sampled. This way the task does not require to classify all the other outside-of-the-context words as "not in the context" but only some sample in the order of 10.
+
+    Learning to embed words by an affine transform is usually incorporated into modern NNLMs as the first layer or first few layers of the network. The embedding is learned in the same training process as the language modelling task. Initialising the embedding of an NNLM from a pre-trained word embedding model is also possible. 
       
 
   \subsubsection{Recurrence} \label{sec:rnn} 
@@ -681,12 +712,12 @@
       When the previous state is reused, the positional encoding is also carried over from the previous state. This obviously creates confusion, and the  whole purpose of encoding positional information is undermined, if the usual positional encoding function (Eq. \ref{eq:pos_enc}) is used. Therefore, \citet{dai2019transformer} use a different positional encoding scheme which avoids this problem. As noted before, in the traditional transformer, the positional encoding $\boldsymbol{u}_i$ is summed with the token embedding $\boldsymbol{x}_i$. This sum is linearly projected using a learned weight matrices $W_k$ and $W_q$ to respectively generate the key vector $\boldsymbol{k}$ and query vector $\boldsymbol{q}$. 
       \begin{align}
         \boldsymbol{u}_i^{\textup{abs}} = PositinalEncoding&(pos,2i) = \sin \left(
-          \frac{pos}{10000^{2i/d}} \right) \\
+          \frac{pos}{10000^{2i/d}} \right) \\[4pt]
           % \frac{pos}{10000^{\frac{2i}{d}}} \right) 
           \boldsymbol{q}_i &= W_q(\boldsymbol{x}_i +
           \boldsymbol{u}_i^{\textup{abs}}) \\
           \boldsymbol{k}_j &= W_k(\boldsymbol{x}_j +
-          \boldsymbol{u}_j^{\textup{abs}}) \\
+          \boldsymbol{u}_j^{\textup{abs}}) 
       \end{align}
       And the score of a key-query pair is simply their product (omitting the scaling factor for simplicity). This product can be expanded:
       \begin{align}
@@ -697,22 +728,23 @@
            \boldsymbol{x}_i W_q W_k \boldsymbol{u}_j^{\textup{abs}} \nonumber \\[4pt]
            + \ \boldsymbol{u}_i^{\textup{abs}} W_q W_k \boldsymbol{x}_j &+ 
            \boldsymbol{u}_i^{\textup{abs}} W_q W_k \boldsymbol{u}_j^{\textup{abs}} 
+           \nonumber
       \end{align}
       To convert the absolute positional encodings to relative, \citet{dai2019transformer} change the scoring function to
       \begin{align}
           score_\textup{rel}(\boldsymbol{q}_i, \boldsymbol{k}_j)
            = \boldsymbol{x}_i W_q W_{k,x} \boldsymbol{x}_j &+
            \boldsymbol{x}_i W_q W_{k,u}
-           \textcolor{blue}{\boldsymbol{u}_{i-j}^{\textup{rel}}} \nonumber \\[4pt]
+           \textcolor{blue}{\boldsymbol{u}_{i-j}^{\textup{rel}}} \\[4pt]
            + \ \textcolor{red}{\boldsymbol{v}^{x}} W_{k,x} \boldsymbol{x}_j &+ 
            \textcolor{red}{\boldsymbol{v}^{u}} W_{k,u}
-           \textcolor{blue}{\boldsymbol{u}_{i-j}^{\textup{rel}}} 
+           \textcolor{blue}{\boldsymbol{u}_{i-j}^{\textup{rel}}} \nonumber 
       \end{align}
       where $\textcolor{blue}{\boldsymbol{u}_{i-j}^{\textup{rel}}}$ is a relative counterpart to $\boldsymbol{u}_i^{\textup{abs}}$. When the positional encoding is relative, only the distance between $i$ and $j$ is taken into account. Furthermore, $\textcolor{red}{\boldsymbol{v}^{x}}$ and $\textcolor{red}{\boldsymbol{v}^{u}}$ are learnable vectors of parameters which replace $\boldsymbol{u}_i^{\textup{abs}} W_q$. This is motivated by the fact that the query vector is equal
       (not multiplied by $\boldsymbol{x}_i$ in these terms)
       for all query positions, which suggests that the attentive bias towards different positions should also be equal for each query position. The weights for content $W_{k,x}$ and position $W_{k,u}$ are also distinguished from each other. 
       
-      This formulation allows for an intuitive interpretation: the first term encodes content-based attention, the second term encodes content-dependent positional information, the third term encodes global content bias, and the final term encodes global positional bias.
+      This formulation allows for an intuitive interpretation: the first term encodes content-based attention, the second term encodes content-dependent positional information, the third term encodes global content bias, and the last term encodes global positional bias.
 
       
       % The main differences are that the positional encoding of the key vector is relative, and the linear transformation of the query vector at 
@@ -911,12 +943,15 @@
       for $1<j<N$. This alignment process finds an arc $ij$ for each observation $\boldsymbol{o}_t$.
       % so that the last 
 
-      This results in an approximation of the maximum likelihood estimate, which was computed in the Baum-Welch algorithm. The approximation is convenient, since using only the best hidden sequence for updating the HMM parameters makes the Viterbi training is computationally less expensive than the Baum-Welch algorithm. Viterbi training is used in the Kaldi toolkit for estimating the HMM/GMM acoustic models in the standard recipes.
+      
 
       % In Viterbi training, the HMM parameters and the most probable hidden state sequence, both unknown, are estimated alternately. After updating the HMM parameters, the training data observations are aligned with the states. The new alignment is then used for estimating the HMM parameters again, and so on. 
       % Within each state, a further alignment is made to align observations with mixture components. 
       % Using the Viterbi algorithm, the states are aligned with the observation sequence by maximising
 
+      In order to find the most likely hidden sequence the Viterbi algorithm is applied.  The Viterbi algorithm creates paths through the sequence by selecting for each time step the maximum of the previous state likelihoods multiplied by the transition probability to the state. After finding the maximum of the preceding state probabilities for each time step, the sequence is traced back starting from the last unit and selecting the best preceding tags for each tag. This traceback determines the most likely sequence. In practice, the algorithm becomes computationally too expensive to calculate for long sequences and with large vocabulary, so to approximate the most likely sequence beam search is used, which keeps only the $k$ best hypotheses of each hidden state.
+
+      Viterbi training results in an approximation of the maximum likelihood estimate, which was computed in the Baum-Welch algorithm (in theory; beam search makes also the Baum-Welch an approximation). The approximation is convenient, since using only the best hidden sequence for updating the HMM parameters makes the Viterbi training is computationally less expensive than the Baum-Welch algorithm. Viterbi training is used in the Kaldi toolkit for estimating the HMM/GMM acoustic models in the standard recipes.
 
 
       % AS stated in the Kaldi documentation, computed alignment is a sequence of transitions that corresponds to an utterance. 
@@ -1207,79 +1242,80 @@
     \end{figure}
 
 \clearpage
-\section{Experiments}
+\section{Experiments} \label{sec:experiments} 
 
   % \subsection{Baseline} 
 
   %   The baseline language models and the ASR system is based on the systems developed by \citet{enarvi2017automatic}.
 
   \subsection{Acoustic modelling experiments}
-  \subsubsection{Speech corpora} 
 
-    The acoustic model training, development and test sets are the same as in \citep{enarvi2017automatic}. The training speech data are 85 hours of read and spontaneous speech from three different sources. The SPEECON corpus consists of 550 speakers reading 30 sentences and 30 single words as well as speaking 10 spontaneous sentences \citep {iskra2002speecon}. The DSPCON\footnote{\url{http://urn.fi/urn:nbn:fi:lb-201708251}} corpus consists of 5281 spontaneous sentences from 218 different male students and 24 female students, totalling 9.8 hours \citep{enarvi2018modeling}. The third source is the FinDialogue part of the FinINTAS corpus \citep{lennes2009segmental}. The development and test sets contain additionally spontaneous utterances from radio shows, referred to as RadioCon. Table \ref{tab:am_data} lists the acoustic modelling data sets.
+    \subsubsection{Speech corpora} 
 
-    \begin{table}[ht!]
-        \begin{tabularx}{\columnwidth}{|X|l|l|l|}
-            \hline
-            \textbf{AM corpora} & \# of speakers &\# of utterances & \# of hours \\ \hline
-            DSPCON                                & 242 &     & 9.8  \\ \hline
-            SPEECON                               & 550 &     &     \\ \hline
-            FinDialogue                           &     &     &     \\ \hline
-            total AM training data                &     &     & 85   \\ \hline
-            RadioCon (devel, test sets)           &     &     &     \\ \hline
-            VoxCeleb (speaker embeddings)         &     &     &     \\ \hline
-        \end{tabularx}
-        \caption{}
-        \label{tab:am_data}
-    \end{table}
+      The acoustic model training, development and test sets are the same as in \citep{enarvi2017automatic}. The training speech data are 85 hours of read and spontaneous speech from three different sources. The SPEECON corpus consists of 550 speakers reading 30 sentences and 30 single words as well as speaking 10 spontaneous sentences \citep {iskra2002speecon}. The DSPCON\footnote{\url{http://urn.fi/urn:nbn:fi:lb-201708251}} corpus consists of 5281 spontaneous sentences from 218 different male students and 24 female students, totalling 9.8 hours \citep{enarvi2018modeling}. The third source is the FinDialogue part of the FinINTAS corpus \citep{lennes2009segmental}. The development and test sets contain additionally spontaneous utterances from radio shows, referred to as RadioCon. Table \ref{tab:am_data} lists the acoustic modelling data sets.
 
-    \emph{Speed perturbation} is a data augmentation method in which the speed of the audio is increased or decreased \citep{ko2015audio}. This method is used for the DNN AM training data, augmenting the speech data by changing its speed by a factor of 0.9 and 1.1, increasing the amount of data by a factor of three. As the quality, or domain, of the three different data sets is different, it could be useful to augment only the in-domain data, i.e., DSPCON. A system is trained with the whole dataset augmented, as well as one system augmenting only DSPCON. The difference
+      \begin{table}[ht!]
+          \begin{tabularx}{\columnwidth}{|X|l|l|l|}
+              \hline
+              \textbf{AM corpora} & \# of speakers &\# of utterances & \# of hours \\ \hline
+              DSPCON                                & 242 &     & 9.8  \\ \hline
+              SPEECON                               & 550 &     &     \\ \hline
+              FinDialogue                           &     &     &     \\ \hline
+              total AM training data                &     &     & 85   \\ \hline
+              RadioCon (devel, test sets)           &     &     &     \\ \hline
+              VoxCeleb (speaker embeddings)         &     &     &     \\ \hline
+          \end{tabularx}
+          \caption{}
+          \label{tab:am_data}
+      \end{table}
 
-    
-  \subsubsection{HMM/GMM acoustic model architecture and training}
+      \emph{Speed perturbation} is a data augmentation method in which the speed of the audio is increased or decreased \citep{ko2015audio}. This method is used for the DNN AM training data, augmenting the speech data by changing its speed by a factor of 0.9 and 1.1, increasing the amount of data by a factor of three. As the quality, or domain, of the three different data sets is different, it could be useful to augment only the in-domain data, i.e., DSPCON. A system is trained with the whole dataset augmented, as well as one system augmenting only DSPCON. The difference
 
-    Different features are used in GMMs and DNNs. The GMMs input 13 MFCCs and their $\Delta$ and $\Delta\Delta$ features, amounting to a 39-dimensional feature vector. Cepstral mean and variance normalisation is applied to the features per speaker.
+      
+    \subsubsection{HMM/GMM acoustic model architecture and training}
 
-    
-    The GMM phoneme model set was trained for the most part by following the Kaldi recipe for the Wall Street Journal corpus\footnote{\url{https://github.com/kaldi-asr/kaldi/blob/master/egs/wsj/s5/run.sh}}. The monophone model set is trained with a subset of 2000 shortest utterances. The features are first aligned equally with the states, after which 40 iterations of Viterbi training are performed to estimate the HMM/GMM model set and generate an improved alignment. The number of Gaussians is increased in between iterations, reaching a total of 1000 Gaussians. 
+      Different features are used in GMMs and DNNs. The GMMs input 13 MFCCs and their $\Delta$ and $\Delta\Delta$ features, amounting to a 39-dimensional feature vector. Cepstral mean and variance normalisation is applied to the features per speaker.
 
-    The triphone model set is initialised from the monophone models and their alignments, and is trained in a three consecutive steps. Subsets of the data set is selected, including 4000 utterances for the first step, 8000 utterances for the second step, and then using the whole ~15000 utterance training data set for the third triphone training step. The first step (\texttt{train\_deltas.sh}) is similar to monophone training, using the delta and delta-delta features in addition to the MFCCs, and increasing the total number of Gaussians to 10k. The second step (\texttt{train\_lda\_mllt.sh}) splices the MFCC features, reduces the dimensionality back to 40 using LDA, and estimates an MLLT transform. The MLLT transform is applied on the features and new estimates of the models are computed, increasing the total number of Gaussians to 15k. The third and final triphone training step (\texttt{train\_sat.sh}) does speaker adaptive training utilising fMMLR. The total number of Gaussians is increased to 40k.
+      
+      The GMM phoneme model set was trained for the most part by following the Kaldi recipe for the Wall Street Journal corpus\footnote{\url{https://github.com/kaldi-asr/kaldi/blob/master/egs/wsj/s5/run.sh}}. The monophone model set is trained with a subset of 2000 shortest utterances. The features are first aligned equally with the states, after which 40 iterations of Viterbi training are performed to estimate the HMM/GMM model set and generate an improved alignment. The number of Gaussians is increased in between iterations, reaching a total of 1000 Gaussians. 
 
-    After the triphone model set is trained, silence probabilities (see Section \ref{sec:sil_prob}) are estimated from the statistics of the training data alignments. Since the Finnish lexicon is a one-to-one mapping from letters to phonemes, there are no optional pronunciations of words for which to calculate pronunciation probabilities.
+      The triphone model set is initialised from the monophone models and their alignments, and is trained in a three consecutive steps. Subsets of the data set is selected, including 4000 utterances for the first step, 8000 utterances for the second step, and then using the whole ~15000 utterance training data set for the third triphone training step. The first step (\texttt{train\_deltas.sh}) is similar to monophone training, using the delta and delta-delta features in addition to the MFCCs, and increasing the total number of Gaussians to 10k. The second step (\texttt{train\_lda\_mllt.sh}) splices the MFCC features, reduces the dimensionality back to 40 using LDA, and estimates an MLLT transform. The MLLT transform is applied on the features and new estimates of the models are computed, increasing the total number of Gaussians to 15k. The third and final triphone training step (\texttt{train\_sat.sh}) does speaker adaptive training utilising fMMLR. The total number of Gaussians is increased to 40k.
 
-    An MMI (see Section \ref{sec:mmi}) system is trained based on the triphone alignments and silence probabilities. The MMI model generates the alignments that are used to train the deep neural network acoustic model.
+      After the triphone model set is trained, silence probabilities (see Section \ref{sec:sil_prob}) are estimated from the statistics of the training data alignments. Since the Finnish lexicon is a one-to-one mapping from letters to phonemes, there are no optional pronunciations of words for which to calculate pronunciation probabilities.
 
-    The GMM triphone model set was kept fixed throughout the experiments, after first running a couple of experiments to tune the model. These experiments included evaluating the MMI model compared to a fourth triphone training step and experimenting on a couple of different 
+      An MMI (see Section \ref{sec:mmi}) system is trained based on the triphone alignments and silence probabilities. The MMI model generates the alignments that are used to train the deep neural network acoustic model.
+
+      The GMM triphone model set was kept fixed throughout the experiments, after first running a couple of experiments to tune the model. These experiments included evaluating the MMI model compared to a fourth triphone training step and experimenting on a couple of different 
 
 
-  \subsubsection{HMM/DNN acoustic model architecture and training}
+    \subsubsection{HMM/DNN acoustic model architecture and training}
 
-    The DNN AM inputs higher-resolution features than the GMM AM. 40-dimensional MFCCs are extracted from the data set, which has been augmented using speed perturbation.
+      The DNN AM inputs higher-resolution features than the GMM AM. 40-dimensional MFCCs are extracted from the data set, which has been augmented using speed perturbation.
 
-    The DNN is a Kaldi chain model, trained on the LF-MMI objective
-    
-    % The first layer of the DNN
+      The DNN is a Kaldi chain model, trained on the LF-MMI objective
+      
+      % The first layer of the DNN
 
-    % Table \ref{tab:am} lists the TDNN AM layers.
+      % Table \ref{tab:am} lists the TDNN AM layers.
 
-    % \begin{table}[ht!]
-    %     \begin{tabularx}{\columnwidth}{|X|l|l|}
-    %         \hline
-    %         \textbf{layer} & number of neurons & activation function \\ \hline
-    %          &   & \\ \hline
-    %     \end{tabularx}
-    %     \caption{}
-    %     \label{tab:am}
-    % \end{table}
-    
+      % \begin{table}[ht!]
+      %     \begin{tabularx}{\columnwidth}{|X|l|l|}
+      %         \hline
+      %         \textbf{layer} & number of neurons & activation function \\ \hline
+      %          &   & \\ \hline
+      %     \end{tabularx}
+      %     \caption{}
+      %     \label{tab:am}
+      % \end{table}
+      
 
-  \subsubsection{Speaker embedding experiments}
+    \subsubsection{Speaker embedding experiments}
 
-    In the speaker embedding experiments, pretrained extractors are used as well as extractors trained on the AM training data. 
+      In the speaker embedding experiments, pretrained extractors are used as well as extractors trained on the AM training data. 
 
-    Both online and offline i-vectors are extracted and compared. 
-    
-    \paragraph*{Pretrained VoxCeleb i-vector and x-vector extractors} 
+      Both online and offline i-vectors are extracted and compared. 
+      
+      \paragraph*{Pretrained VoxCeleb i-vector and x-vector extractors} 
       Pretrained i-vector and x-vector extractors trained on the VoxCeleb data \citep{nagrani2017voxceleb, chung2018voxceleb2} are used in the experiments. The VoxCeleb1 data contains about 100k utterances from 1251 celebrities and the VoxCeleb2 data contains about 1M utterances from over 6000 speakers. The code that was used for training the extractors is in the Kaldi repository\footnote{i-vectors: \url{https://github.com/kaldi-asr/kaldi/tree/master/egs/voxceleb/v1}}\footnote{x-vectors: \url{https://github.com/kaldi-asr/kaldi/tree/master/egs/voxceleb/v2}} and the pretrained extractors are downloaded online\footnote{\url{https://kaldi-asr.org/models/m7}}.
       
       The VoxCeleb i-vector extractor was trained on 24 MFCCs and their delta and delta-delta coefficients. An energy-based VAD system is used to select the voiced frames for both i-vector and x-vector systems. The i-vector system UBM is a GMM that has 2048 full-covariance component Gaussians. The i-vectors have 400 dimensions, and are subsequently reduced to 200 dimensions using an LDA model.
@@ -1288,10 +1324,10 @@
       The x-vector extractor was trained on 30 MFCCs with their deltas and delta-deltas. The DNN is a TDNN with ReLU non-linearities where the five first layers use frame-level training with a temporal context of a few adjacent frames. The architecure is described by \citet{snyder2017deep}. After the frame-level layers is a pooling layer that aggregates the frame-level outputs, calculating the mean and standard deviation of the whole segment. The last two layers before softmax operate on the segment level statistics. The x-vector is extracted from the penultimate layer (the 6th layer), with 512 dimensions. An LDA model reduces the x-vector dimensionality to 200.
 
 
-    \paragraph*{Pretrained i-vector extractor trained on Yle and Parliament data}
+      \paragraph*{Pretrained i-vector extractor trained on Yle and Parliament data}
       A pretrained i-vector extractor was used as a comparison to the models trained in this work.
 
-    \paragraph*{i-vector extractor trained on the conversational Finnish data}
+      \paragraph*{i-vector extractor trained on the conversational Finnish data}
 
       Most of Kaldi recipes for training a HMM/DNN model include i-vectors as the speaker-adaptation method. In this thesis, the extractor for the baseline i-vectors is trained similarly to the Switchboard recipe. The extractor is trained on the same data as the acoustic model for extracting online i-vectors. The speed perturbation data augmentation is used also for the extractor training data. 
 
@@ -1321,8 +1357,7 @@
     \end{table}
 
     
-
-  \subsection{Language modelling experiments}
+  \subsection{Language modelling experiments} \label{sec:lm_expts} 
 
     \subsubsection{Text corpora}
 
@@ -1337,11 +1372,20 @@
           \label{}
       \end{table}
 
-  \subsubsection{n-gram language model}
+    \subsubsection{n-gram language models}
 
-  \subsubsection{LSTM language model}
+      The word-based systems use an n-gram LM with $n=4$ for the first-pass decoding and lattice generation. The SRILM \citep{stolcke2002srilm} is used to train KN-discounted n-gram in the ARPA format (see Section \ref{sec:ngram}). 
 
-  \subsubsection{Transformer-XL}
+      The subword-based systems use an n-gram LM with $n=5$ for the first-pass decoding and lattice generation. Different constant and variable values of $n$ were evaluated on the development data to find a suitable value. The VariKN \citep{} tool was used  
+
+
+
+    \subsubsection{LSTM language model}
+
+
+
+
+    \subsubsection{Transformer-XL}
 
 \clearpage
 \section{Discussion}
