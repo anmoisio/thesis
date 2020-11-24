@@ -288,6 +288,46 @@
 \section{Introduction} \label{sec:introduction}
   \thispagestyle{empty} 
 
+  %   MOVE 1 CURRENT SITUATION (compulsory)
+    % (What is the wider context of the topic studied?)
+    % Step 1: Making a centrality claim
+    % (Why is this topic area important or relevant?)
+    % AND
+    % Step 2: Making topic generalizations
+    % (What features are important to know about this topic?)
+    % AND/OR
+    % Step 3: Reviewing previous research and solutions
+    % (What earlier solutions or related work have been done in this area?)
+
+    % MOVE 2 PROBLEMS (compulsory)
+    % (What is wrong or missing from current solutions?)
+    % Step 1: Indicating weaknesses
+    % (What are the limitations or inadequacies of current solutions?)
+    % AND/OR
+    % Step 2: Identifying a gap
+    % (What area remains unstudied or overlooked in current solutions?)
+    
+    % MOVE 3 PROPOSING A NEW APPROACH (optional)
+    % (What new strategy could solve this problem?)
+    % Step 1: Introducing a potential solution
+    % (What new idea could work?)
+    % AND
+    % Step 2: Justifying the approach
+    % (What are the advantages or benefits of this new approach?)
+
+    % MOVE 4 YOUR SOLUTION (compulsory)
+    % (How will your thesis overcome this problem or fill this gap?)
+    % Step 1: Research Aims (required)
+    % (What will the thesis achieve?)
+    % Step 2: Methods (required)
+    % (How will you use to develop and verify/validate your solution?)
+    % Step 3: Thesis Scope (optional)
+    % (How much of the topic / problem will you address in the thesis?)
+    % Step 4: Describing the main outcome (optional)
+    % (What are the features of your solution?)
+    % Step 5: Overview of thesis structure (required)
+    % (What are the aims and contents of the following chapters?)
+
   \subsection{The ASR task} 
 
     Automatic speech recognition (ASR) is the task of converting speech into text. 
@@ -1258,8 +1298,8 @@
           \begin{tabularx}{\columnwidth}{|X|l|l|l|}
               \hline
               \textbf{AM corpora} & \# of speakers &\# of utterances & \# of hours \\ \hline
-              DSPCON                                & 242 &     & 9.8  \\ \hline
-              SPEECON                               & 550 &     &     \\ \hline
+              DSPCON                                & 242 &5200 & 9.8  \\ \hline
+              SPEECON                               & 550 &1200 &     \\ \hline
               FinDialogue                           &     &     &     \\ \hline
               total AM training data                &     &     & 85   \\ \hline
               RadioCon (devel, test sets)           &     &     &     \\ \hline
@@ -1311,6 +1351,8 @@
 
     \subsubsection{Speaker embedding experiments}
 
+      %  spk embs can be trained with out of domain data
+
       In the speaker embedding experiments, pretrained extractors are used as well as extractors trained on the AM training data. 
 
       Both online and offline i-vectors are extracted and compared. 
@@ -1333,7 +1375,6 @@
 
 
 
-
     \paragraph*{Domain adaptation by finetuning the pretrained extractors}
 
       Since the VoxCeleb extractor models are trained on English speech, it is possible that the extractors are suboptimal for Finnish. The extractors are trained on task of identifying speakers based on an utterance. There could be differences in the two languages in what kind of acoustic cues are utilised to identify the speaker. As with other modelling tasks, such as acoustic modelling, the extractor model could benefit from finetuning the large pretrained model on a smaller set of in-domain (or closer to the test domain) speech corpus. 
@@ -1342,19 +1383,19 @@
 
       Replacing the last hidden layer of the extractor model was experimented on, but this did not improve the WER results. Adding a new layer after the 7th layer was also tried, but here too the results were worse than for the pretrained model.
       
-      
-    \begin{table}[ht!]
-        \begin{tabularx}{\columnwidth}{|X|l|l|}
-            \hline
-            \textbf{Speaker embedding} & 1st-pass WER & Oracle WER \\ \hline
-            None & 27.3 &  \\ \hline
-            x-vecs conv speech & 26.3 & \\ \hline
-            x-vec VoxCelec pretrained & 25.5 & \\ \hline
-            x-vec Voxceleb pretrained and conv speech finetuned & 25.3 &  \\ \hline
-        \end{tabularx}
-        \caption{}
-        \label{tab:spk_emb}
-    \end{table}
+        
+      \begin{table}[ht!]
+          \begin{tabularx}{\columnwidth}{|X|l|l|}
+              \hline
+              \textbf{Speaker embedding} & 1st-pass WER & Oracle WER \\ \hline
+              None & 27.3 &  \\ \hline
+              x-vecs conv speech & 26.3 & \\ \hline
+              x-vec VoxCelec pretrained & 25.5 & \\ \hline
+              x-vec Voxceleb pretrained and conv speech finetuned & 25.3 &  \\ \hline
+          \end{tabularx}
+          \caption{}
+          \label{tab:spk_emb}
+      \end{table}
 
     
   \subsection{Language modelling experiments} \label{sec:lm_expts} 
@@ -1374,13 +1415,16 @@
 
     \subsubsection{n-gram language models}
 
-      The word-based systems use an n-gram LM with $n=4$ for the first-pass decoding and lattice generation. The SRILM \citep{stolcke2002srilm} is used to train KN-discounted n-gram in the ARPA format (see Section \ref{sec:ngram}). 
+      The word-based systems use an n-gram LM with $n=4$ for the first-pass decoding and lattice generation. The SRILM \citep{stolcke2002srilm} is used to train KN-discounted n-gram in the ARPA format (see Section \ref{sec:ngram}). The two corpora are interpolated with weights that are optimised on the development data, similarly to \citep{enarvi2017automatic}.
 
-      The subword-based systems use an n-gram LM with $n=5$ for the first-pass decoding and lattice generation. Different constant and variable values of $n$ were evaluated on the development data to find a suitable value. The VariKN \citep{} tool was used  
+      The subword-based systems use an n-gram LM with $n=5$ for the first-pass decoding and lattice generation. Different constant and variable values of $n$ were evaluated on the development data to find a suitable value. The VariKN \citep{} tool was used to evaluate variable-order pruned n-grams. 
+      % morfessor segment, varikn
 
 
 
     \subsubsection{LSTM language model}
+
+      The LSTM LM 
 
 
 
