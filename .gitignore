@@ -6,7 +6,6 @@ aaltologo-master-*
 *.log
 *.fdb_latexmk
 *.out
-*.pdf
 *.gz
 *.toc
 *.xmpdata

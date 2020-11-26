@@ -248,6 +248,7 @@
   LF-MMI        & lattice-free MMI \\
   LM            & language model \\
   LSTM          & long short-term memory \\
+  LVCSR         & large vocabulary continuous speech recognition \\
   MAP           & maximum a posteriori \\
   MCE           & minimum classification error \\
   MFCC          & mel-frequency cepstral coefficient \\
@@ -328,80 +329,120 @@
     % Step 5: Overview of thesis structure (required)
     % (What are the aims and contents of the following chapters?)
 
-  \subsection{The ASR task} 
+  % \subsection{The ASR task} 
 
-    Automatic speech recognition (ASR) is the task of converting speech into text. 
+    \emph{Automatic speech recognition} (ASR) is the task of converting speech into text. The direct application of ASR is useful in many situations, for example to transcribe patient notes dictated by medical doctors. ASR has also an increasing number of use cases in systems with longer pipelines that achieve some speech-initiated task, such as \emph{voice user interfaces} or \emph{speech-to-speech translation} systems. The ASR piece can often be a bottleneck in the pipeline,  determining to a large degree the accuracy of the whole system.
 
-
-
-    The difficulty of the task depends on how varied the speech audio signals are. The restricted problem of recognising a few different words pronounced clearly by one speaker recorded in noise-free conditions was solved years ago. Speech recognition becomes more difficult when the speech is continuous and recorded in differing noise conditions from many speakers. Current state-of-the-art ASR systems are nearing the human-level recognition accuracy also in continuous speech recognition tasks if the speech is planned and pronounced clearly, as it is, for example, in broadcast news or parliament discussions. However, spontaneous, informal conversations remain a challenging type of speech to transcribe automatically, and the gap between human and machine accuracy is still very large. This thesis explores methods for improving ASR for conversational Finnish.
-
-    % \subsection{The basic structure of an ASR system} 
-    % \subsection{Finnish conversations to text} 
-    The task of converting speech into text, or \emph{automatic speech recognition}, can be divided into
-    subtasks: \emph{feature extraction},  \emph{phoneme-to-grapheme mapping},
-    and creating the two most significant component systems: an \emph{acoustic model} (AM) and a \emph{language model} (LM). The LM generates an \emph{a priori} probability distribution over possible word sequences. For example, the transcription "Zeus was a god" should probably be assigned a larger probability than "Zeus was a dog" even before any speech audio is processed. The AM outputs \emph{a posteriori} probabilities for phoneme sequences based on the speech audio. A dictionary is used to map the phoneme sequences to words, or more accurately, the same grapheme units that the LM uses, which can also be subword units or characters, for instance. The probabilities of the LM and AM are combined to estimate the most likely transcription of the speech audio.
-    
-    
-    The audio signal is first divided into $T$ segments, and the segments converted into feature vectors $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$, also called observations, which are a compressed representation of the audio signal. 
-    The task is then to find $\argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O})$, where $\boldsymbol{w}$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
+    In the conventional ASR system, the task is divided into subtasks. The first subtask, called feature extraction, is to divide the audio signal into $T$ segments, and convert the segments into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$. The observations are a compressed representation of the audio signal.
+    % : \emph{feature extraction},  \emph{phoneme-to-grapheme mapping}, and creating
+    The task is then to find $\argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O})$, where $\boldsymbol{w}=w_1,...,w_N$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
     \begin{equation}\label{eq:asr-bayes}
       \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
       \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
+      = \argmax_{\boldsymbol{w}} P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})
     \end{equation}
-
-    The probability of the observations ${P(\boldsymbol{O})}$ is not relevant in finding the best transcription (the $\argmax_{\boldsymbol{w}}$) for the observations, which leaves the product, or sum in the logarithmic domain,
+    The probability of the observations ${P(\boldsymbol{O})}$ in the denominator is not relevant in finding the best transcription ($\argmax_{\boldsymbol{w}}$) for the observations, which leaves the product in the numerator to be estimated. This product includes the two most significant subtasks: \emph{acoustic modelling} and a \emph{language modelling}. A language model (LM) generates an \emph{a priori} probability distribution $P(\boldsymbol{w})$ over possible word sequences. For example, the transcription "the god of thunder was Zeus" should probably be assigned a larger probability than "the god of thunder was juicy" even before any speech audio is processed.
+    An acoustic model (AM) outputs likelihoods of observations given phoneme sequences. The phoneme sequence are mapped to words by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{w})$.
+    % The probabilities of the LM and AM are combined to estimate the most likely transcription of the speech audio.
+    %  \emph{a posteriori} probabilities $P(\boldsymbol{O}|\boldsymbol{w})$ of phoneme sequences conditional on the speech audio. A dictionary is used to map the phoneme sequences to words, or more generally, the same set of tokens that the LM uses, which can also be subword units or characters, for instance. 
+    % The former factor $P(\boldsymbol{w})$ is the a priori probabilities of word sequences, modelled by language models. 
+    To avoid numerical underflow, the probabilities are converted to the logarithmic domain. A scalar weight $\lambda$ is added to determine how significant the LM probabilities are compared to the AM probabilities.
     \begin{equation}\label{eq:asr-bayes-2}
-      \argmax_{\boldsymbol{w}} P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})
+      \argmax_{\boldsymbol{w}}
+      P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})
       = \argmax_{\boldsymbol{w}}
-        \log \{ P(\boldsymbol{w}) \} + \log \{ P(\boldsymbol{O}|\boldsymbol{w}) \}
+        \log \{ P(\boldsymbol{w}) \} +
+        \lambda \log \{ P(\boldsymbol{O}|\boldsymbol{w}) \}
     \end{equation}
-    to be estimated. Here, the former factor is the a priori probabilities of word sequences, modelled by language models, discussed in Chapter \ref{sec:lm}. The acoustic model determines likelihoods of observations given phoneme sequences that are mapped to grapheme sequences by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{w})$. Acoustic modelling is discussed in Chapter \ref{sec:am}.
+    Acoustic and language modelling are achieved using machine learning algorithms, chiefly deep neural networks (DNN), which create a model based on training data. To model acoustics, a parallel corpus of speech and the correct transcriptions is needed, whereas to model language, only text is needed.
+
+    In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results. An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon, although E2E systems benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and for this reason, this thesis explores methods in this conventional paradigm.
+
+    The difficulty of ASR depends on how varied and noisy the speech audio signals are.
+    The confined problem of recognising a few different words pronounced clearly by one speaker
+    % recorded in noise-free conditions
+    was essentially solved
+    % some
+    years ago. However, speech recognition becomes more difficult when the speech is continuous and recorded in differing noise conditions from many speakers. Current state-of-the-art ASR systems are nearing human-level recognition accuracy also in the \emph{large vocabulary continuous speech recognition} (LVCSR) task if the speech is planned and pronounced clearly, as it is, for example, in broadcast news or parliament sessions. Yet, spontaneous, informal conversations remain a challenging type of speech to recognise, and the gap between human- and machine-level accuracy is still large for this type of speech.
+
+    The difficulty depends also on the language. The most obvious factor is the availability of training data. The state-of-the-art ASR systems are based on DNNs that require large training data sets. For languages such as Finnish, the resources are more limited than for the most widely spoken languages in the world, which makes the ASR task harder. To achieve accurate ASR also for small languages, more work is needed.
+
+    % The quality and quantity of the training data pose additional challenges for ASR, as 
+    
+    % the  state-of-the-art ASR systems are based on deep neural networks (DNN) that require large training data sets. 
+    
+    % For some of the most prominent languages, such as English or French, the size of the speech data sets enables training 
+
+  % \subsection{Spoken and written conversations in Finnish} \label{sec:conv}
+
+    Some inherent idiosyncratic properties of Finnish 
+    % make it easier a language for ASR, while other properties make it more difficult a task, compared to ASR for other languages.
+    should also be taken into account when developing a Finnish ASR system.
+    Finnish is a morphologically rich language. Suffixes and other conjugations perform grammatical functions, such as cases, which in
+    % many Indo-European
+    other 
+    languages, e.g. English, would be denoted by separate words. This makes the number of word types in the vocabulary large, requiring a lot of computational resources as well as a lot of text to train the LM. This problem can be avoided by segmenting words into smaller units, referred to as \emph{subwords} \citep{hirsimaki2006unlimited}.
+    
+    In colloquial spoken Finnish, however, the morphology is often different than in formal language. Some of the suffixes and other inflections can be omitted or changed to an incorrect one. For example, 
+    it is common to not use the first person plural inflections for verbs, and instead use the passive voice verb inflection ("me ollaan" instead of the correct form "me olemme") or the incorrect singular form when the third person plural form should be used ("ne on" instead of the correct "ne ovat"). Other common habits of informal Finnish include  shortening words (e.g., from "minä" to "mä") and/or combining words (e.g., "oliko se" to "olikse"). Differences between formal and informal Finnish pose difficulties when modelling informal language. Text from formal sources such as books or newspapers does not resemble colloquial Finnish very closely.
+    Another relevant feature of the Finnish language is its phonemic orthography, i.e., the fact that one letter generally corresponds to one phoneme, and vice versa. Because of this fact, it is possible
+    % , and to a varying degree common,
+    to also \emph{write} colloquial Finnish as it is spoken. 
+    It is therefore possible to find written text that resembles the spoken language, and  use this to model colloquial Finnish. The above mentioned incorrect inflections are examples of informal Finnish that is also written in the incorrect way, as it is pronounced.
+
+    Colloquial Finnish is written, for example, on online forums, especially in direct-message conversations. 
+    \citet{enarvi2013studies} collected a conversational Finnish text corpus from Internet forums by searching for key phrases that indicate informal conversations. This text corpus is used also in this thesis to model conversational Finnish.
+    \citet{enarvi2017automatic} developed and evaluated different ASR systems for the conversational data.
+    % In their work, the acoustic models are trained on 85 hours of speech.
+    % In their work, a first pass of large-vocabulary decoding and word lattice generation is done using an n-gram language model trained on the text corpus. A second pass of rescoring the lattices and generating transcripts is done using a recurrent neural network language model trained on the same text corpus.
+    % Subword-vocabulary language models based on statistical segmentation of words \citep{creutz2002unsupervised, creutz2007unsupervised} were found to perform better than a word vocabulary.
+    In the years after these publications, many new acoustic and language modelling methods have been developed. 
+    % Both the speech data set used in this thesis and the previous best results are described by \citet{enarvi2017automatic}.
+  % 3. What will be your methodology?
+  % \subsection{Related work and methodology}
+    This thesis aims to experiment with some of the latest  methods to improve upon the previous best results obtained for this informal, spontaneous Finnish conversation speech data set. 
+
+    \citet{vaswani2017attention} introduced a neural network architecture for language modelling, called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type.
+    One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the previously common recurrent neural networks (RNN), since their hidden states do not depend on the hidden states of previous time steps.
+    In this thesis, Transformer-XL \citep{dai2019transformer} language models are trained and evaluated on the conversational Finnish data. The goal is to determine whether the transformer models achieve better results than the RNN models on the conversational Finnish data. Other language modelling experiments in this work include evaluating word and subword vocabularies for transformers as well as other LMs.
+    % , tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs)
+    
+    % in the ASR task, in a similar manner as described by \citet{jain2020finnish}.
+
+    In the previous decade, i-vectors \citep{ivector} have been used to model speaker and channel variability and to add this information to the features. \citet{snyder2018x} described how also DNNs can  be utilised to create speaker embeddings, called x-vectors, that model differences between speakers. In this work, i-vectors and x-vectors are evaluated and compared on the conversational Finnish data. The aim is to explore how these speaker embeddings affect the ASR accuracy on the used data set.
+    
+
+    % The baseline system is the same in this thesis, and the work begun by replicating the previous results. The Kaldi toolkit includes acoustic model training pipelines, called "recipes", that are tuned to achieve optimal results for a particular speech data set. In the past three years after the above mentioned previous best results were achieved, the Kaldi recipes have been developed further, and the latest machine learning algorithms have been implemented in the toolkit. By applying the latest Kaldi recipes for the Finnish speech data used in this thesis, the previous best results can be improved. Other acoustic modelling experiments of this work include modelling the speaker and channel variability using i-vectors \citep{ivector} and x-vectors \citep{snyder2018x}.
+
+    
+
+    % , and experimenting with topic modelling (see e.g., \citet{xiong2018session, xing2016topic}).
+
+
+
+    
+    % This thesis explores methods for improving ASR for conversational Finnish.
+
+    % \subsection{The basic structure of an ASR system} 
+    % \subsection{Finnish conversations to text} 
+    The thesis is divided into seven chapters. The background theory is described in three chapters: Chapter \ref{sec:ml} defines some of the main concepts of machine learning, Chapter \ref{sec:lm} describes the relevant language modelling techniques, and acoustic modelling is discussed in Chapter \ref{sec:am}.
     % The first
     % % four
     % sections of this chapter respectively describe the
     % % four
     % components of the conventional ASR system.
-    The Section \ref{sec:conv} discusses the specifics of recognising conversational Finnish.
-
+    % The Section \ref{sec:conv} discusses the specifics of recognising conversational Finnish.
     %  A language model gives an a priori probability for each word sequence: $P(\boldsymbol{w})$. The estimate $\hat{\boldsymbol{w}}$ of the best transcription given the observations is the most likely sequence 
-
     % \begin{equation}\label{asr-bayes-argmax}
     %   \hat{\boldsymbol{w}} = \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
     %   \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
     % \end{equation} 
+    Chapter \ref{sec:experiments} describes the experiments and their results. Chapter \ref{sec:discussion} gives some discussion on the experiments and results, and Chapter \ref{sec:conclusion} concludes the thesis.
 
 
 
     % history of ASR
     % typical ASR system
-
-
-  \subsection{Spoken and written conversations in Finnish} \label{sec:conv}
-
-    Finnish is a morphologically rich language. Suffices and other conjugations denote grammatical functions, such as cases, which in many Indo-European languages would be denoted by separate words, for instance. However, in colloquial Finnish, some of the suffices and other inflections are often omitted or changed systematically to an incorrect one. For example, 
-    it is common to not use the plural inflections for verbs, and instead use the passive voice verb inflection for first person plural ("me ollaan" instead of the correct form "me olemme") or the singular form for third person plural ("ne on" instead of the correct "ne ovat"). Differences between formal and informal Finnish pose difficulties when modelling informal language. Text from formal sources such as books or newspapers does not resemble colloquial Finnish very closely.
-    
-    Another feature of the Finnish language significant when building ASR systems is its phonemic orthography, i.e., the fact that one letter generally corresponds to one phoneme, and vice versa. Because of this fact, it is possible, and to a varying degree common, to also \emph{write} informal Finnish as it is pronounced. The above mentioned incorrect inflections are examples of informal Finnish that is also written in the incorrect way. Colloquial Finnish is written in online forums, especially in direct-message conversations. 
-    \citet{enarvi2013studies} collected a conversational Finnish text corpus from Internet forums by searching for key phrases that indicate informal conversations. This text corpus is used in the thesis to model conversational Finnish.
-
-
-
-
-  % 3. What will be your methodology?
-  \subsection{Related work and methodology}
-
-    The purpose of the thesis is to experiment with some of the latest acoustic and language modelling methods to improve upon the previous best results obtained for an informal, spontaneous Finnish conversation speech data set. Both the speech data set used in this thesis and the previous best results are described by \citet{enarvi2017automatic}. In their work, the acoustic models are trained on 85 hours of speech using the Kaldi toolkit. A first pass of large-vocabulary decoding and word lattice generation is done using an n-gram language model trained on a conversational Finnish text corpus collected by \citet{enarvi2013studies}. A second pass of rescoring the lattices and generating transcripts is done using a recurrent neural network language model trained on the same text corpus. Subword-vocabulary language models based on statistical segmentation of words \citep{creutz2002unsupervised, creutz2007unsupervised} were found to perform better than a word vocabulary.
-
-    In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results. An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon although they benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and the thesis explores methods in this paradigm.
-
-    The baseline system is the same in this thesis, and the work begun by replicating the previous results. The Kaldi toolkit includes acoustic model training pipelines, called "recipes", that are tuned to achieve optimal results for a particular speech data set. In the past three years after the above mentioned previous best results were achieved, the Kaldi recipes have been developed further, and the latest machine learning algorithms have been implemented in the toolkit. By applying the latest Kaldi recipes for the Finnish speech data used in this thesis, the previous best results can be improved. Other acoustic modelling experiments of this work include modelling the speaker and channel variability using i-vectors \citep{ivector} and x-vectors \citep{snyder2018x}.
-
-    \citet{vaswani2017attention} introduced a neural network architecture for language modelling called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type.
-    One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the commonly used recurrent neural networks, since their hidden states do not depend on the hidden states of previous time steps.
-    In this thesis, a Transformer-XL \citep{dai2019transformer} LM is trained and evaluated in the ASR task, in a similar manner as described by \citet{jain2020finnish}.
-
-    Other language modelling experiments in this work include evaluating word and subword vocabularies, tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs), and experimenting with topic modelling (see e.g., \citet{xiong2018session, xing2016topic}).
 
 
   \clearpage
@@ -1432,10 +1473,10 @@
     \subsubsection{Transformer-XL}
 
 \clearpage
-\section{Discussion}
+\section{Discussion} \label{sec:discussion}
 
 \clearpage
-\section{Conclusion} 
+\section{Conclusion} \label{sec:conclusion}
 
 
 \clearpage
