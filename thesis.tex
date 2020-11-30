@@ -259,6 +259,7 @@
   MLP           & multilayer perceptron \\
   MMI           & maximum mutual information \\
   MPE           & minimum phone error \\
+  NCE           & noise contrastive estimation \\
   NLP           & natural language processing \\
   NLU           & natural language understanding \\
   NN            & neural network \\
@@ -1416,7 +1417,7 @@
 
 
 
-    \paragraph*{Domain adaptation by finetuning the pretrained extractors}
+      \paragraph*{Domain adaptation by finetuning the pretrained extractors}
 
       Since the VoxCeleb extractor models are trained on English speech, it is possible that the extractors are suboptimal for Finnish. The extractors are trained on task of identifying speakers based on an utterance. There could be differences in the two languages in what kind of acoustic cues are utilised to identify the speaker. As with other modelling tasks, such as acoustic modelling, the extractor model could benefit from finetuning the large pretrained model on a smaller set of in-domain (or closer to the test domain) speech corpus. 
 
@@ -1438,8 +1439,13 @@
           \label{tab:spk_emb}
       \end{table}
 
-    
+
+
+
+
   \subsection{Language modelling experiments} \label{sec:lm_expts} 
+
+
 
     \subsubsection{Text corpora}
 
@@ -1454,26 +1460,80 @@
           \label{}
       \end{table}
 
-    \subsubsection{n-gram language models}
+    \subsubsection{First-pass: n-gram language models}
 
       The word-based systems use an n-gram LM with $n=4$ for the first-pass decoding and lattice generation. The SRILM \citep{stolcke2002srilm} is used to train KN-discounted n-gram in the ARPA format (see Section \ref{sec:ngram}). The two corpora are interpolated with weights that are optimised on the development data, similarly to \citep{enarvi2017automatic}.
 
-      The subword-based systems use an n-gram LM with $n=5$ for the first-pass decoding and lattice generation. Different constant and variable values of $n$ were evaluated on the development data to find a suitable value. The VariKN \citep{} tool was used to evaluate variable-order pruned n-grams. 
+      The subword-based systems use an n-gram LM with $n=5$ for the first-pass decoding and lattice generation. Different constant and variable values of $n$ were evaluated on the development data to find a suitable value. The VariKN \citep{siivola2007morfessor} tool was used to evaluate variable-order pruned n-grams. 
+
+
+
       % morfessor segment, varikn
 
 
 
-    \subsubsection{LSTM language model}
+    \subsubsection{Second pass: LSTM language model}
 
-      The LSTM LM 
+      The lattices generated in the first pass are rescored with an LSTM language model. 
+
+      The LSTM language model was mostly the same as in \citep{enarvi2017automatic}. The projection layer has a dimension of 500, after which there is one LSTM layer followed by four highway layers, all with 1500 dimensions. There are dropout layers in between all of the layers, with a dropout rate of 0.2. 
+
+      In order to weight the in-domain DSPCON corpus more, the WEBCON is subsampled with a factor of 0.2 at each epoch. That is, only a random subset of 20\% of the WEBCON corpus is used, resampled at each epoch. The vocabulary is reduced to the 100k most common words to reduce the  memory requirements.
+
+      For the subword models, the cross-entropy objective is used. For the word models, the training objective is noise contrastive estimation (NCE) \citep{gutmann2010noise} to limit the memory requirements of the word models. This objective NCE samples random words and learns to classify words as training words or noise words. The higher the number of noise samples the slower but more stable the training. The number of noise samples is set to 500 per one training word. The noise words are the same for each batch of training words, and the batch size is set to 24. The noise dampening hyperparameter determines whether noise words are sampled uniformly (0) or according to the unigram distribution (1). This is set to 0.5. The Adagrad \citep{duchi2011adaptive} optimisation method is used with a learning rate of 0.1. 
+      % Noise-contrastive estimation (NCE) samples random words, but instead of optimizing the cross-entropy cost directly, it uses an auxiliary cost that learns to classify a word as a training word or a noise word [13]. This allows it to treat the normalization term as a parameter of the network. BlackOut
+
+      The maximum length of the token sequence that is processed limits the memory of the LSTM network. It determines how far back the LM can learn dependencies. As the subword tokens are shorter, i.e., fewer characters long, they should probably have a longer context than word tokens. A few different sequence lengths were applied to see how this hyperparameter affects the second-pass WER results. The results are presented in Table \ref{tab:lstm_seq}. 
+
+
+
+      \begin{table}[ht!]
+        \center
+          \begin{tabular}{|l|l|l|}
+              \hline
+              Sequence length & Word LM & Subword LM \\ \hline
+              15 &  &  \\ \hline
+              25 &  &  \\ \hline
+              40 &  &  \\ \hline
+          \end{tabular}
+          \caption{WER results on the evaluation set for word and subword based models with different sequence lengths.}
+          \label{tab:lstm_seq}
+      \end{table}
 
 
 
 
-    \subsubsection{Transformer-XL}
+
+    \subsubsection{Second/third pass: Transformer-XL language model}
+
+      The Transformer-Xl models rescored the n-best lists generated from the first or second pass. 
+
+      The Transformer-Xl model hyperparamters were optimised for development set.  
+
+      The network embeds the input to 256 dimensions. The model layers have a total dimensionality of 400. The attention layers have 8 heads with 40 dimensions each. 
+
+      The number of tokens to predict is set to 70. 
+
+
+
+  \subsection{Combined results}
+
+    \begin{table}[ht!]
+      \center
+        \begin{tabular}{|l|l|l|}
+            \hline
+             &  &  \\ \hline
+        \end{tabular}
+        \caption{}
+        \label{}
+    \end{table}
+
+
 
 \clearpage
 \section{Discussion} \label{sec:discussion}
+  
+  The conventional ASR system includes multiple independent components that each contribute to the accuracy of the transcriptions. Using multiple language models 
 
 \clearpage
 \section{Conclusion} \label{sec:conclusion}
