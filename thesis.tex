@@ -53,7 +53,7 @@
   %% two-sided printing: twoside (default is one-sided printing)
 
   \usepackage{amsfonts, amssymb, amsbsy, amsmath, natbib, graphicx, 
-              tabstackengine, tabularx, longtable}
+              tabstackengine, tabularx, longtable, multirow}
   \numberwithin{equation}{section} % amsmath equation numbering 1.1, 1.2 etc.
   \usepackage{titlesec}
   \setcounter{secnumdepth}{4}
@@ -340,24 +340,24 @@
     \begin{equation}\label{eq:asr-bayes}
       \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
       \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
-      = \argmax_{\boldsymbol{w}} P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})
+      = \argmax_{\boldsymbol{w}} \{ P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w}) \}
     \end{equation}
     The probability of the observations ${P(\boldsymbol{O})}$ in the denominator is not relevant in finding the best transcription ($\argmax_{\boldsymbol{w}}$) for the observations, which leaves the product in the numerator to be estimated. This product includes the two most significant subtasks: \emph{acoustic modelling} and a \emph{language modelling}. A language model (LM) generates an \emph{a priori} probability distribution $P(\boldsymbol{w})$ over possible word sequences. For example, the transcription "the god of thunder was Zeus" should probably be assigned a larger probability than "the god of thunder was juicy" even before any speech audio is processed.
-    An acoustic model (AM) outputs likelihoods of observations given phoneme sequences. The phoneme sequence are mapped to words by a lexicon (also called a dictionary), yielding $P(\boldsymbol{O}|\boldsymbol{w})$.
+    An acoustic model (AM) outputs likelihoods of observations conditional on phoneme sequences. The phoneme sequences are mapped to words by a \emph{lexicon} (also called a \emph{pronunciation dictionary}), yielding $P(\boldsymbol{O}|\boldsymbol{w})$.
     % The probabilities of the LM and AM are combined to estimate the most likely transcription of the speech audio.
     %  \emph{a posteriori} probabilities $P(\boldsymbol{O}|\boldsymbol{w})$ of phoneme sequences conditional on the speech audio. A dictionary is used to map the phoneme sequences to words, or more generally, the same set of tokens that the LM uses, which can also be subword units or characters, for instance. 
     % The former factor $P(\boldsymbol{w})$ is the a priori probabilities of word sequences, modelled by language models. 
     To avoid numerical underflow, the probabilities are converted to the logarithmic domain. A scalar weight $\lambda$ is added to determine how significant the LM probabilities are compared to the AM probabilities.
     \begin{equation}\label{eq:asr-bayes-2}
-      \argmax_{\boldsymbol{w}}
-      P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})
+      \argmax_{\boldsymbol{w}} \{ 
+      P(\boldsymbol{w})^{\lambda}P(\boldsymbol{O}|\boldsymbol{w}) \} 
       = \argmax_{\boldsymbol{w}}
-        \log \{ P(\boldsymbol{w}) \} +
-        \lambda \log \{ P(\boldsymbol{O}|\boldsymbol{w}) \}
+        \{ \lambda  \log \{ P(\boldsymbol{w}) \} +
+         \log \{ P(\boldsymbol{O}|\boldsymbol{w}) \} \}
     \end{equation}
-    Acoustic and language modelling are achieved using machine learning algorithms, chiefly deep neural networks (DNN), which create a model based on training data. To model acoustics, a parallel corpus of speech and the correct transcriptions is needed, whereas to model language, only text is needed.
+    Acoustic and language modelling are achieved using machine learning models, primarily deep neural networks (DNNs), which are estimated based on training data. To model acoustics a parallel corpus of speech and text is needed, whereas to model language only text is needed.
 
-    In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results. An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon, although E2E systems benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and for this reason, this thesis explores methods in this conventional paradigm.
+    In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results (e.g., by \citet{hannun2014deep, chan2016listen}). An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon, although E2E systems benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and for this reason, this thesis explores methods in this conventional paradigm.
 
     The difficulty of ASR depends on how varied and noisy the speech audio signals are.
     The confined problem of recognising a few different words pronounced clearly by one speaker
@@ -446,32 +446,52 @@
     % typical ASR system
 
 
-  \clearpage
-  \section{Machine learning} \label{sec:ml} 
+\clearpage
+\section{Machine learning} \label{sec:ml} 
 
   %
     % \subsubsection{Statistical models} 
 
-    %     A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
-    %     A model can be statistical, conceptual, mathematical ...
-    %     Model of any of these kinds, however, is ...
-
-    %     Creating models of phenomena in an environment is the basis for being able to understand, predict, or act in the environment. Brains have evolved to build both unconscious and  consciously accessible models of consequential things, such as animals, weather, or phonemes that compose a language.
+    A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart. The term is very general: there are physical, statistical, and conceptual models, just to name a few different types. Brains, too, build 
+    % mental
+    models, conscious and subconscious, of phenomena that they encounter in their environment, which is the basis of how animals are able to perceive
+    % , 
+    % understand, predict, 
+    and act in an environment.
+    Language is a prominent phenomenon in the environment that humans live in, and the human brain naturally develops models to process and generate language. Humans learn a language gradually through exposure to it. Similarly, to build a statistical model of a language or its pronunciation, machine learning algorithms are used. This chapter briefly introduces some of the main concepts that are central to the language and acoustic modelling algorithms described respectively in the next two chapters.
+    
+    % Brains have evolved to build both unconscious and  consciously accessible models of consequential things, such as animals, weather, or phonemes that compose a language.
     %     % of plants, of the body that contains the brain, of weather, water etc.
     %     % representations of time, space, temperature etc. 
+    %     Model of any of these kinds, however, is ...
 
     %     The abstraction and simplification can happen by grouping similar things into one. For example, a mental model of a tree integrates many individual leaves into one foliage, and
     %     % , more fundamentally, 
     %     a visual model of a leaf integrates many chloroplasts and other small things into one green surface that is perceived when looking at a leaf.
 
-    %     A model can be a function that generates an output given an input, emulating how the real-world phenomenon behaves. Inputting a knife into a coconut outputs coconut milk, and an accurate mental model of a coconut should be able to predict that a coconut will function in this manner. More generally, a model can be any kind of mapping from a domain to another.
+    % \subsection{Fitness criterion}
+
+    A mathematical model is often formulated as a function that generates an output given an input, emulating how the real-world phenomenon behaves.
+    % Inputting a knife into a coconut outputs coconut milk, and an accurate mental model of a coconut should be able to predict that a coconut will function in this manner.
+    More generally, a model can be any kind of mapping from a domain to another. The acoustic and language models used in ASR are formulated as probabilistic models that output probabilities for a given input: how probable is a sequence of words, or how likely is a sequence of audio observations conditional on a particular phoneme sequence.
         
     %     % ; via lowering the resolution: a mental model of a 
 
     % \subsubsection{Estimating models statistically}
 
-    %   There are two directions, ways to create a model of a phenomenon: top-down or bottom-up. Top-down design of models is an exclusively human undertaking, and a much rarer way to build a model. A top-down designed model could be, for example, a recipe for a dish, which is then used to cook up the real thing. This way the simplified model is created without the real phenomenon existing yet, or ever. However, top-down design depends on previous models that have ultimately been estimated from bottom up. 
-    %   A bottom-up generation of a model is the more usual way models come to being. In this approach, the abstract model is estimated from data gathered from the manifest world. In this example, a recipe for the dish can be developed by experimenting with random recipes in some finite search space of possible recipes, tasting the finished product, and iteratively narrowing down the search space, homing in on an optimal experience. Once a cook has done enough bottom-up design, top-down design becomes possible by deducing from the mental model what a never-before-experienced combination of ingredients will taste like. In mathematics, solving a function in a top-down fashion is called an analytical or a symbolic solution, and bottom up a numerical solution. 
+    There are two directions, ways to create a model of a phenomenon: top-down or bottom-up\footnote{In mathematics, solving a function in a top-down fashion is called an analytical or a symbolic solution, and bottom up a numerical solution.}.
+    % 
+    Designing from top down means roughly to analyse the task on a high-level and deducing from that how the model should function in the lower levels.
+    For example, a chess program can be programmed top-down using if-else clauses, e.g. "if pawn is in D7 and D8 is empty, move pawn to D8". To build a competent chess program this way requires a good understanding of what moves are beneficial. Top-down design of models is an exclusively human undertaking.
+    % , and a rare way to build a model.
+    % a recipe for a dish, which is then used to cook up the real thing. This way the simplified model is created without the real phenomenon existing yet, or ever.
+    % However, top-down design depends on previous models that have ultimately been estimated from bottom up. 
+    A bottom-up generation of a model is the more usual way models come to being. In this approach, the abstract model is estimated from data gathered from the manifest world. In the chess example, the designing work can be delegated to an algorithm that performs bottom-up estimation of the desired behaviour using machine learning. In practice, the program learns by trial and error, preferring (reinforcing) those moves that have preceded winning. When the actual decisions of moves are left for the algorithm, the programmer herself need not understand the game. By merely defining the learning algorithm and leaving the model to teach itself, the model can eventually surpass the human-level competence, as has happened with most board games, among other tasks.
+    Some tasks are inherently so complex that no one has seriously tried to build rule-based models of them. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
+    
+    % a recipe for the dish can be developed by experimenting with random recipes in some finite search space of possible recipes, tasting the finished product, and iteratively narrowing down the search space, homing in on an optimal experience. Once a cook has done enough bottom-up design, top-down design becomes possible by deducing from the mental model what a never-before-experienced combination of ingredients will taste like.
+    
+     
 
     %   In computer science, top-down design has been the usual way to develop systems.
     %   % If the function to be estimated is simple enough
@@ -517,11 +537,14 @@
     % Residual connections \citep{he2016deep}
     % highway networks
 
+
 \clearpage
 \section{Statistical language modelling} \label{sec:lm} 
 
   %
-    A language model defines the probability distribution\footnote{This would be a probability mass function since word sequences are discrete but, since there is no limit to how long the sequences can be, there is an infinite set of possible word sequences.} $P(\boldsymbol{w})$, from Eq. \ref{eq:asr-bayes}, over word sequences $\boldsymbol{w} = w_1,...,w_N$. Typically, $P(\boldsymbol{w})$ is calculated as the product of the constituent word probabilities:
+    A language model defines the probability distribution
+    % \footnote{This would be a probability mass function since word sequences are discrete but, since there is no limit to how long the sequences can be, there is an infinite set of possible word sequences.}
+    $P(\boldsymbol{w})$, from Eq. \ref{eq:asr-bayes}, over word sequences $\boldsymbol{w} = w_1,...,w_N$. Typically, $P(\boldsymbol{w})$ is calculated as the product of the constituent word probabilities:
     \begin{equation} \label{eq:lm}
       P(w_1,...,w_N) = \prod_{i=1}^N P(w_i|context)
     \end{equation}
@@ -561,7 +584,7 @@
     \end{equation}
     This is called the maximum likelihood estimate of $P(w_i|w_{i-(n-1)},...,w_{i-1})$ since it maximises the likelihood of 
     % the language model for 
-    this specific training data set\citep{chen1998empirical}. As in machine learning in general, however, the aim is to use the training data to distil from it a generalising model which predicts patterns also in previously unseen data instead of building a model that maximally accounts for the training data set. 
+    this specific training data set \citep{chen1998empirical}. As in machine learning in general, however, the aim is to use the training data to distil from it a generalising model which predicts patterns also in previously unseen data instead of building a model that maximally accounts for the training data set. 
     
     % problems aimed to be fixed by smoothing
 
@@ -700,7 +723,7 @@
       The decoder is therefore an \emph{autoregressive} generator of the output sequence, generating one unit in the sequence at a time based on the previously generated units \citep{graves2013generating}.
     
     \paragraph*{An attentive decoder} 
-      Attention can be used in the decoder to help find the relevant information from the encoder output. Whereas the traditional decoder bases the output word probabilities on the single context vector $\boldsymbol{c}$ common to one sequence, attention computes separate $\boldsymbol{c}_i$ vectors for time step $i$, and uses all of the encoder  states $H^e=\boldsymbol{h}^e_1,...,\boldsymbol{h}^e_U$ to generate the context vectors $\boldsymbol{c}_1,...,\boldsymbol{c}_N$. The output probability distribution from Eq. \ref{eq:decoder_prob} becomes
+      Attention can be used in the decoder to help find the relevant information from the encoder output. Whereas the traditional decoder bases the output word probabilities on the single context vector $\boldsymbol{c}$ common to one sequence, attention computes a separate $\boldsymbol{c}_i$ vector for each time step $i$, and uses all of the encoder  states $H^e=\boldsymbol{h}^e_1,...,\boldsymbol{h}^e_U$ to generate the context vectors $\boldsymbol{c}_1,...,\boldsymbol{c}_N$. The output probability distribution from Eq. \ref{eq:decoder_prob} becomes
       \begin{equation}
         p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c}_i) = g(w_{i-1}, \boldsymbol{c}_i, H^e)
       \end{equation}
@@ -740,21 +763,21 @@
       \begin{figure}[htb]
         \centering
         \includegraphics[width=14cm]{attention}
-        \caption{}
+        \caption{Flow chart of the attention calculations.}
         \label{fig:attention}
       \end{figure}
 
     \paragraph*{Self-attention and transformers} 
 
-      \citet{vaswani2017attention} asserted that "Attention Is All You Need", in the title of their paper describing the transformer network. 
-      The encoder-decoder described in the previous subsection applies the attention mechanism in between two recurrent neural networks. The network architecture proposed in their paper evades the use of recurrence altogether, applying instead feedforward networks and \emph{multi-head self-attention} blocks, which are briefly described in this subsection. One good reason to avoid recurrence is its inherently sequential nature: the state of an LSTM cell depends on the previous state, which means they need to be computed in succession. Attention mechanism has no such restriction, which enables parallelising the computation, decreasing significantly the required training time.
+       
+      The encoder-decoder described in the previous subsection applies the attention mechanism in between two recurrent neural networks. As a deviation from this prevailing method, \citet{vaswani2017attention} asserted that "Attention Is All You Need", in the title of their paper describing the transformer network. The network architecture proposed in their paper evades the use of recurrence altogether, applying instead feedforward networks and \emph{multi-head self-attention} blocks, which are briefly described in this subsection. One good reason to avoid recurrence is its inherently sequential nature: the state of an LSTM cell depends on the previous state, which means they need to be computed in succession. Attention mechanism has no such restriction, which enables parallelising the computation, decreasing significantly the required training time.
 
-      The basic attention described in the previous section aligns the input sequence with the output sequence. Self-attention, also called intra-attention, aligns the input sequence with itself, as well as with the output sequence. By relating each unit in the input sequence with the other units, the self-attention mechanism aims to compute a more informative encoding of the units. This idea is based on the fair assumption that there are dependencies across the sequence, not necessarily related to how many indices apart the dependent units are. For example, if the input sequence is "Iris was the goddess of the rainbow and the messenger of the Olympian gods while Arke, her twin sister, became the messenger of the Titans." it is probably useful to attend to "Iris" when encoding "her", to "Arke" when encoding "messenger", and to both "Iris" and "Arke" when encoding "sister".
+      The basic attention described in the previous section aligns the input sequence with the output sequence. Self-attention, also called intra-attention, aligns the input sequence with itself, as well as with the output sequence. By relating each unit in the input sequence with the other units, the self-attention mechanism aims to compute a more informative encoding of the units. This idea is based on the fair assumption that there are dependencies across the sequence, not necessarily related to how many indices apart the dependent units are. For example, if the input sequence is "Iris was the goddess of the rainbow and the messenger of the Olympian gods while Arke, her twin sister, became the messenger of the Titans." it is probably useful to attend to "Iris" when encoding "her", to "Arke" when encoding "messenger", and to both "Iris" and "Arke" when encoding "sister". At least, this is roughly how a human reader would perceive stronger relations between some words than others. \citet{vaswani2017attention} noted that the attention mechanism connects words within a sequence in a way that is usually similar to how a human reader does.
 
-      The self-attention mechanism is an interplay between three input vectors called \emph{key}, \emph{value} and \emph{query}, which map to an output vector. These vectors are derived from the input
+      The self-attention mechanism is an interplay between three input vectors called \emph{key}, \emph{value} and \emph{query}, which map to an output vector. These vectors are derived from the input token embeddings
       % (word embedding in the first layer)
-      by multplying each with a single matrix of learned parameters, i.e., performing a linear projection on the input. This typically reduces the dimensionality of the input vector to the key, value and query vectors. For each position in the input sequence, the query vector of the input at that position is paired with the keys of every other positions. For each pair, a score is calculated. The idea here is similar to the basic attention score in the previous subsection (Eq. \ref{eq:att_score}): to determine how relevant the other input units in the sequence are when encoding this input unit.
-      The particular implementation of self-attention described by \citet{vaswani2017attention} is called scaled dot product attention, in which the score is calculated by a dot product of the key and query, scaled by the square root of the dimension of the key vector $d_k$.
+      by multiplying each with a single matrix of learned parameters, i.e., performing a linear projection on the input. This typically reduces the dimensionality of the input vector to the key, value and query vectors. For each position in the input sequence, the query vector of the input at that position is paired with the keys of every other positions. For each pair, a score is calculated. The idea here is similar to the basic attention score in the previous subsection (Eq. \ref{eq:att_score}): to determine how relevant the other input units in the sequence are when encoding this input unit.
+      The particular implementation of self-attention described by \citet{vaswani2017attention} is called scaled dot product attention, in which the score is calculated by a dot product of the key and query, scaled by the square root of the dimension $d_k$ of the key vector.
       In practice, the vectors are stacked together to compose matrices, simplifying the calculations:
       \begin{align}
         Attention(Q,K,V) = \softmax \left( \frac{QK^T}{\sqrt{d_k}} \right) V 
@@ -826,7 +849,7 @@
       (not multiplied by $\boldsymbol{x}_i$ in these terms)
       for all query positions, which suggests that the attentive bias towards different positions should also be equal for each query position. The weights for content $W_{k,x}$ and position $W_{k,u}$ are also distinguished from each other. 
       
-      This formulation allows for an intuitive interpretation: the first term encodes content-based attention, the second term encodes content-dependent positional information, the third term encodes global content bias, and the last term encodes global positional bias.
+      This formulation allows for an intuitive interpretation: the first term encodes content-based attention, the second term encodes content-dependent positional information, the third term encodes global content bias, and the last term encodes global positional bias \citep{dai2019transformer}.
 
       
       % The main differences are that the positional encoding of the key vector is relative, and the linear transformation of the query vector at 
@@ -836,7 +859,7 @@
 \section{Acoustic modelling and the Kaldi toolkit} \label{sec:am}
   
   %
-    Kaldi\footnote{"Kaldi" is one in the series of coffee-related names for computer science projects. The Kaldi documentation explains: "According to legend, Kaldi was the Ethiopian goatherder who discovered the coffee plant."} is a toolkit for automatic speech recognition \citep{Povey_ASRU2011}, used in the ASR experiments in this study. This chapter aims to give an overview of the most relevant theoretical underpinnings of Kaldi ASR systems, as well as some of the practical details of implementing the systems.
+    Kaldi\footnote{"Kaldi" is one in the series of coffee-related names for computer science projects. The Kaldi documentation explains: "According to legend, Kaldi was the Ethiopian goatherder who discovered the coffee plant."} is a toolkit for automatic speech recognition \citep{Povey_ASRU2011}, used in the ASR experiments in this study. This chapter aims to give an overview of the most relevant theoretical underpinnings of Kaldi ASR systems, as well as some of the practical details of using Kaldi.
 
 
   \subsection{Feature extraction and feature-space transforms} \label{sec:feats} 
@@ -1312,14 +1335,16 @@
     The decoding graph built by the Kaldi programs encodes all possible word sequences and the corresponding HMM state sequences. A sequence of observations is decoded with the graph in the manner described by \citet{povey2012wfst}. First, a WFSA $U$ is built from the observations that encodes the acoustic weights for each arc of each state transition that can emit each observation in the sequence. $U$  includes
     % about\footnote{not necessarily exactly due to $\epsilon$ labels.}
     $T+1$ states with arcs between the states that correspond to the HMM states at the time step $t$. The costs of the arcs encode the acoustic log-likelihoods. The utterance-specific \emph{search graph} $S$ that is traversed during decoding is generated by composing $U$ with the decoding graph. The search graph is not searched completely, but a subset of the best paths are selected by \emph{beam pruning}.
-    When generating the lattice that encodes the subset of the best paths, some of the desiderata are: that the lattice includes all word sequences within the beam size $\alpha$ that represents a log-likelihood difference to the optimal path; that the scores and alignments in the lattice are accurate; that the lattice does not contain duplicate paths of the same word sequence \citep{povey2012wfst}.
+    When generating the lattice that encodes the subset of the best paths, some of the desiderata are: that the lattice includes all word sequences within the beam size $\alpha$ that represents a log-likelihood difference to the optimal path; that the scores and alignments in the lattice are accurate; that the lattice does not contain duplicate paths of the same word sequence \citep{povey2012wfst}. Figure \ref{fig:lattice} depicts a word lattice.
 
     An alternative to a word lattice is to simply create lists of $n$ best transcriptions of the utterance. Though sometimes simpler to create and use, n-best lists are less efficient than lattices. In n-best lists, there are often transcriptions that differ only by a few words, which is redundant. n-best lists are capable of encoding far fewer transcriptions than lattices in the same amount of memory, and are therefore usually much more restrictive when, for instance, doing rescoring with a language model.
 
     \begin{figure}[htb]
       \centering
       \includegraphics[width=14cm]{lattice}
-      \caption{A word lattice}
+      \caption{A word lattice generated by one of the ASR systems build during the thesis. The correct transcription is "nii voi joo siis ei se varmaa siis emmä usko et sitä ongelmaa niinku se mä vaan mietin niinku nyt tota et et et mitä se tuomas sano sanoks se niinku et ne avaimet on niinku menny sen roskiksen mukana niinku mä ehdotin vai sanoks se".
+      % dspf004_dsp2013_01
+      }
       \label{fig:lattice}
     \end{figure}
 
@@ -1397,7 +1422,7 @@
 
       In the speaker embedding experiments, pretrained extractors are used as well as extractors trained on the AM training data. 
 
-      Both online and offline i-vectors are extracted and compared. 
+       
       
       \paragraph*{Pretrained VoxCeleb i-vector and x-vector extractors} 
       Pretrained i-vector and x-vector extractors trained on the VoxCeleb data \citep{nagrani2017voxceleb, chung2018voxceleb2} are used in the experiments. The VoxCeleb1 data contains about 100k utterances from 1251 celebrities and the VoxCeleb2 data contains about 1M utterances from over 6000 speakers. The code that was used for training the extractors is in the Kaldi repository\footnote{i-vectors: \url{https://github.com/kaldi-asr/kaldi/tree/master/egs/voxceleb/v1}}\footnote{x-vectors: \url{https://github.com/kaldi-asr/kaldi/tree/master/egs/voxceleb/v2}} and the pretrained extractors are downloaded online\footnote{\url{https://kaldi-asr.org/models/m7}}.
@@ -1409,11 +1434,15 @@
 
 
       \paragraph*{Pretrained i-vector extractor trained on Yle and Parliament data}
-      A pretrained i-vector extractor was used as a comparison to the models trained in this work.
+      A pretrained i-vector extractor was used as a comparison to the models trained in this work. This extractor was trained on the Yle and Parliament speech data.
 
       \paragraph*{i-vector extractor trained on the conversational Finnish data}
 
-      Most of Kaldi recipes for training a HMM/DNN model include i-vectors as the speaker-adaptation method. In this thesis, the extractor for the baseline i-vectors is trained similarly to the Switchboard recipe. The extractor is trained on the same data as the acoustic model for extracting online i-vectors. The speed perturbation data augmentation is used also for the extractor training data. 
+      Most of Kaldi recipes for training a HMM/DNN model include i-vectors as the speaker-adaptation method. In this thesis, the extractor for the baseline i-vectors is trained similarly to the Switchboard recipe. The extractor is trained on the same data as the acoustic model for extracting online i-vectors. The speed perturbation data augmentation is used also for the extractor training data. Both online and offline i-vectors are extracted and compared.
+
+      \paragraph*{x-vector extractor trained on the conversational Finnish data}
+
+      An x-vector extractor is trained also on the conversational data. This model uses the same setup and hyperparameters as the Voxceleb x-vector extractor. The data is augmented similarly to the Voxceleb model, increasing the number of utterances up to about 100k.
 
 
 
@@ -1424,27 +1453,39 @@
       The Voxceleb x-vector extractor was finetuned with the augmented Finnish speech corpus. The softmax layer was replaced so that the number of target classes (speakers) was compatible with the finetuning data. Apart from the ouptu layer, all the other layers and their parameters were kept from the pretrained model, and the model was trained on the Finnish data for one epoch. This improves the evaluation set WER result a little (Table \ref{tab:spk_emb}).
 
       Replacing the last hidden layer of the extractor model was experimented on, but this did not improve the WER results. Adding a new layer after the 7th layer was also tried, but here too the results were worse than for the pretrained model.
+
+
+      \paragraph*{Combining i-vectors and x-vectors}
+
+      Since the method of modelling speaker variability is different in the two embedding types (see Section \ref{sec:adaptive_training}), it is possible that they encode different, not completely overlapping information.
+      % One of the main differences between the methods is that the x-vector extractor has been explicitly trained to classify speakers, while the i-vector extractor 
+      Therefore it might benefit to combine the two speaker embeddings. Simply concatenating the two vectors improved the WER results by a small margin, compared to using only x- or i-vectors. In Table \ref{tab:spk_emb} this method is called the i-x-ensemble vectors.
       
-        
+      \paragraph*{Results}
+
       \begin{table}[ht!]
           \begin{tabularx}{\columnwidth}{|X|l|l|}
               \hline
-              \textbf{Speaker embedding} & 1st-pass WER & Oracle WER \\ \hline
-              None & 27.3 &  \\ \hline
-              x-vecs conv speech & 26.3 & \\ \hline
-              x-vec VoxCelec pretrained & 25.5 & \\ \hline
-              x-vec Voxceleb pretrained and conv speech finetuned & 25.3 &  \\ \hline
+              \textbf{Speaker embedding} & devel & eval  \\ \hline
+              None & 25.1 & 27.3   \\ \hline
+              i-vectors conv speech (online) & 23.9 & 26.5 \\ \hline
+              i-vectors  conv speech (offline) & 24.0 & 26.5 \\ \hline
+              x-vectors  conv speech & 24.3 & 26.3  \\ \hline
+              i-x-ensemble conv speech & 24.0 & 25.8 \\ \hline
+              i-vectors  Yle, parliament pretrained & \textbf{23.3} & 25.8 \\ \hline
+              x-vectors  VoxCelec pretrained & 23.7 & 25.5  \\ \hline
+              x-vectors  Voxceleb pretrained and conv speech finetuned & 24.2 & 25.3  \\ \hline
+              i-vectors  VoxCelec pretrained & 23.9 & 25.5  \\ \hline
+              i-x-ensemble Voxceleb & 23.7 & \textbf{25.1}   \\ \hline
           \end{tabularx}
-          \caption{}
+          \caption{The evaluation set WER results for the word-based system using different speaker embeddings concatenated with the input features. This is the 1st-pass, using a 4-gram language model.}
           \label{tab:spk_emb}
       \end{table}
 
-
-
+      The fact that the pretrained speaker embedding extractors get better results than the embeddings trained on the conversational speech data suggest that the domain of the speech is not as important as the quantity of the speech. The domain means the language as well as the type of speech, since the Voxceleb speech is in English.
 
 
   \subsection{Language modelling experiments} \label{sec:lm_expts} 
-
 
 
     \subsubsection{Text corpora}
@@ -1456,9 +1497,10 @@
               DSP conversational speech corpus transcriptions & 61k  & 0.41 \\ \hline
               WEB corpus, conversational written text corpus & 75.9M & 0.59 \\ \hline
           \end{tabularx}
-          \caption{}
+          \caption{The two language modelling corpora. DSPCON is more similar to the development and test corpora than the WEBCON, but it is significantly smaller. The two coprpora are used to generate separate n-gram models, which are interpolated. The interpolation weights are optimised on the development set.}
           \label{}
       \end{table}
+
 
     \subsubsection{First-pass: n-gram language models}
 
@@ -1466,10 +1508,23 @@
 
       The subword-based systems use an n-gram LM with $n=5$ for the first-pass decoding and lattice generation. Different constant and variable values of $n$ were evaluated on the development data to find a suitable value. The VariKN \citep{siivola2007morfessor} tool was used to evaluate variable-order pruned n-grams. 
 
+      \begin{table}[ht!]
+        \center
+        \begin{tabular}{|l|l|l|}
+          \hline
+          \textbf{Language model} & Devel set WER \\ \hline
+          Constant-order trigram & 25.2 \\ \hline
+          Constant-order 4-gram & \textbf{24.5} \\ \hline
+          Constant-order 5-gram & 24.6 \\ \hline
+          Variable-order n-gram & 24.9 \\ \hline
+        \end{tabular}
+        \caption{Subword-based system 1st-pass results on the development data set. The AM uses the VoxCeleb x-i-ensemble vectors, making the results comparable with the last line of Table \ref{tab:spk_emb} which presented the word-based system results.}
+        \label{tab:n-gram}
+      \end{table}
+
 
 
       % morfessor segment, varikn
-
 
 
     \subsubsection{Second pass: LSTM language model}
@@ -1492,27 +1547,38 @@
           \begin{tabular}{|l|l|l|}
               \hline
               Sequence length & Word LM & Subword LM \\ \hline
-              15 &  &  \\ \hline
-              25 &  &  \\ \hline
-              40 &  &  \\ \hline
+              15 & 24.2 &  \\ \hline
+              25 & 24.5 & 23.5 \\ \hline
+              40 & 24.8 & 23.1 \\ \hline
           \end{tabular}
           \caption{WER results on the evaluation set for word and subword based models with different sequence lengths.}
           \label{tab:lstm_seq}
       \end{table}
 
 
+    \subsubsection{Second/third pass: Transformer-XL language model} \label{sec:expt_transformer}
+
+      The Transformer-Xl models rescored the n-best lists generated from the first or second pass. The use of n-best lists instead of lattices is due to its computational simplicity. n-best lists are suboptimal compared to lattices, but the rescoring of lattices with transformers is not as straight forward as with RNNs, since the state of a position depends not only on the previous state, but on all of the states of other positions, too. This has been done before (e.g., \citep{irie2019language}), but implementing it was beyond the scope of this thesis work.
 
 
 
-    \subsubsection{Second/third pass: Transformer-XL language model}
-
-      The Transformer-Xl models rescored the n-best lists generated from the first or second pass. 
-
-      The Transformer-Xl model hyperparamters were optimised for development set.  
+      The Transformer-Xl model hyperparamters were optimised for the development set to some degree. 
 
       The network embeds the input to 256 dimensions. The model layers have a total dimensionality of 400. The attention layers have 8 heads with 40 dimensions each. 
 
       The number of tokens to predict is set to 70. 
+
+      \begin{table}[ht!]
+        \center
+          \begin{tabular}{|l|l|l|}
+              \hline
+              Model depth & Word LM & Subword LM \\ \hline
+              32 &  &  \\ \hline
+              48 &  &  \\ \hline
+          \end{tabular}
+          \caption{}
+          \label{tab:transformer_depth}
+      \end{table}
 
 
 
@@ -1520,13 +1586,33 @@
 
     \begin{table}[ht!]
       \center
-        \begin{tabular}{|l|l|l|}
-            \hline
-             &  &  \\ \hline
+        \begin{tabular}{l|l|l|l|l|l}
+                & 1st pass                      & 2nd pass         & WER  & 3rd pass                        & WER \\ \hline
+        subword & \multirow{2}{*}{i-x-ensemble} & LSTM sequence 40 &      & \multirow{2}{*}{Transformer-XL} &     \\ \cline{1-1} \cline{3-4} \cline{6-6} 
+        word    &                               & LSTM sequence 25 & 23.1 &                                 &    
         \end{tabular}
-        \caption{}
+        \caption{Evaluation set WER results using the best models.}
         \label{}
     \end{table}
+
+
+  \subsection{Comparison of model sizes and training time}
+
+    \begin{table}[ht!]
+        \center
+          \begin{tabular}{|l|l|l|}
+              \hline
+              Model & Number of parameters \\ \hline
+              n-gram &   \\ \hline
+              LSTM LM &   \\ \hline
+              Transformer-XL &   \\ \hline
+          \end{tabular}
+          \caption{}
+          \label{tab:model_size}
+    \end{table}
+
+
+  \subsection{Significance tests}
 
 
 
@@ -1534,6 +1620,10 @@
 \section{Discussion} \label{sec:discussion}
   
   The conventional ASR system includes multiple independent components that each contribute to the accuracy of the transcriptions. Using multiple language models 
+
+  \subsection{Possible future work}
+
+    As noted in Sections \ref{sec:lattice} and \ref{sec:expt_transformer}, the use of n-best list insted of lattices when rescoring transformers 
 
 \clearpage
 \section{Conclusion} \label{sec:conclusion}
