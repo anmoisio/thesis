@@ -1422,67 +1422,67 @@
 
       In the speaker embedding experiments, pretrained extractors are used as well as extractors trained on the AM training data. 
 
-       
-      
       \paragraph*{Pretrained VoxCeleb i-vector and x-vector extractors} 
-      Pretrained i-vector and x-vector extractors trained on the VoxCeleb data \citep{nagrani2017voxceleb, chung2018voxceleb2} are used in the experiments. The VoxCeleb1 data contains about 100k utterances from 1251 celebrities and the VoxCeleb2 data contains about 1M utterances from over 6000 speakers. The code that was used for training the extractors is in the Kaldi repository\footnote{i-vectors: \url{https://github.com/kaldi-asr/kaldi/tree/master/egs/voxceleb/v1}}\footnote{x-vectors: \url{https://github.com/kaldi-asr/kaldi/tree/master/egs/voxceleb/v2}} and the pretrained extractors are downloaded online\footnote{\url{https://kaldi-asr.org/models/m7}}.
-      
-      The VoxCeleb i-vector extractor was trained on 24 MFCCs and their delta and delta-delta coefficients. An energy-based VAD system is used to select the voiced frames for both i-vector and x-vector systems. The i-vector system UBM is a GMM that has 2048 full-covariance component Gaussians. The i-vectors have 400 dimensions, and are subsequently reduced to 200 dimensions using an LDA model.
+        Pretrained i-vector and x-vector extractors trained on the VoxCeleb data \citep{nagrani2017voxceleb, chung2018voxceleb2} are used in the experiments. The VoxCeleb1 data contains about 100k utterances from 1251 celebrities and the VoxCeleb2 data contains about 1M utterances from over 6000 speakers. The code that was used for training the extractors is in the Kaldi repository\footnote{i-vectors: \url{https://github.com/kaldi-asr/kaldi/tree/master/egs/voxceleb/v1}}\footnote{x-vectors: \url{https://github.com/kaldi-asr/kaldi/tree/master/egs/voxceleb/v2}} and the pretrained extractors are downloaded online\footnote{\url{https://kaldi-asr.org/models/m7}}.
+        
+        The VoxCeleb i-vector extractor was trained on 24 MFCCs and their delta and delta-delta coefficients. An energy-based VAD system is used to select the voiced frames for both i-vector and x-vector systems. The i-vector system UBM is a GMM that has 2048 full-covariance component Gaussians. The i-vectors have 400 dimensions, and are subsequently reduced to 200 dimensions using an LDA model.
 
-      The VoxCeleb x-vector extractor is trained on the VoxCeleb speech data that has been augmented in various ways. The MUSAN corpus \citep{snyder2015musan} of music, noise and speech as well as simulated room impulse response \citep{ko2017study} are used to generate noise for the speech data. The noise is added to the speech data and a subset of the noisy audio files is randomly selected and pooled with the clean audio files. This increases the amount of data roughly twofold. 
-      The x-vector extractor was trained on 30 MFCCs with their deltas and delta-deltas. The DNN is a TDNN with ReLU non-linearities where the five first layers use frame-level training with a temporal context of a few adjacent frames. The architecure is described by \citet{snyder2017deep}. After the frame-level layers is a pooling layer that aggregates the frame-level outputs, calculating the mean and standard deviation of the whole segment. The last two layers before softmax operate on the segment level statistics. The x-vector is extracted from the penultimate layer (the 6th layer), with 512 dimensions. An LDA model reduces the x-vector dimensionality to 200.
+        The VoxCeleb x-vector extractor is trained on the VoxCeleb speech data that has been augmented in various ways. The MUSAN corpus \citep{snyder2015musan} of music, noise and speech as well as simulated room impulse response \citep{ko2017study} are used to generate noise for the speech data. The noise is added to the speech data and a subset of the noisy audio files is randomly selected and pooled with the clean audio files. This increases the amount of data roughly twofold. 
+        The x-vector extractor was trained on 30 MFCCs with their deltas and delta-deltas. The DNN is a TDNN with ReLU non-linearities where the five first layers use frame-level training with a temporal context of a few adjacent frames. The architecure is described by \citet{snyder2017deep}. After the frame-level layers is a pooling layer that aggregates the frame-level outputs, calculating the mean and standard deviation of the whole segment. The last two layers before softmax operate on the segment level statistics. The x-vector is extracted from the penultimate layer (the 6th layer), with 512 dimensions. An LDA model reduces the x-vector dimensionality to 200.
 
 
       \paragraph*{Pretrained i-vector extractor trained on Yle and Parliament data}
-      A pretrained i-vector extractor was used as a comparison to the models trained in this work. This extractor was trained on the Yle and Parliament speech data.
+        A pretrained i-vector extractor was used as a comparison to the models trained in this work. This extractor was trained on the Yle and Parliament speech data.
 
       \paragraph*{i-vector extractor trained on the conversational Finnish data}
 
-      Most of Kaldi recipes for training a HMM/DNN model include i-vectors as the speaker-adaptation method. In this thesis, the extractor for the baseline i-vectors is trained similarly to the Switchboard recipe. The extractor is trained on the same data as the acoustic model for extracting online i-vectors. The speed perturbation data augmentation is used also for the extractor training data. Both online and offline i-vectors are extracted and compared.
+        Most of Kaldi recipes for training a HMM/DNN model include i-vectors as the speaker-adaptation method. In this thesis, the extractor for the baseline i-vectors is trained similarly to the Switchboard recipe. The extractor is trained on the same data as the acoustic model for extracting online i-vectors. The speed perturbation data augmentation is used also for the extractor training data. Both online and offline i-vectors are extracted and compared.
 
       \paragraph*{x-vector extractor trained on the conversational Finnish data}
 
-      An x-vector extractor is trained also on the conversational data. This model uses the same setup and hyperparameters as the Voxceleb x-vector extractor. The data is augmented similarly to the Voxceleb model, increasing the number of utterances up to about 100k.
+        An x-vector extractor is trained also on the conversational data. This model uses the same setup and hyperparameters as the Voxceleb x-vector extractor. The data is augmented similarly to the Voxceleb model, increasing the number of utterances up to about 100k.
 
 
 
       \paragraph*{Domain adaptation by finetuning the pretrained extractors}
 
-      Since the VoxCeleb extractor models are trained on English speech, it is possible that the extractors are suboptimal for Finnish. The extractors are trained on task of identifying speakers based on an utterance. There could be differences in the two languages in what kind of acoustic cues are utilised to identify the speaker. As with other modelling tasks, such as acoustic modelling, the extractor model could benefit from finetuning the large pretrained model on a smaller set of in-domain (or closer to the test domain) speech corpus. 
+        Since the VoxCeleb extractor models are trained on English speech, it is possible that the extractors are suboptimal for Finnish. The extractors are trained on task of identifying speakers based on an utterance. There could be differences in the two languages in what kind of acoustic cues are utilised to identify the speaker. As with other modelling tasks, such as acoustic modelling, the extractor model could benefit from finetuning the large pretrained model on a smaller set of in-domain (or closer to the test domain) speech corpus. 
 
-      The Voxceleb x-vector extractor was finetuned with the augmented Finnish speech corpus. The softmax layer was replaced so that the number of target classes (speakers) was compatible with the finetuning data. Apart from the ouptu layer, all the other layers and their parameters were kept from the pretrained model, and the model was trained on the Finnish data for one epoch. This improves the evaluation set WER result a little (Table \ref{tab:spk_emb}).
+        The Voxceleb x-vector extractor was finetuned with the augmented Finnish speech corpus. The softmax layer was replaced so that the number of target classes (speakers) was compatible with the finetuning data. Apart from the ouptu layer, all the other layers and their parameters were kept from the pretrained model, and the model was trained on the Finnish data for one epoch. This improves the evaluation set WER result a little (Table \ref{tab:spk_emb}).
 
-      Replacing the last hidden layer of the extractor model was experimented on, but this did not improve the WER results. Adding a new layer after the 7th layer was also tried, but here too the results were worse than for the pretrained model.
+        Replacing the last hidden layer of the extractor model was experimented on, but this did not improve the WER results. Adding a new layer after the 7th layer was also tried, but here too the results were worse than for the pretrained model.
 
 
       \paragraph*{Combining i-vectors and x-vectors}
 
-      Since the method of modelling speaker variability is different in the two embedding types (see Section \ref{sec:adaptive_training}), it is possible that they encode different, not completely overlapping information.
-      % One of the main differences between the methods is that the x-vector extractor has been explicitly trained to classify speakers, while the i-vector extractor 
-      Therefore it might benefit to combine the two speaker embeddings. Simply concatenating the two vectors improved the WER results by a small margin, compared to using only x- or i-vectors. In Table \ref{tab:spk_emb} this method is called the i-x-ensemble vectors.
-      
+        Since the method of modelling speaker variability is different in the two embedding types (see Section \ref{sec:adaptive_training}), it is possible that they encode different, not completely overlapping information.
+        % One of the main differences between the methods is that the x-vector extractor has been explicitly trained to classify speakers, while the i-vector extractor 
+        Therefore it might benefit to combine the two speaker embeddings. Simply concatenating the two vectors improved the WER results by a small margin, compared to using only x- or i-vectors. In Table \ref{tab:spk_emb} this method is called the i-x-ensemble vectors.
+        
       \paragraph*{Results}
 
-      \begin{table}[ht!]
-          \begin{tabularx}{\columnwidth}{|X|l|l|}
-              \hline
-              \textbf{Speaker embedding} & devel & eval  \\ \hline
-              None & 25.1 & 27.3   \\ \hline
-              i-vectors conv speech (online) & 23.9 & 26.5 \\ \hline
-              i-vectors  conv speech (offline) & 24.0 & 26.5 \\ \hline
-              x-vectors  conv speech & 24.3 & 26.3  \\ \hline
-              i-x-ensemble conv speech & 24.0 & 25.8 \\ \hline
-              i-vectors  Yle, parliament pretrained & \textbf{23.3} & 25.8 \\ \hline
-              x-vectors  VoxCelec pretrained & 23.7 & 25.5  \\ \hline
-              x-vectors  Voxceleb pretrained and conv speech finetuned & 24.2 & 25.3  \\ \hline
-              i-vectors  VoxCelec pretrained & 23.9 & 25.5  \\ \hline
-              i-x-ensemble Voxceleb & 23.7 & \textbf{25.1}   \\ \hline
-          \end{tabularx}
-          \caption{The evaluation set WER results for the word-based system using different speaker embeddings concatenated with the input features. This is the 1st-pass, using a 4-gram language model.}
-          \label{tab:spk_emb}
-      \end{table}
+        Table \ref{tab:spk_emb} presents the results of the speaker embedding experiments.
 
-      The fact that the pretrained speaker embedding extractors get better results than the embeddings trained on the conversational speech data suggest that the domain of the speech is not as important as the quantity of the speech. The domain means the language as well as the type of speech, since the Voxceleb speech is in English.
+        \begin{table}[ht!]
+            \begin{tabularx}{\columnwidth}{|X|l|l|}
+                \hline
+                \textbf{Speaker embedding} & devel & eval  \\ \hline
+                None & 25.1 & 27.3   \\ \hline
+                i-vectors conv speech (online) & 23.9 & 26.5 \\ \hline
+                i-vectors  conv speech (offline) & 24.0 & 26.5 \\ \hline
+                x-vectors  conv speech & 24.3 & 26.3  \\ \hline
+                i-x-ensemble conv speech & 24.0 & 25.8 \\ \hline
+                i-vectors  Yle, parliament pretrained & \textbf{23.3} & 25.8 \\ \hline
+                x-vectors  VoxCelec pretrained & 23.7 & 25.5  \\ \hline
+                x-vectors  Voxceleb pretrained and conv speech finetuned & 24.2 & 25.3  \\ \hline
+                i-vectors  VoxCelec pretrained & 23.9 & 25.5  \\ \hline
+                i-x-ensemble Voxceleb & 23.7 & \textbf{25.1}   \\ \hline
+            \end{tabularx}
+            \caption{The WER results for the word-based system using different speaker embeddings concatenated with the input features. This is the 1st-pass, using a 4-gram language model.}
+            \label{tab:spk_emb}
+        \end{table}
+
+        The fact that the pretrained speaker embedding extractors get better results than the embeddings trained on the conversational speech data suggest that the domain of the speech is not as important as the quantity of the speech. The domain means the language as well as the type of speech, since the Voxceleb speech is in English.
 
 
   \subsection{Language modelling experiments} \label{sec:lm_expts} 
@@ -1502,7 +1502,7 @@
       \end{table}
 
 
-    \subsubsection{First-pass: n-gram language models}
+    \subsubsection{First-pass: n-gram language models} \label{sec:ngram_expts} 
 
       The word-based systems use an n-gram LM with $n=4$ for the first-pass decoding and lattice generation. The SRILM \citep{stolcke2002srilm} is used to train KN-discounted n-gram in the ARPA format (see Section \ref{sec:ngram}). The two corpora are interpolated with weights that are optimised on the development data, similarly to \citep{enarvi2017automatic}.
 
@@ -1527,7 +1527,7 @@
       % morfessor segment, varikn
 
 
-    \subsubsection{Second pass: LSTM language model}
+    \subsubsection{Second pass: LSTM language model} \label{sec:lstm_expts} 
 
       The lattices generated in the first pass are rescored with an LSTM language model. 
 
@@ -1549,50 +1549,97 @@
               Sequence length & Word LM & Subword LM \\ \hline
               15 & 24.2 &  \\ \hline
               25 & 24.5 & 23.5 \\ \hline
-              40 & 24.8 & 23.1 \\ \hline
+              40 & 24.8 & \textbf{23.1} \\ \hline
           \end{tabular}
           \caption{WER results on the evaluation set for word and subword based models with different sequence lengths.}
           \label{tab:lstm_seq}
       \end{table}
 
 
-    \subsubsection{Second/third pass: Transformer-XL language model} \label{sec:expt_transformer}
+    \subsubsection{Second/third pass: Transformer-XL language model} \label{sec:transformer_expts}
 
       The Transformer-Xl models rescored the n-best lists generated from the first or second pass. The use of n-best lists instead of lattices is due to its computational simplicity. n-best lists are suboptimal compared to lattices, but the rescoring of lattices with transformers is not as straight forward as with RNNs, since the state of a position depends not only on the previous state, but on all of the states of other positions, too. This has been done before (e.g., \citep{irie2019language}), but implementing it was beyond the scope of this thesis work.
 
-
-
+      
       The Transformer-Xl model hyperparamters were optimised for the development set to some degree. 
-
       The network embeds the input to 256 dimensions. The model layers have a total dimensionality of 400. The attention layers have 8 heads with 40 dimensions each. 
+      The number of tokens to predict is set to 70.
+      \textbf{todo: more details about hyperparams and training}
 
-      The number of tokens to predict is set to 70. 
+      \paragraph*{2nd pass results}
+
+      When the n-best lists were generated from the 1st pass decoding, the rescoring improved the development results about 17\%, from the first pass 29.0\% WER, listed in Table \ref{tab:transformer_first}. These numbers are not comparable to those of the Sections \ref{sec:ngram_expts} and \ref{sec:lstm_expts}, since a different acoustic model was used. The table shows the effect of scoring more hypotheses: 50, 200 or 1000. Iterating the training for more steps brings little improvement after 130k training steps, when rescoring the 50-best list.
 
       \begin{table}[ht!]
         \center
-          \begin{tabular}{|l|l|l|}
+          \begin{tabular}{|l|l|}
               \hline
-              Model depth & Word LM & Subword LM \\ \hline
-              32 &  &  \\ \hline
-              48 &  &  \\ \hline
+              Hypotheses & devel WER \\ \hline
+              50-best list & 26.2\\ \hline
+              200-best list & 25.1 \\ \hline
+              1000-best list &   24.2 \\ \hline
           \end{tabular}
-          \caption{}
-          \label{tab:transformer_depth}
+          \caption{The effect of a larger number of hypotheses on the development set WER results. The n-best lists were generated from a first-pass decoding with an n-gram, which achieved a WER of 29.0 in this experiment.}
+          \label{tab:transformer_first}
+      \end{table}
+
+      \begin{table}[ht!]
+        \center
+          \begin{tabular}{|l|l|}
+              \hline
+              Training steps & devel WER \\ \hline
+              130k & 26.2 \\ \hline
+              540k &  26.0  \\ \hline
+              800k &  26.0  \\ \hline
+          \end{tabular}
+          \caption{The effect of further training on the development set WER results. The n-best lists were generated from a first-pass decoding with an n-gram, which achieved a WER of 29.0 in this experiment.}
+          \label{tab:transformer_first}
+      \end{table}
+
+      \paragraph*{3rd pass results}
+      
+      The three-pass rescoring scheme utilised all three LM model types. Lattices were generated from the first pass with an n-gram LM, and rescored with an LSTM LM after which an n-best list of best hypotheses  was generated.
+      % The list was generated with n-gram lstm interpolated scores  
+      The n-best list was rescored with the transformer model to determine the optimal transcriptions.
+
+      \begin{table}[ht!]
+        \center
+          \begin{tabular}{|l|l|}
+              \hline
+              LM scoring & Devel set WER \\ \hline
+              1. n-gram & 29.0 \\ \hline
+              2. LSTM+n-gram & 23.0  \\ \hline
+              3. transformer & 22.6  \\ \hline
+          \end{tabular}
+          \caption{Three-pass LM scoring.}
+          \label{tab:3pass}
       \end{table}
 
 
 
   \subsection{Combined results}
 
+    Table \ref{tab:combined} lists the best results from the 3-pass decoding scheme.
+
     \begin{table}[ht!]
       \center
-        \begin{tabular}{l|l|l|l|l|l}
-                & 1st pass                      & 2nd pass         & WER  & 3rd pass                        & WER \\ \hline
-        subword & \multirow{2}{*}{i-x-ensemble} & LSTM sequence 40 &      & \multirow{2}{*}{Transformer-XL} &     \\ \cline{1-1} \cline{3-4} \cline{6-6} 
-        word    &                               & LSTM sequence 25 & 23.1 &                                 &    
+        \begin{tabular}{lllll}
+                                                              &                                     & \multicolumn{1}{l|}{}                               & \multicolumn{2}{c|}{\textbf{WER Results (\%)}}                           \\ \cline{4-5} 
+        \multicolumn{1}{|l|}{\textbf{LM scoring}}              & \multicolumn{1}{l|}{\textbf{Vocab}} & \multicolumn{1}{l|}{\textbf{Model details}}         & \multicolumn{1}{l|}{\textbf{devel}} & \multicolumn{1}{l|}{\textbf{eval}} \\ \hline
+        \multicolumn{1}{|l|}{\multirow{2}{*}{n-gram 1st pass}} & \multicolumn{1}{l|}{word}           & \multicolumn{1}{c|}{\multirow{4}{*}{Enarvi et al.}} & \multicolumn{1}{l|}{29.8}           & \multicolumn{1}{l|}{31.7}          \\ \cline{2-2} \cline{4-5} 
+        \multicolumn{1}{|l|}{}                                 & \multicolumn{1}{l|}{subword}        & \multicolumn{1}{c|}{}                               & \multicolumn{1}{l|}{29.1}           & \multicolumn{1}{l|}{31.7}          \\ \cline{1-2} \cline{4-5} 
+        \multicolumn{1}{|l|}{\multirow{2}{*}{NNLM 2nd pass}}   & \multicolumn{1}{l|}{word}           & \multicolumn{1}{c|}{}                               & \multicolumn{1}{l|}{25.6}           & \multicolumn{1}{l|}{27.9}          \\ \cline{2-2} \cline{4-5} 
+        \multicolumn{1}{|l|}{}                                 & \multicolumn{1}{l|}{subword}        & \multicolumn{1}{c|}{}                               & \multicolumn{1}{l|}{25.0}           & \multicolumn{1}{l|}{27.1}          \\ \hline
+                                                              &                                     &                                                     &                                     &                                    \\ \hline
+        \multicolumn{1}{|l|}{\multirow{2}{*}{n-gram 1st pass}} & \multicolumn{1}{l|}{word}           & \multicolumn{1}{l|}{i-x-ensemble,}                  & \multicolumn{1}{l|}{23.7}           & \multicolumn{1}{l|}{25.1}          \\ \cline{2-2} \cline{4-5} 
+        \multicolumn{1}{|l|}{}                                 & \multicolumn{1}{l|}{subword}        & \multicolumn{1}{l|}{4-gram LM}                      & \multicolumn{1}{l|}{24.5}           & \multicolumn{1}{l|}{25.2}          \\ \hline
+        \multicolumn{1}{|l|}{\multirow{2}{*}{NNLM 2nd pass}}   & \multicolumn{1}{l|}{word}           & \multicolumn{1}{l|}{LSTM sequence 15}               & \multicolumn{1}{l|}{}           & \multicolumn{1}{l|}{}          \\ \cline{2-5} 
+        \multicolumn{1}{|l|}{}                                 & \multicolumn{1}{l|}{subword}        & \multicolumn{1}{l|}{LSTM sequence 40}               & \multicolumn{1}{l|}{21.1}           & \multicolumn{1}{l|}{22.3}          \\ \hline
+        \multicolumn{1}{|l|}{Transformer 3rd pass}             & \multicolumn{1}{l|}{subword}        & \multicolumn{1}{l|}{Transformer-XL}                 & \multicolumn{1}{l|}{21.1}           & \multicolumn{1}{l|}{22.2}          \\ \hline
         \end{tabular}
-        \caption{Evaluation set WER results using the best models.}
-        \label{}
+
+      \caption{The results of the best models.}
+      \label{tab:combined}
     \end{table}
 
 
