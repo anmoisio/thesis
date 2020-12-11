@@ -1510,12 +1510,16 @@
 
     \subsubsection{Text corpora}
 
+              %     \textbf{LM training corpora} & \textbf{\# of word tokens} & 4-gram interpolation weight \\ \midrule
+              % DSP conversational speech corpus transcriptions & 61k  & 0.41 \\ 
+              % WEB corpus, conversational written text corpus & 75.9M & 0.59 \\ \bottomrule
+
       \begin{table}[ht!]
-          \begin{tabularx}{\columnwidth}{|X|l|l|}
-              \hline
-              \textbf{LM training corpora} & \# of word tokens & 4-gram interpolation weight \\ \hline
-              DSP conversational speech corpus transcriptions & 61k  & 0.41 \\ \hline
-              WEB corpus, conversational written text corpus & 75.9M & 0.59 \\ \hline
+          \begin{tabularx}{\columnwidth}{c|l}
+              \toprule
+              \textbf{LM training corpus} & \textbf{\# of word tokens} \\ \midrule
+              DSP conversational speech corpus transcriptions & 61k  \\ 
+              WEB corpus, conversational written text corpus & 75.9M \\ \bottomrule
           \end{tabularx}
           \caption{The two language modelling corpora. DSPCON is more similar to the development and test corpora than the WEBCON, but it is significantly smaller. The two coprpora are used to generate separate n-gram models, which are interpolated. The interpolation weights are optimised on the development set.}
           \label{}
@@ -1530,18 +1534,48 @@
 
       \begin{table}[ht!]
         \center
-        \begin{tabular}{|l|l|l|}
-          \hline
-          \textbf{Language model} & Devel set WER \\ \hline
-          Constant-order trigram & 25.2 \\ \hline
-          Constant-order 4-gram & \textbf{24.5} \\ \hline
-          Constant-order 5-gram & 24.6 \\ \hline
-          Variable-order n-gram & 24.9 \\ \hline
+        \begin{tabular}{l|l}
+          \toprule
+          \textbf{Language model} & \textbf{Devel set WER} \\ \midrule
+          Constant-order trigram & 25.2 \\ 
+          Constant-order 4-gram & \textbf{24.5} \\
+          Constant-order 5-gram & 24.6 \\ 
+          Variable-order n-gram & 24.9 \\ \bottomrule
         \end{tabular}
         \caption{Subword-based system 1st-pass results on the development data set. The AM uses the VoxCeleb x-i-ensemble vectors, making the results comparable with the last line of Table \ref{tab:spk_emb} which presented the word-based system results.}
         \label{tab:n-gram}
       \end{table}
 
+          %                   ngram 1=42698
+          %                   ngram 2=9032698
+          % ngram 3=9626856
+          % ngram 4=7101982
+          % ngram 5=3601421
+
+          % \multirow{2}{*}{\textbf{Order $n$ of n-grams}}
+      \begin{table}[ht!]
+        \center
+          \begin{tabular}{cc|c|c|c|c}
+            \toprule
+             & \multicolumn{5}{c}{\textbf{\# of n-grams}}  \\ \cmidrule(lr){2-6}
+             &\textbf{Word}& \multicolumn{4}{c}{\textbf{Subword}}  \\ \cmidrule(lr){2-6}
+                      & \textbf{4-gram}    & \textbf{trigram} & \textbf{4-gram}    & \textbf{5-gram} & \textbf{VariKN} (38-gram) \\ \cmidrule(lr){2-6}
+            \textbf{unigrams} & 2,427,251 & 42,698   & 42,698    & 42,698 & 42,699 \\ 
+            \textbf{bigrams}  & 22,606,146 & 9,032,698  & 9,032,698 & 9,032,698 & 9,032,513\\
+            \textbf{trigrams} & 4,762,607  & 10,288,565 & 9,626,856 & 9,626,856 & 7,591,231\\ 
+            \textbf{4-grams} & 2,573,404 &           & 7,788,695 & 7,101,982 & 4,750,328\\ 
+            \textbf{5-grams}&  &  &                             & 3,601,421 & 1,539,610\\ \midrule
+            \textbf{total} & 32,369,408 & 10,288,565 & 26,490,947 & 29,405,655 & 24,505,381 \\
+            \bottomrule
+            % \toprule
+            % \multirow{4}{*}{Subword vocab}&ngram 1 & 42698 \\ 
+            % &ngram 2 & 9032698 \\ 
+            % &ngram 3 & 9626856 \\ 
+            % &ngram 4 & 7788695 \\ \bottomrule 
+        \end{tabular}
+        \caption{Number of n-grams per order for the n-gram language models.}
+        \label{tab:n-gram-size}
+      \end{table}
 
 
       % morfessor segment, varikn
@@ -1564,12 +1598,12 @@
 
       \begin{table}[ht!]
         \center
-          \begin{tabular}{|l|l|l|}
-              \hline
-              Sequence length & Word LM & Subword LM \\ \hline
-              15 & 24.2 &  \\ \hline
-              25 & 24.5 & 23.5 \\ \hline
-              40 & 24.8 & \textbf{23.1} \\ \hline
+          \begin{tabular}{c|c|c}
+              \toprule
+              Sequence length & Word LM & Subword LM \\ \midrule
+              15 & 24.2 &  \\ 
+              25 & 24.5 & 23.5 \\ 
+              40 & 24.8 & \textbf{23.1} \\ \bottomrule
           \end{tabular}
           \caption{WER results on the evaluation set for word and subword based models with different sequence lengths.}
           \label{tab:lstm_seq}
@@ -1592,12 +1626,12 @@
 
       \begin{table}[ht!]
         \center
-          \begin{tabular}{|l|l|}
-              \hline
-              Hypotheses & devel WER \\ \hline
-              50-best list & 26.2\\ \hline
-              200-best list & 25.1 \\ \hline
-              1000-best list &   24.2 \\ \hline
+          \begin{tabular}{c|c}
+              \toprule
+              \textbf{\# of hypotheses} & \textbf{Devel WER} \\ \midrule
+              50-best list & 26.2\\ 
+              200-best list & 25.1 \\ 
+              1000-best list &   24.2 \\ \bottomrule
           \end{tabular}
           \caption{The effect of a larger number of hypotheses on the development set WER results. The n-best lists were generated from a first-pass decoding with an n-gram, which achieved a WER of 29.0 in this experiment.}
           \label{tab:transformer_first}
@@ -1605,12 +1639,12 @@
 
       \begin{table}[ht!]
         \center
-          \begin{tabular}{|l|l|}
-              \hline
-              Training steps & devel WER \\ \hline
-              130k & 26.2 \\ \hline
-              540k &  26.0  \\ \hline
-              800k &  26.0  \\ \hline
+          \begin{tabular}{c|c}
+              \toprule
+              \textbf{\# of training steps} & \textbf{Devel WER} \\ \midrule
+              130k & 26.2 \\ 
+              540k &  26.0  \\ 
+              800k &  26.0  \\ \bottomrule
           \end{tabular}
           \caption{The effect of further training on the development set WER results. The n-best lists were generated from a first-pass decoding with an n-gram, which achieved a WER of 29.0 in this experiment.}
           \label{tab:transformer_first}
@@ -1642,24 +1676,48 @@
     Table \ref{tab:combined} lists the best results from the 3-pass decoding scheme.
 
     \begin{table}[ht!]
-      \center
-        \begin{tabular}{lllll}
-                                                              &                                     & \multicolumn{1}{l|}{}                               & \multicolumn{2}{c|}{\textbf{WER Results (\%)}}                           \\ \cline{4-5} 
-        \multicolumn{1}{|l|}{\textbf{LM scoring}}              & \multicolumn{1}{l|}{\textbf{Vocab}} & \multicolumn{1}{l|}{\textbf{Model details}}         & \multicolumn{1}{l|}{\textbf{devel}} & \multicolumn{1}{l|}{\textbf{eval}} \\ \hline
-        \multicolumn{1}{|l|}{\multirow{2}{*}{n-gram 1st pass}} & \multicolumn{1}{l|}{word}           & \multicolumn{1}{c|}{\multirow{4}{*}{Enarvi et al.}} & \multicolumn{1}{l|}{29.8}           & \multicolumn{1}{l|}{31.7}          \\ \cline{2-2} \cline{4-5} 
-        \multicolumn{1}{|l|}{}                                 & \multicolumn{1}{l|}{subword}        & \multicolumn{1}{c|}{}                               & \multicolumn{1}{l|}{29.1}           & \multicolumn{1}{l|}{31.7}          \\ \cline{1-2} \cline{4-5} 
-        \multicolumn{1}{|l|}{\multirow{2}{*}{NNLM 2nd pass}}   & \multicolumn{1}{l|}{word}           & \multicolumn{1}{c|}{}                               & \multicolumn{1}{l|}{25.6}           & \multicolumn{1}{l|}{27.9}          \\ \cline{2-2} \cline{4-5} 
-        \multicolumn{1}{|l|}{}                                 & \multicolumn{1}{l|}{subword}        & \multicolumn{1}{c|}{}                               & \multicolumn{1}{l|}{25.0}           & \multicolumn{1}{l|}{27.1}          \\ \hline
-                                                              &                                     &                                                     &                                     &                                    \\ \hline
-        \multicolumn{1}{|l|}{\multirow{2}{*}{n-gram 1st pass}} & \multicolumn{1}{l|}{word}           & \multicolumn{1}{l|}{i-x-ensemble,}                  & \multicolumn{1}{l|}{23.7}           & \multicolumn{1}{l|}{25.1}          \\ \cline{2-2} \cline{4-5} 
-        \multicolumn{1}{|l|}{}                                 & \multicolumn{1}{l|}{subword}        & \multicolumn{1}{l|}{4-gram LM}                      & \multicolumn{1}{l|}{24.5}           & \multicolumn{1}{l|}{25.2}          \\ \hline
-        \multicolumn{1}{|l|}{\multirow{2}{*}{NNLM 2nd pass}}   & \multicolumn{1}{l|}{word}           & \multicolumn{1}{l|}{LSTM sequence 15}               & \multicolumn{1}{l|}{}           & \multicolumn{1}{l|}{}          \\ \cline{2-5} 
-        \multicolumn{1}{|l|}{}                                 & \multicolumn{1}{l|}{subword}        & \multicolumn{1}{l|}{LSTM sequence 40}               & \multicolumn{1}{l|}{21.1}           & \multicolumn{1}{l|}{22.3}          \\ \hline
-        \multicolumn{1}{|l|}{Transformer 3rd pass}             & \multicolumn{1}{l|}{subword}        & \multicolumn{1}{l|}{Transformer-XL}                 & \multicolumn{1}{l|}{21.1}           & \multicolumn{1}{l|}{22.2}          \\ \hline
-        \end{tabular}
+    \center
+    \begin{tabular}{l|l|l|l|l}
+    
 
-      \caption{The results of the best models.}
-      \label{tab:combined}
+    % \multirow{2}{*}{\multicolumn{1}{l}{\textbf{LM scoring}}} & \multirow{2}{*}{\multicolumn{1}{l}{\textbf{Vocab}}}
+    % & \multirow{2}{*}{\multicolumn{1}{l}{\textbf{Model details}}}
+    
+    \multicolumn{3}{c}{}& \multicolumn{2}{c}{\textbf{WER Results (\%)}} \\
+    % \cmidrule{4-5} 
+    \toprule
+    \textbf{LM scoring}&\textbf{Vocab}&\textbf{Model details}& \textbf{devel} & \textbf{eval} \\ \midrule
+
+    \multicolumn{1}{l|}{\multirow{2}{*}{n-gram scores}} & word & \multicolumn{1}{c|}{\multirow{4}{*}{Enarvi et al.}} 
+    &\multicolumn{1}{l|}{29.8}  & \multicolumn{1}{l}{31.7}  \\ \cmidrule{2-2} \cmidrule{4-5} 
+
+    & subword &  &\multicolumn{1}{l|}{29.1}&\multicolumn{1}{l}{31.7}\\ \cmidrule{1-2} \cmidrule{4-5} 
+
+    \multirow{2}{*}{NNLM-rescored lattices} & word & & \multicolumn{1}{l|}{25.6}
+    & \multicolumn{1}{l}{27.9}  \\ \cmidrule{2-2} \cmidrule{4-5} 
+
+    & subword   & &  \multicolumn{1}{l|}{25.0}   & \multicolumn{1}{l}{27.1}\\ \bottomrule \toprule
+
+    \multirow{2}{*}{n-gram scores} & word &
+    \multicolumn{1}{l|}{i-x-ensemble,} & \multicolumn{1}{l|}{23.7} & \multicolumn{1}{l}{25.1}  \\ \cmidrule{2-2} \cmidrule{4-5} 
+
+    & subword & \multicolumn{1}{l|}{4-gram LM}
+    & \multicolumn{1}{l|}{24.5} & \multicolumn{1}{l}{25.2}  \\ \midrule
+
+    \multicolumn{1}{l|}{\multirow{2}{*}{NNLM-rescored lattices}}   & word
+    & \multicolumn{1}{l|}{LSTM sequence 15}    &  &  \\ \cmidrule{2-5} 
+
+    & subword    & \multicolumn{1}{l|}{LSTM sequence 40} 
+    & \multicolumn{1}{l|}{\textbf{21.1}}    & \multicolumn{1}{l}{22.3}   \\ \midrule
+
+    \multicolumn{1}{l|}{Transformer-rescored 50-best list}   & subword  & \multicolumn{1}{l|}{Transformer-XL} 
+    & \multicolumn{1}{l|}{\textbf{21.1}}  & \multicolumn{1}{l}{\textbf{22.2}} \\
+
+    \bottomrule
+    \end{tabular}
+
+    \caption{The results of the best models.}
+    \label{tab:combined}
     \end{table}
 
 
@@ -1667,19 +1725,21 @@
 
     \begin{table}[ht!]
         \center
-          \begin{tabular}{|l|l|l|}
-              \hline
-              Model & Number of parameters \\ \hline
-              n-gram &   \\ \hline
-              LSTM LM &   \\ \hline
-              Transformer-XL &   \\ \hline
+          \begin{tabular}{l|l|l}
+              \toprule
+              \textbf{Vocab}& \textbf{Model} & \textbf{Number of parameters} \\ \midrule
+              & DNN AM & 17M \\  \midrule
+              \multirow{2}{*}{Word} & LSTM LM & 230M \\
+              & Transformer-XL & 56M  \\ \midrule
+              \multirow{2}{*}{Subword} & LSTM LM  & 115M  \\
+              & Transformer-XL & 41M  \\ \bottomrule
           \end{tabular}
-          \caption{}
+          \caption{The number of learnable parameters in the neural network models after hyperparameter tuning.}
           \label{tab:model_size}
     \end{table}
 
 
-  \subsection{Significance tests}
+  % \subsection{Significance tests}
 
 
 
