@@ -53,7 +53,7 @@
   %% two-sided printing: twoside (default is one-sided printing)
 
   \usepackage{amsfonts, amssymb, amsbsy, amsmath, natbib, graphicx, 
-              tabstackengine, tabularx, longtable, multirow}
+              tabstackengine, tabularx, longtable, multirow, booktabs}
   \numberwithin{equation}{section} % amsmath equation numbering 1.1, 1.2 etc.
   \usepackage{titlesec}
   \setcounter{secnumdepth}{4}
@@ -289,6 +289,9 @@
 
 \section{Introduction} \label{sec:introduction}
   \thispagestyle{empty} 
+  % tables about colloquial finnish and research qs
+
+  %  maybe subsections: intro, conv finnish, research questions, other contributions (improvement to previous results, implementation)
 
   %   MOVE 1 CURRENT SITUATION (compulsory)
     % (What is the wider context of the topic studied?)
@@ -334,6 +337,7 @@
 
     \emph{Automatic speech recognition} (ASR) is the task of converting speech into text. The direct application of ASR is useful in many situations, for example to transcribe patient notes dictated by medical doctors. ASR has also an increasing number of use cases in systems with longer pipelines that achieve some speech-initiated task, such as \emph{voice user interfaces} or \emph{speech-to-speech translation} systems. The ASR piece can often be a bottleneck in the pipeline,  determining to a large degree the accuracy of the whole system.
 
+% maybe lose the eqs
     In the conventional ASR system, the task is divided into subtasks. The first subtask, called feature extraction, is to divide the audio signal into $T$ segments, and convert the segments into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$. The observations are a compressed representation of the audio signal.
     % : \emph{feature extraction},  \emph{phoneme-to-grapheme mapping}, and creating
     The task is then to find $\argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O})$, where $\boldsymbol{w}=w_1,...,w_N$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
@@ -357,8 +361,11 @@
     \end{equation}
     Acoustic and language modelling are achieved using machine learning models, primarily deep neural networks (DNNs), which are estimated based on training data. To model acoustics a parallel corpus of speech and text is needed, whereas to model language only text is needed.
 
+% unnecesary here
     In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results (e.g., by \citet{hannun2014deep, chan2016listen}). An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon, although E2E systems benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and for this reason, this thesis explores methods in this conventional paradigm.
 
+
+% move these up
     The difficulty of ASR depends on how varied and noisy the speech audio signals are.
     The confined problem of recognising a few different words pronounced clearly by one speaker
     % recorded in noise-free conditions
@@ -403,6 +410,7 @@
   % \subsection{Related work and methodology}
     This thesis aims to experiment with some of the latest  methods to improve upon the previous best results obtained for this informal, spontaneous Finnish conversation speech data set. 
 
+%  maybe move to background -- expand on research context -> speaker adaptation, better LMs
     \citet{vaswani2017attention} introduced a neural network architecture for language modelling, called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type.
     One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the previously common recurrent neural networks (RNN), since their hidden states do not depend on the hidden states of previous time steps.
     In this thesis, Transformer-XL \citep{dai2019transformer} language models are trained and evaluated on the conversational Finnish data. The goal is to determine whether the transformer models achieve better results than the RNN models on the conversational Finnish data. Other language modelling experiments in this work include evaluating word and subword vocabularies for transformers as well as other LMs.
@@ -426,6 +434,9 @@
 
     % \subsection{The basic structure of an ASR system} 
     % \subsection{Finnish conversations to text} 
+
+    % possibly a bulletin list
+    %  more interesting info here
     The thesis is divided into seven chapters. The background theory is described in three chapters: Chapter \ref{sec:ml} defines some of the main concepts of machine learning, Chapter \ref{sec:lm} describes the relevant language modelling techniques, and acoustic modelling is discussed in Chapter \ref{sec:am}.
     % The first
     % % four
@@ -1459,24 +1470,33 @@
         % One of the main differences between the methods is that the x-vector extractor has been explicitly trained to classify speakers, while the i-vector extractor 
         Therefore it might benefit to combine the two speaker embeddings. Simply concatenating the two vectors improved the WER results by a small margin, compared to using only x- or i-vectors. In Table \ref{tab:spk_emb} this method is called the i-x-ensemble vectors.
         
+       
       \paragraph*{Results}
+
+         % separate the results into different tables with clearer structure
+        %   columns about data, offline/online, etc.
+        % don't repeat terms
 
         Table \ref{tab:spk_emb} presents the results of the speaker embedding experiments.
 
         \begin{table}[ht!]
-            \begin{tabularx}{\columnwidth}{|X|l|l|}
-                \hline
-                \textbf{Speaker embedding} & devel & eval  \\ \hline
-                None & 25.1 & 27.3   \\ \hline
-                i-vectors conv speech (online) & 23.9 & 26.5 \\ \hline
-                i-vectors  conv speech (offline) & 24.0 & 26.5 \\ \hline
-                x-vectors  conv speech & 24.3 & 26.3  \\ \hline
-                i-x-ensemble conv speech & 24.0 & 25.8 \\ \hline
-                i-vectors  Yle, parliament pretrained & \textbf{23.3} & 25.8 \\ \hline
-                x-vectors  VoxCelec pretrained & 23.7 & 25.5  \\ \hline
-                x-vectors  Voxceleb pretrained and conv speech finetuned & 24.2 & 25.3  \\ \hline
-                i-vectors  VoxCelec pretrained & 23.9 & 25.5  \\ \hline
-                i-x-ensemble Voxceleb & 23.7 & \textbf{25.1}   \\ \hline
+            \begin{tabularx}{\columnwidth}{l|l|ll}
+                \multicolumn{1}{l}{\textbf{Method}} & \multicolumn{1}{l}{\textbf{Data set}} & \multicolumn{1}{l}{\textbf{devel}} & \textbf{eval}  \\   \toprule
+
+                None && 25.1 & 27.3   \\ \midrule
+
+                \multirow{4}{*}{i-vectors} & conv speech (online) & 23.9 & 26.5 \\ 
+                & conv speech (offline) & 24.0 & 26.5 \\ 
+                & VoxCelec pretrained & 23.9 & 25.5  \\ 
+                & Yle, parliament pretrained & \textbf{23.3} & 25.8 \\\midrule
+
+                \multirow{3}{*}{x-vectors} & conv speech & 24.3 & 26.3  \\ 
+                & VoxCelec pretrained & 23.7 & 25.5  \\
+                &  Voxceleb pretrained and conv speech finetuned & 24.2 & 25.3  \\ \midrule
+
+                \multirow{2}{*}{i-x-ensemble} & conv speech & 24.0 & 25.8 \\ 
+                & Voxceleb  & 23.7 & \textbf{25.1}   \\ \bottomrule
+
             \end{tabularx}
             \caption{The WER results for the word-based system using different speaker embeddings concatenated with the input features. This is the 1st-pass, using a 4-gram language model.}
             \label{tab:spk_emb}
@@ -1502,7 +1522,7 @@
       \end{table}
 
 
-    \subsubsection{First-pass: n-gram language models} \label{sec:ngram_expts} 
+    \subsubsection{Decoding with n-gram language models} \label{sec:ngram_expts} 
 
       The word-based systems use an n-gram LM with $n=4$ for the first-pass decoding and lattice generation. The SRILM \citep{stolcke2002srilm} is used to train KN-discounted n-gram in the ARPA format (see Section \ref{sec:ngram}). The two corpora are interpolated with weights that are optimised on the development data, similarly to \citep{enarvi2017automatic}.
 
@@ -1527,7 +1547,7 @@
       % morfessor segment, varikn
 
 
-    \subsubsection{Second pass: LSTM language model} \label{sec:lstm_expts} 
+    \subsubsection{Rescoring lattices with LSTM language model} \label{sec:lstm_expts} 
 
       The lattices generated in the first pass are rescored with an LSTM language model. 
 
@@ -1556,7 +1576,7 @@
       \end{table}
 
 
-    \subsubsection{Second/third pass: Transformer-XL language model} \label{sec:transformer_expts}
+    \subsubsection{Rescoring $n$ best hypotheses with Transformer-XL language model} \label{sec:transformer_expts}
 
       The Transformer-Xl models rescored the n-best lists generated from the first or second pass. The use of n-best lists instead of lattices is due to its computational simplicity. n-best lists are suboptimal compared to lattices, but the rescoring of lattices with transformers is not as straight forward as with RNNs, since the state of a position depends not only on the previous state, but on all of the states of other positions, too. This has been done before (e.g., \citep{irie2019language}), but implementing it was beyond the scope of this thesis work.
 
