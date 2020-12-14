@@ -68,7 +68,6 @@
 
   \DeclareMathOperator*{\argmax}{argmax}
   \DeclareMathOperator*{\softmax}{softmax}
-  \DeclareMathOperator*{\sin}{sin}
 
   % \university{Aalto-yliopisto}
   % \school{Sähkötekniikan korkeakoulu}
@@ -637,7 +636,7 @@
     \citet{kneser1995improved} introduced a smoothing method, which has become commonly used, where the number of different bigram contexts of a word correlate with the unigram backoff probability. The number of seen bigram types where the word $w$ is the latter word, i.e., the number of types of the previous token $w'$ that at least once precede $w$ in the corpus, can be expressed as $| \{ {w' : \textup{count}(w',w)>0} \} |$. This count is normalised by the number of all word types that are seen as the first word of a bigram to get the KN unigram probability:
     \begin{equation}\label{eq:continuation}
       P_{\textup{KN}}(w) = \frac{| \{ {w' : \textup{count}(w',w)>0} \} |}
-                                { \sum_{w''} |\{ {w' : \count(w'w'')>0}\}|}
+                                { \sum_{w''} |\{ w' : \count(w'w'')>0\}|}
     \end{equation}
     For a Kneser-Ney smoothed bigram model, the unigram and bigram statistics are then interpolated:
     \begin{equation}\label{eq:kn_bigram}
@@ -745,7 +744,7 @@
       Attention was introduced in the context of machine translation with sequence-to-sequence \citep{sutskever2014sequence} encoder-decoder systems. "Sequence-to-sequence" means that the system maps an input sequence to an output sequence; in machine translation these are a sentence in two different languages. "Encoder-decoder" is a neural network architecture type that first encodes the input sequence as a high-level representation and then a decodes the output using this representation vector. The encoder typically uses a feedforward neural network to project the tokens in the sequence into an embedding space, and an RNN, e.g., an LSTM network, to turn the word embedding sequence (multiple vectors) into the single context\footnote{The term "context" is used in the context LSTMs and attention; it denotes different kinds context vectors in LSTMs and in the attention mechanism.} vector $\boldsymbol{c}$. 
       % , called the context.
 
-      Also the decoder is usually  an LSTM network, followed by a softmax layer to generate the output word sequence $\boldsymbol{w}={w_1,...,w_{N}$ by determining a probability distribution $p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c})$ over the words given the context vector and previous outputs.
+      Also the decoder is usually  an LSTM network, followed by a softmax layer to generate the output word sequence $\boldsymbol{w}=w_1,...,w_{N}$ by determining a probability distribution $p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c})$ over the words given the context vector and previous outputs.
       \begin{equation}
         p(\boldsymbol{w}) = \prod_{i=1}^N p(w_i|{w_1,...,w_{i-1}},\boldsymbol{c})
       \end{equation}
@@ -1198,7 +1197,7 @@
       A third type of regularisation technique is called \emph{leaky HMM} in Kaldi. Transitioning from any state $a$ to any state $b$ is allowed once per frame with the probability of a small (typically around 0.01) \emph{leaky-hmm-coefficient} times the probability of state $b$. The aim is to effect a gradual forgetting of the context, since transitioning to a random state is equal to stopping and restarting the HMM \citep{povey2016purely}. This reduces the overfitting caused by too much memorising of the training data sequences.
 
       Another technique to regularise the sequence-level training is to add a separate output layer to the network that learns the cross entropy objective, as well as a separate last hidden layer. This means the network has two output branches with two separate weight matrices in each branch. After the training, the cross entropy branch can be discarded, and the main, sequence output branch is left to be used in decoding.
-      This technique is abbreviated as \textt{xent\_regularize} in the Kaldi code, and the associated hyperparameter is a scaling factor for the cross entropy objective, typically 0.1 because its dynamic range is naturally larger than that of the MMI objective function \citep{povey2016purely}.
+      This technique is abbreviated as \texttt{xent\_regularize} in the Kaldi code, and the associated hyperparameter is a scaling factor for the cross entropy objective, typically 0.1 because its dynamic range is naturally larger than that of the MMI objective function \citep{povey2016purely}.
 
 
   \subsection{Speaker-adaptive training} \label{sec:adaptive_training} 
@@ -1227,7 +1226,7 @@
     Using the model space transform, the aim is to learn the optimal model $\boldsymbol{M}$ and adaptation $\boldsymbol{G}^{(r)}$ for speaker $r$
     \begin{equation}
       (\hat{\boldsymbol{M}}, \hat{\boldsymbol{G}}) =
-          \argmax_{(\boldsymbol{M},\boldsymbol{G})}} \prod^R_{r=1}
+          \argmax_{(\boldsymbol{M},\boldsymbol{G})} \prod^R_{r=1}
           P(\boldsymbol{O}^{(r)}; \boldsymbol{G}^{(r)}(\boldsymbol{M}))
     \end{equation}
     where $\hat{\boldsymbol{M}}$ are the model parameters \citep{anastasakos1996compact}.
@@ -1404,17 +1403,22 @@
       The acoustic model training, development and test sets are the same as in \citep{enarvi2017automatic}. The training speech data are 85 hours of read and spontaneous speech from three different sources. The SPEECON corpus consists of 550 speakers reading 30 sentences and 30 single words as well as speaking 10 spontaneous sentences \citep {iskra2002speecon}. The DSPCON\footnote{\url{http://urn.fi/urn:nbn:fi:lb-201708251}} corpus consists of 5281 spontaneous sentences from 218 different male students and 24 female students, totalling 9.8 hours \citep{enarvi2018modeling}. The third source is the FinDialogue part of the FinINTAS corpus \citep{lennes2009segmental}. The development and test sets contain additionally spontaneous utterances from radio shows, referred to as RadioCon. Table \ref{tab:am_data} lists the acoustic modelling data sets.
 
       \begin{table}[ht!]
-          \begin{tabularx}{\columnwidth}{|X|l|l|l|}
-              \hline
-              \textbf{AM corpora} & \# of speakers &\# of utterances & \# of hours \\ \hline
-              DSPCON                                & 242 &5200 & 9.8  \\ \hline
-              SPEECON                               & 550 &1200 &     \\ \hline
-              FinDialogue                           &     &     &     \\ \hline
-              total AM training data                &     &     & 85   \\ \hline
-              RadioCon (devel, test sets)           &     &     &     \\ \hline
-              VoxCeleb (speaker embeddings)         &     &     &     \\ \hline
+          \begin{tabularx}{\columnwidth}{l|l|lll|l|lll|c}
+              \toprule
+              \textbf{Corpus} & \multicolumn{4}{c|}{\# of speakers}
+              &\multicolumn{4}{c|}{\# of utterances} & \# of hours \\ \midrule
+                          & total &train&devel&eval&total&train&devel&eval &\\
+              SPEECON     & 549   & 549& 0 &0 & 5499 &5499& 0 &0 &  18.8   \\ 
+              FinDialogue & 22    &22 &0&0   & 6338& 6338 &0&0  & 10.4  \\ 
+              DSPCON      & 243   &192 &40 &11 & 5219 &4129& 863& 227 & 9.7 \\  
+              RadioCon    & 11    & 0 &5 &6   & 440& 0& 126& 314 & 0.5 \\ \midrule
+              total train & \multicolumn{4}{c|}{763} &  \multicolumn{4}{c|}{15966} & 36.6  \\ 
+              total devel & \multicolumn{4}{c|}{45} &  \multicolumn{4}{c|}{989} & 2.0 \\
+              total eval  & \multicolumn{4}{c|}{17} &  \multicolumn{4}{c|}{541} & 0.7 \\
+              % VoxCeleb (speaker embeddings)         &     &     &     \\ \hline
+              \bottomrule
           \end{tabularx}
-          \caption{}
+          \caption{Speech corpora. Training data "train", development data "devel", and evaluation data "eval".}
           \label{tab:am_data}
       \end{table}
 
@@ -1534,6 +1538,7 @@
 
         The fact that the pretrained speaker embedding extractors get better results than the embeddings trained on the conversational speech data suggest that the domain of the speech is not as important as the quantity of the speech. The domain means the language as well as the type of speech, since the Voxceleb speech is in English.
 
+    \subsubsection{Discussion}
 
   \subsection{Language modelling experiments} \label{sec:lm_expts} 
 
@@ -1558,7 +1563,7 @@
       \end{table}
 
 
-    \subsubsection{Decoding with n-gram language models} \label{sec:ngram_expts} 
+    \subsubsection{Decoding with n-gram LM} \label{sec:ngram_expts} 
 
       The word-based systems use an n-gram LM with $n=4$ for the first-pass decoding and lattice generation. The SRILM \citep{stolcke2002srilm} is used to train KN-discounted n-gram in the ARPA format (see Section \ref{sec:ngram}). The two corpora are interpolated with weights that are optimised on the development data, similarly to \citep{enarvi2017automatic}.
 
@@ -1613,7 +1618,7 @@
       % morfessor segment, varikn
 
 
-    \subsubsection{Rescoring lattices with LSTM language model} \label{sec:lstm_expts} 
+    \subsubsection{Rescoring lattices with LSTM LM} \label{sec:lstm_expts} 
 
       The lattices generated in the first pass are rescored with an LSTM language model. 
 
@@ -1643,7 +1648,7 @@
       In the decoding, three pruning methods were utilised. Firstly, the standard method of defining a beam width was used: if the logarithmic probability difference between the best token and another token was more than 650, the other token was pruned. Secondly, the maximum number of tokens per a lattice node was set to 62. Finally, if at some time step there are multiple tokens with the same previous words, only the best is ketp. This context length, or recombination order, is set to 22.
       % This latter pruning method highlights the difference between lattices and n-best list.
 
-    \subsubsection{Rescoring $n$ best hypotheses with Transformer-XL language model} \label{sec:transformer_expts}
+    \subsubsection{Rescoring $n$ best hypotheses with Transformer-XL LM} \label{sec:transformer_expts}
 
       The Transformer-Xl models rescored the n-best lists generated from the first or second pass. The use of n-best lists instead of lattices is due to its computational simplicity. n-best lists are suboptimal compared to lattices, but the rescoring of lattices with transformers is not as straight forward as with RNNs, since the state of a position depends not only on the previous state, but on all of the states of other positions, too. This has been done before (e.g., \citep{irie2019language}), but implementing it was beyond the scope of this thesis work.
 
@@ -1689,20 +1694,23 @@
       % The list was generated with n-gram lstm interpolated scores  
       The n-best list was rescored with the transformer model to determine the optimal transcriptions.
 
-      \begin{table}[ht!]
-        \center
-          \begin{tabular}{|l|l|}
-              \hline
-              LM scoring & Devel set WER \\ \hline
-              1. n-gram & 29.0 \\ \hline
-              2. LSTM+n-gram & 23.0  \\ \hline
-              3. transformer & 22.6  \\ \hline
-          \end{tabular}
-          \caption{Three-pass LM scoring.}
-          \label{tab:3pass}
-      \end{table}
+      % \begin{table}[ht!]
+      %   \center
+      %     \begin{tabular}{|l|l|}
+      %         \hline
+      %         LM scoring & Devel set WER \\ \hline
+      %         1. n-gram & 29.0 \\ \hline
+      %         2. LSTM+n-gram & 23.0  \\ \hline
+      %         3. transformer & 22.6  \\ \hline
+      %     \end{tabular}
+      %     \caption{Three-pass LM scoring.}
+      %     \label{tab:3pass}
+      % \end{table}
 
 
+    \subsubsection{Discussion}
+
+    
   \subsection{Combined results}
 
     Table \ref{tab:combined} lists the best results from the 3-pass decoding scheme.
@@ -1783,29 +1791,30 @@
 \clearpage
 \section{Conclusion} \label{sec:conclusion}
 
-% The title has been so far just "Speech Recognition for Conversational Finnish", is that too vague? The research questions would be "to evaluate recent acoustic and language modelling methods for recognising conversational Finnish. In particular, to evaluate the effect of different speaker embedding approaches and evaluate transformer LMs compared to LSTM LMs with word and subword vocabularies"
+  % The research questions would be "to evaluate recent acoustic and language modelling methods for recognising conversational Finnish. In particular, to evaluate the effect of different speaker embedding approaches and evaluate transformer LMs compared to LSTM LMs with word and subword vocabularies"
 
-    The purpose of this thesis work was to improve the ASR accuracy for spontaneous conversational Finnish speech. This type of speech is challenging to recognise due to   frequent dysfluencies in sentence structure as well as the use of various informal word forms. 
+  Spontaneous conversational Finnish speech is a challenging type of speech to recognise due to frequent dysfluencies in sentence structure as well as due to the use of various informal word forms.
+  % The previous best results on the conversational Finnish corpus were presented by \citet{enarvi2017automatic}. 
+  This thesis work was an effort to improve the ASR accuracy for the conversational DSPCON corpus.
+  The aim was to evaluate recent acoustic and language modelling methods on the data. For acoustic modelling, the effect of different speaker embedding approaches was assessed. For language modelling, transformer LMs were compared to LSTM LMs with word and subword vocabularies.
 
-    The previous best results on the conversational Finnish corpus were presented by \citet{enarvi2017automatic}. 
+  In the speaker embedding experiments, the use of i-vectors and x-vectors achieved similar results when trained on the same speech corpus. Both methods decreased the evaluation set WER around 3\% when trained on the small Finnish conversational speech corpus, and roughly 7\% when trained on the significantly larger, English VoxCeleb corpus.
+  % This demonstrates that a different language can be utilised for training  speaker embeddings that are useful for ASR.
+  Although i-vectors and x-vectors achieve roughly equal results, the two methods differ in how they are trained or how they embed speakers or utterances in a vector space. It is therefore possible that they encode different types of information about the speakers or utterances. To assess whether the methods encode overlapping information, in this work the two vectors were also concatenated and evaluated on the same ASR task. The concatenated i- and x-vectors achieved a small improvement compared to using only x-vectors (about 2\%). However, this improvement was not statistically significant.
 
-    The aim of the thesis was, in general, to evaluate recent acoustic and language modelling methods for recognising conversational Finnish. In particular, the goal was to evaluate the effect of different speaker embedding approaches and evaluate transformer LMs compared to LSTM LMs with word and subword vocabularies.
+  Besides the speaker embedding experiments, the acoustic model was tuned for the development data. Since the previous best results presented by \citet{enarvi2017automatic}, the Kaldi recipes have been optimised further. Using the new Kaldi recipes also improved the results.
+  In total, the ASR WER improved 21\% (from 31.7\% to 25.1\%), when comparing the results achieved using n-gram LM scoring. 
 
-    In the speaker embedding experiments, the use of i-vectors and x-vectors achieved similar results when trained on the same speech corpus. Both methods decreased the evaluation set WER around 3\% when trained on the relatively small Finnish conversational speech corpus, and roughly 7\% when trained on the significantly larger, English VoxCeleb corpus.
-    This demonstrates that a different language can be utilised for training useful speaker embeddings.
+  The language modelling experiments included evaluating different language models with word and subword vocabularies. 
+  In the lattice generation phase, evaluating different n-grams showed that a simple 4-gram LM achieved the best WER results for both word-based and subword-based systems. 
+  
+  The LSTM language models were used to rescore the lattices generated using the n-gram language models.
+  % The LSTM language models are similar to those in \citep{enarvi2017automatic}.
+  It was hypothesised that the sequence length ought to be longer for the subword-based systems, since the tokens are shorter. This was shown to be true: increasing the sequence length from 25 to 40 improved the WER. Perhaps more surprisingly, the word-based systems benefited from decreasing the sequence length from 25 to 15.
 
-    Although i-vectors and x-vectors achieve roughly equal results, the two methods differ in how they are trained or how they embed speakers or utterances in a vector space. It is therefore possible that they encode different types of information about the speakers or utterances. To assess whether the methods encode overlapping information, in this work the two vectors were also concatenated and evaluated on the same ASR task. The concatenated i- and x-vectors achieved a small improvement compared to using only x-vectors (about 2\%). However, this improvement was not statistically significant.
-
-    In total, the acoustic modelling experiments improved the ASR accuracy 21\% (from 31.7\% to 25.1\%) compared to the results presented by \citet{enarvi2017automatic}, when using only the n-gram LM. 
-
-    The language modelling experiments included evaluating different language models with word and subword vocabularies. 
-    In the lattice genaration phase, evaluating different n-grams showed that a simple 4-gram LM achieved the best WER results for both word-based and subword-based systems. 
-    
-    The LSTM language models were used to rescore the lattices generated using the n-gram language models.
-    % The LSTM language models are similar to those in \citep{enarvi2017automatic}.
-    It was hypothesised that the sequence length ought to be longer for the subword-based systems, since the tokens are shorter. This was shown to be true: increasing the sequence length from 25 to 40 improved the WER. Perhaps more surprisingly, the word-based systems benefited from decreasing the sequence length from 25 to 15.
-
-    Transformer-XL models were evaluated 
+  Transformer-XL models were used for rescoring n-best lists generated using n-gram or LSTM LMs. Rescoring a 50-best list generated after the LSTM rescoring improved the best result by a small margin, but this was not a statistically significant improvement. The inefficacy of the transformer LM is largely due to the use of n-best lists instead of lattices. 
+  
+  Combining the best acoustic and language models built during this thesis work achieved a WER of 22.2\% on the conversational Finnish evaluation set, improving the WER by 18\% compared to previous best result.
 
 
 
