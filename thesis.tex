@@ -1203,7 +1203,7 @@
       This technique is abbreviated as \textt{xent\_regularize} in the Kaldi code, and the associated hyperparameter is a scaling factor for the cross entropy objective, typically 0.1 because its dynamic range is naturally larger than that of the MMI objective function \citep{povey2016purely}.
 
 
-  \subsection{Speaker adaptive training} \label{sec:adaptive_training} 
+  \subsection{Speaker-adaptive training} \label{sec:adaptive_training} 
     % alignments % lda + mllt
     % https://kaldi-asr.org/doc/transform.html
 
@@ -1546,15 +1546,17 @@
               % DSP conversational speech corpus transcriptions & 61k  & 0.41 \\ 
               % WEB corpus, conversational written text corpus & 75.9M & 0.59 \\ \bottomrule
 
-      \begin{table}[ht!]
-          \begin{tabularx}{\columnwidth}{c|l}
-              \toprule
-              \textbf{LM training corpus} & \textbf{\# of word tokens} \\ \midrule
-              DSP conversational speech corpus transcriptions & 61k  \\ 
-              WEB corpus, conversational written text corpus & 75.9M \\ \bottomrule
-          \end{tabularx}
-          \caption{The two language modelling corpora. DSPCON is more similar to the development and test corpora than the WEBCON, but it is significantly smaller. The two coprpora are used to generate separate n-gram models, which are interpolated. The interpolation weights are optimised on the development set.}
-          \label{}
+      Two text corpora were used for training the language models: the DSPCON speech corpus transcriptions and WEBCON corpus collected from Internet forums. Table \ref{tab:lm_corpora} lists the sizes of the LM corpora, in total roughly 76M tokens.
+
+      \begin{table}[htb]
+        \begin{tabularx}{\columnwidth}{c|l}
+          \toprule
+          \textbf{LM training corpus} & \textbf{\# of word tokens} \\ \midrule
+          DSP conversational speech corpus transcriptions & 61k  \\ 
+          WEB corpus, conversational written text corpus & 75.9M \\ \bottomrule
+        \end{tabularx}
+        \caption{The two language modelling corpora. DSPCON is more similar to the development and test corpora than the WEBCON, but it is significantly smaller. The two coprpora are used to generate separate n-gram models, which are interpolated. The interpolation weights are optimised on the development set.}
+        \label{tab:lm_corpora}
       \end{table}
 
 
@@ -1703,57 +1705,57 @@
       \end{table}
 
 
-
   \subsection{Combined results}
 
     Table \ref{tab:combined} lists the best results from the 3-pass decoding scheme.
 
     \begin{table}[ht!]
       \center
-      \begin{tabular}{l|l|l|l|l}
+      \begin{tabular}{l|l|c|l|l}
       
+      \multicolumn{3}{c}{}& \multicolumn{2}{c}{\textbf{WER (\%)}} \\
 
-      % \multirow{2}{*}{\multicolumn{1}{l}{\textbf{LM scoring}}} & \multirow{2}{*}{\multicolumn{1}{l}{\textbf{Vocab}}}
-      % & \multirow{2}{*}{\multicolumn{1}{l}{\textbf{Model details}}}
-      
-      \multicolumn{3}{c}{}& \multicolumn{2}{c}{\textbf{WER Results (\%)}} \\
-      % \cmidrule{4-5} 
       \toprule
-      \textbf{LM scoring}&\textbf{Vocab}&\textbf{Model details}& \textbf{devel} & \textbf{eval} \\ \midrule
 
-      \multicolumn{1}{l|}{\multirow{2}{*}{n-gram scores}} & word & \multicolumn{1}{c|}{\multirow{4}{*}{Enarvi et al.}} 
-      &\multicolumn{1}{l|}{29.8}  & \multicolumn{1}{l}{31.7}  \\ \cmidrule{2-2} \cmidrule{4-5} 
-
-      & subword &  &\multicolumn{1}{l|}{29.1}&\multicolumn{1}{l}{31.7}\\ \cmidrule{1-2} \cmidrule{4-5} 
-
-      \multirow{2}{*}{NNLM-rescored lattices} & word & & \multicolumn{1}{l|}{25.6}
-      & \multicolumn{1}{l}{27.9}  \\ \cmidrule{2-2} \cmidrule{4-5} 
-
-      & subword   & &  \multicolumn{1}{l|}{25.0}   & \multicolumn{1}{l}{27.1}\\ \bottomrule \toprule
+      \textbf{LM scoring} & \textbf{Vocab} & \textbf{Model details} &
+      \textbf{devel} & \textbf{eval} \\ \midrule
 
       \multirow{2}{*}{n-gram scores} & word &
-      \multicolumn{1}{l|}{i-x-ensemble,} & \multicolumn{1}{l|}{23.7} & \multicolumn{1}{l}{25.1}  \\ \cmidrule{2-2} \cmidrule{4-5} 
+      \multirow{4}{*}{\citet{enarvi2017automatic}}
+      & 29.8  & 31.7  \\ \cmidrule{2-2} \cmidrule{4-5} 
 
-      & subword & \multicolumn{1}{l|}{4-gram LM}
-      & \multicolumn{1}{l|}{24.5} & \multicolumn{1}{l}{25.2}  \\ \midrule
+      & subword &  & 29.1 & 31.7 \\ \cmidrule{1-2} \cmidrule{4-5} 
 
-      \multicolumn{1}{l|}{\multirow{2}{*}{NNLM-rescored lattices}}   & word
-      & \multicolumn{1}{l|}{LSTM sequence 15}    &  &  \\ \cmidrule{2-5} 
+      \multirow{2}{*}{NNLM-rescored lattices} & word & & 25.6
+      & 27.9 \\ \cmidrule{2-2} \cmidrule{4-5} 
 
-      & subword    & \multicolumn{1}{l|}{LSTM sequence 40} 
-      & \multicolumn{1}{l|}{\textbf{21.1}}    & \multicolumn{1}{l}{22.3}   \\ \midrule
+      & subword & & \textbf{25.0} & \textbf{27.1} \\ \bottomrule \toprule
 
-      \multicolumn{1}{l|}{Transformer-rescored 50-best list}   & subword  & \multicolumn{1}{l|}{Transformer-XL} 
-      & \multicolumn{1}{l|}{\textbf{21.1}}  & \multicolumn{1}{l}{\textbf{22.2}} \\
+      \multirow{2}{*}{n-gram scores} & word &
+      \multirow{2}{*}{\shortstack{AM w/ i-x-vectors,\\4-gram LM}}
+      & 23.7 & 25.1  \\ \cmidrule{2-2} \cmidrule{4-5} 
+
+      & subword &  & 24.5 & 25.2  \\ \midrule
+
+      \multirow{2}{*}{NNLM-rescored lattices}   & word
+      & LSTM sequence 15 & \textbf{21.1} & 22.4 \\ \cmidrule{2-5} 
+
+      & subword & LSTM sequence 40 & \textbf{21.1} & 22.3 \\ \midrule
+
+      Transformer-rescored 50-best list  & subword  & Transformer-XL
+      & \textbf{21.1}  & \textbf{22.2} \\
 
       \bottomrule
+
       \end{tabular}
     \caption{The results of the best models.}
     \label{tab:combined}
     \end{table}
 
+    % According to the significance test, the improvement from LSTM rescoring to the transformer rescoring is
 
-  \subsection{Comparison of model sizes and training time}
+
+  \subsection{Comparison of model sizes and training time} 
 
     \begin{table}[ht!]
         \center
@@ -1771,21 +1773,43 @@
     \end{table}
 
 
-  % \subsection{Significance tests}
-
-
-
-\clearpage
-\section{Discussion} \label{sec:discussion}
+% \clearpage
+% \section{Discussion} \label{sec:discussion}
   
-  The conventional ASR system includes multiple independent components that each contribute to the accuracy of the transcriptions. Using multiple language models 
+%   The conventional ASR system includes multiple independent components that each contribute to the accuracy of the transcriptions. Using multiple language models 
 
-  \subsection{Possible future work}
+%   \subsection{Possible future work}
 
-    As noted in Sections \ref{sec:lattice} and \ref{sec:expt_transformer}, the use of n-best list insted of lattices when rescoring transformers 
+%     As noted in Sections \ref{sec:lattice} and \ref{sec:expt_transformer}, the use of n-best list insted of lattices when rescoring transformers 
 
 \clearpage
 \section{Conclusion} \label{sec:conclusion}
+
+% The title has been so far just "Speech Recognition for Conversational Finnish", is that too vague? The research questions would be "to evaluate recent acoustic and language modelling methods for recognising conversational Finnish. In particular, to evaluate the effect of different speaker embedding approaches and evaluate transformer LMs compared to LSTM LMs with word and subword vocabularies"
+
+    The purpose of this thesis work was to improve the ASR accuracy for spontaneous conversational Finnish speech. This type of speech is challenging to recognise due to   frequent dysfluencies in sentence structure as well as the use of various informal word forms. 
+
+    The previous best results on the conversational Finnish corpus were presented by \citet{enarvi2017automatic}. 
+
+    The aim of the thesis was, in general, to evaluate recent acoustic and language modelling methods for recognising conversational Finnish. In particular, the goal was to evaluate the effect of different speaker embedding approaches and evaluate transformer LMs compared to LSTM LMs with word and subword vocabularies.
+
+    In the speaker embedding experiments, the use of i-vectors and x-vectors achieved similar results when trained on the same speech corpus. Both methods decreased the evaluation set WER around 3\% when trained on the relatively small Finnish conversational speech corpus, and roughly 7\% when trained on the significantly larger, English VoxCeleb corpus.
+    This demonstrates that a different language can be utilised for training useful speaker embeddings.
+
+    Although i-vectors and x-vectors achieve roughly equal results, the two methods differ in how they are trained or how they embed speakers or utterances in a vector space. It is therefore possible that they encode different types of information about the speakers or utterances. To assess whether the methods encode overlapping information, in this work the two vectors were also concatenated and evaluated on the same ASR task. The concatenated i- and x-vectors achieved a small improvement compared to using only x-vectors (about 2\%). However, this improvement was not statistically significant.
+
+    In total, the acoustic modelling experiments improved the ASR accuracy 21\% (from 31.7\% to 25.1\%) compared to the results presented by \citet{enarvi2017automatic}, when using only the n-gram LM. 
+
+    The language modelling experiments included evaluating different language models with word and subword vocabularies. 
+    In the lattice genaration phase, evaluating different n-grams showed that a simple 4-gram LM achieved the best WER results for both word-based and subword-based systems. 
+    
+    The LSTM language models were used to rescore the lattices generated using the n-gram language models.
+    % The LSTM language models are similar to those in \citep{enarvi2017automatic}.
+    It was hypothesised that the sequence length ought to be longer for the subword-based systems, since the tokens are shorter. This was shown to be true: increasing the sequence length from 25 to 40 improved the WER. Perhaps more surprisingly, the word-based systems benefited from decreasing the sequence length from 25 to 15.
+
+    Transformer-XL models were evaluated 
+
+
 
 
 \clearpage
