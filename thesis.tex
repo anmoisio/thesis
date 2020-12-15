@@ -331,38 +331,42 @@
     % Step 5: Overview of thesis structure (required)
     % (What are the aims and contents of the following chapters?)
 
-  % \subsection{The ASR task} 
+  \subsection{The ASR task} 
 
     \emph{Automatic speech recognition} (ASR) is the task of converting speech into text. The direct application of ASR is useful in many situations, for example to transcribe patient notes dictated by medical doctors. ASR has also an increasing number of use cases in systems with longer pipelines that achieve some speech-initiated task, such as \emph{voice user interfaces} or \emph{speech-to-speech translation} systems. The ASR piece can often be a bottleneck in the pipeline,  determining to a large degree the accuracy of the whole system.
 
-% maybe lose the eqs
-    In the conventional ASR system, the task is divided into subtasks. The first subtask, called feature extraction, is to divide the audio signal into $T$ segments, and convert the segments into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$. The observations are a compressed representation of the audio signal.
-    % : \emph{feature extraction},  \emph{phoneme-to-grapheme mapping}, and creating
-    The task is then to find $\argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O})$, where $\boldsymbol{w}=w_1,...,w_N$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
-    \begin{equation}\label{eq:asr-bayes}
-      \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
-      \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
-      = \argmax_{\boldsymbol{w}} \{ P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w}) \}
-    \end{equation}
-    The probability of the observations ${P(\boldsymbol{O})}$ in the denominator is not relevant in finding the best transcription ($\argmax_{\boldsymbol{w}}$) for the observations, which leaves the product in the numerator to be estimated. This product includes the two most significant subtasks: \emph{acoustic modelling} and a \emph{language modelling}. A language model (LM) generates an \emph{a priori} probability distribution $P(\boldsymbol{w})$ over possible word sequences. For example, the transcription "the god of thunder was Zeus" should probably be assigned a larger probability than "the god of thunder was juicy" even before any speech audio is processed.
-    An acoustic model (AM) outputs likelihoods of observations conditional on phoneme sequences. The phoneme sequences are mapped to words by a \emph{lexicon} (also called a \emph{pronunciation dictionary}), yielding $P(\boldsymbol{O}|\boldsymbol{w})$.
+    % maybe lose the eqs
+    In the conventional ASR system, the task is divided into subtasks.
+    The first subtask, called feature extraction, is to divide the audio signal into  segments, and convert the segments into feature vectors, also called observations. The observations are a compressed representation of the audio signal.
+    % % : \emph{feature extraction},  \emph{phoneme-to-grapheme mapping}, and creating
+    % The task is then to find $\argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O})$, where $\boldsymbol{w}=w_1,...,w_N$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
+    % \begin{equation}\label{eq:asr-bayes}
+    %   \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
+    %   \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
+    %   = \argmax_{\boldsymbol{w}} \{ P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w}) \}
+    % \end{equation}
+    % The probability of the observations ${P(\boldsymbol{O})}$ in the denominator is not relevant in finding the best transcription ($\argmax_{\boldsymbol{w}}$) for the observations, which leaves the product in the numerator to be estimated. This product includes t
+    The two most significant subtasks are \emph{acoustic modelling} and a \emph{language modelling}. A language model (LM) generates an \emph{a priori} probability distribution  over possible word sequences. For example, the transcription "the god of thunder was Zeus" should probably be assigned a larger probability than "the god of thunder was juice" even before any speech audio is processed.
+    An acoustic model (AM) outputs likelihoods of observations conditional on phoneme sequences. The phoneme sequences are mapped to words by a \emph{lexicon}, after which these a posteriori probabilities can be combined with the a priori probabilities of the language model, yielding an estimation of the optimal transcription for a given speech audio.
+    %  (also called a \emph{pronunciation dictionary}).
+    % , yielding $P(\boldsymbol{O}|\boldsymbol{w})$.
     % The probabilities of the LM and AM are combined to estimate the most likely transcription of the speech audio.
     %  \emph{a posteriori} probabilities $P(\boldsymbol{O}|\boldsymbol{w})$ of phoneme sequences conditional on the speech audio. A dictionary is used to map the phoneme sequences to words, or more generally, the same set of tokens that the LM uses, which can also be subword units or characters, for instance. 
     % The former factor $P(\boldsymbol{w})$ is the a priori probabilities of word sequences, modelled by language models. 
-    To avoid numerical underflow, the probabilities are converted to the logarithmic domain. A scalar weight $\lambda$ is added to determine how significant the LM probabilities are compared to the AM probabilities.
-    \begin{equation}\label{eq:asr-bayes-2}
-      \argmax_{\boldsymbol{w}} \{ 
-      P(\boldsymbol{w})^{\lambda}P(\boldsymbol{O}|\boldsymbol{w}) \} 
-      = \argmax_{\boldsymbol{w}}
-        \{ \lambda  \log \{ P(\boldsymbol{w}) \} +
-         \log \{ P(\boldsymbol{O}|\boldsymbol{w}) \} \}
-    \end{equation}
-    Acoustic and language modelling are achieved using machine learning models, primarily deep neural networks (DNNs), which are estimated based on training data. To model acoustics a parallel corpus of speech and text is needed, whereas to model language only text is needed.
+    % To avoid numerical underflow, the probabilities are converted to the logarithmic domain. A scalar weight $\lambda$ is added to determine how significant the LM probabilities are compared to the AM probabilities.
+    % \begin{equation}\label{eq:asr-bayes-2}
+    %   \argmax_{\boldsymbol{w}} \{ 
+    %   P(\boldsymbol{w})^{\lambda}P(\boldsymbol{O}|\boldsymbol{w}) \} 
+    %   = \argmax_{\boldsymbol{w}}
+    %     \{ \lambda  \log \{ P(\boldsymbol{w}) \} +
+    %      \log \{ P(\boldsymbol{O}|\boldsymbol{w}) \} \}
+    % \end{equation}
 
-% unnecesary here
-    In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results (e.g., by \citet{hannun2014deep, chan2016listen}). An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon, although E2E systems benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and for this reason, this thesis explores methods in this conventional paradigm.
+    Acoustic and language modelling are achieved using machine learning models, primarily deep neural networks (DNNs), which are estimated based on training data. Modelling acoustics requires a parallel corpus of speech and correct transcriptions, whereas modelling language only requires text. 
 
 
+
+  \subsection{Spontaneous, conversational Finnish}
 % move these up
     The difficulty of ASR depends on how varied and noisy the speech audio signals are.
     The confined problem of recognising a few different words pronounced clearly by one speaker
@@ -371,7 +375,7 @@
     % some
     years ago. However, speech recognition becomes more difficult when the speech is continuous and recorded in differing noise conditions from many speakers. Current state-of-the-art ASR systems are nearing human-level recognition accuracy also in the \emph{large vocabulary continuous speech recognition} (LVCSR) task if the speech is planned and pronounced clearly, as it is, for example, in broadcast news or parliament sessions. Yet, spontaneous, informal conversations remain a challenging type of speech to recognise, and the gap between human- and machine-level accuracy is still large for this type of speech.
 
-    The difficulty depends also on the language. The most obvious factor is the availability of training data. The state-of-the-art ASR systems are based on DNNs that require large training data sets. For languages such as Finnish, the resources are more limited than for the most widely spoken languages in the world, which makes the ASR task harder. To achieve accurate ASR also for small languages, more work is needed.
+    The difficulty depends also on the language. The most obvious factor is the availability of training data. The state-of-the-art ASR systems are based on DNNs that require large training data sets. For languages such as Finnish, the resources are more limited than for the most widely spoken languages in the world, which makes the ASR task harder. Thus, achieving accurate ASR for small languages will require more work.
 
     % The quality and quantity of the training data pose additional challenges for ASR, as 
     
@@ -387,47 +391,50 @@
     Finnish is a morphologically rich language. Suffixes and other conjugations perform grammatical functions, such as cases, which in
     % many Indo-European
     other 
-    languages, e.g. English, would be denoted by separate words. This makes the number of word types in the vocabulary large, requiring a lot of computational resources as well as a lot of text to train the LM. This problem can be avoided by segmenting words into smaller units, referred to as \emph{subwords} \citep{hirsimaki2006unlimited}.
+    languages such as English would be denoted by separate words. This makes the number of word types in the vocabulary large, requiring not only a considerable amount of computational resources but also much text for training the LM. This problem can be avoided by segmenting words into smaller units, referred to as \emph{subwords} \citep{hirsimaki2006unlimited}.
     
-    In colloquial spoken Finnish, however, the morphology is often different than in formal language. Some of the suffixes and other inflections can be omitted or changed to an incorrect one. For example, 
-    it is common to not use the first person plural inflections for verbs, and instead use the passive voice verb inflection ("me ollaan" instead of the correct form "me olemme") or the incorrect singular form when the third person plural form should be used ("ne on" instead of the correct "ne ovat"). Other common habits of informal Finnish include  shortening words (e.g., from "minä" to "mä") and/or combining words (e.g., "oliko se" to "olikse"). Differences between formal and informal Finnish pose difficulties when modelling informal language. Text from formal sources such as books or newspapers does not resemble colloquial Finnish very closely.
-    Another relevant feature of the Finnish language is its phonemic orthography, i.e., the fact that one letter generally corresponds to one phoneme, and vice versa. Because of this fact, it is possible
+    However, the morphology of colloquial spoken Finnish often differs from that of the formal language, with some of the suffixes and other inflections often being omitted or changed to an incorrect one.
+    % For example,it is common to not use the first person plural inflections for verbs, and instead use the passive voice verb inflection ("me ollaan" instead of the correct form "me olemme") or the incorrect singular form when the third person plural form should be used ("ne on" instead of the correct "ne ovat").
+    For example, it is common to replace  first person plural inflections  with the passive voice verb inflection ("me ollaan" instead of the correct form "me olemme") or to use the incorrect singular form when the third person plural form should be used ("ne on" instead of the correct "ne ovat").
+    Other common characteristics of informal Finnish include  shortening words (e.g., from "minä" to "mä") and/or combining words (e.g., "oliko se" to "olikse"). The differences between formal and informal Finnish pose difficulties when modelling informal language: text from formal sources such as books or newspapers does not resemble colloquial Finnish very closely.
+    However, another relevant feature of the Finnish language is its phonemic orthography, i.e., the fact that one letter generally corresponds to one phoneme, and vice versa. As a result, it is possible
     % , and to a varying degree common,
     to also \emph{write} colloquial Finnish as it is spoken. 
     It is therefore possible to find written text that resembles the spoken language, and  use this to model colloquial Finnish. The above mentioned incorrect inflections are examples of informal Finnish that is also written in the incorrect way, as it is pronounced.
 
     Colloquial Finnish is written, for example, on online forums, especially in direct-message conversations. 
-    \citet{enarvi2013studies} collected a conversational Finnish text corpus from Internet forums by searching for key phrases that indicate informal conversations. This text corpus is used also in this thesis to model conversational Finnish.
-    \citet{enarvi2017automatic} developed and evaluated different ASR systems for the conversational data.
+    \citet{enarvi2013studies} collected a conversational Finnish text corpus from Internet forums by searching for key phrases that indicate informal conversations.
+    % This text corpus is used also in this thesis to model conversational Finnish.
+    % \citet{enarvi2017automatic} developed and evaluated different ASR systems for the conversational data.
     % In their work, the acoustic models are trained on 85 hours of speech.
     % In their work, a first pass of large-vocabulary decoding and word lattice generation is done using an n-gram language model trained on the text corpus. A second pass of rescoring the lattices and generating transcripts is done using a recurrent neural network language model trained on the same text corpus.
     % Subword-vocabulary language models based on statistical segmentation of words \citep{creutz2002unsupervised, creutz2007unsupervised} were found to perform better than a word vocabulary.
-    In the years after these publications, many new acoustic and language modelling methods have been developed. 
+    % In the years after these publications, many new acoustic and language modelling methods have been developed. 
     % Both the speech data set used in this thesis and the previous best results are described by \citet{enarvi2017automatic}.
   % 3. What will be your methodology?
   % \subsection{Related work and methodology}
-    This thesis aims to experiment with some of the latest  methods to improve upon the previous best results obtained for this informal, spontaneous Finnish conversation speech data set. 
+    % This thesis aims to experiment with some of the latest  methods to improve upon the previous best results obtained for this informal, spontaneous Finnish conversation speech data set. 
+% 
+  \subsection{The research questions and scope of the thesis}
+    %  maybe move to background -- expand on research context -> speaker adaptation, better LMs
+    The purpose of this thesis is to improve the ASR accuracy for the spontaneous, conversational DSPCON corpus.
+    The aim is to evaluate recent acoustic and language modelling methods on the data and assess whether they can improve the ASR accuracy. Furthermore, the ASR pipeline, which includes the acoustic models and language models built with different toolkits, is rebuilt using the newest versions of the toolkits. For example, utilising the latest Kaldi recipes for acoustic modelling improves the ASR accuracy compared to older recipes.
 
-%  maybe move to background -- expand on research context -> speaker adaptation, better LMs
-    \citet{vaswani2017attention} introduced a neural network architecture for language modelling, called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type.
-    One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the previously common recurrent neural networks (RNN), since their hidden states do not depend on the hidden states of previous time steps.
-    In this thesis, Transformer-XL \citep{dai2019transformer} language models are trained and evaluated on the conversational Finnish data. The goal is to determine whether the transformer models achieve better results than the RNN models on the conversational Finnish data. Other language modelling experiments in this work include evaluating word and subword vocabularies for transformers as well as other LMs.
+    In the previous decade, i-vectors \citep{ivector} have been used to model speaker and channel variability. I-vectors can be added to the features, providing information that enables the ASR system to adapt to differing channels and speakers  during both training and testing. \citet{snyder2018x} described how also DNNs can  be utilised to create speaker embeddings, called x-vectors, which model differences between speakers. In this work, the effects of i-vectors and x-vectors on the ASR accuracy are evaluated and compared on the conversational Finnish data. The experiments aim to determine whether one of the methods is more suitable for this type of data.
+
+    \citet{vaswani2017attention} introduced a neural network architecture for language modelling, called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type for many language processing tasks.
+    % One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the previously common recurrent neural networks (RNN), since their hidden states do not depend on the hidden states of previous time steps.
+    In this thesis, Transformer-XL \citep{dai2019transformer} language models are trained and evaluated on the conversational Finnish data. The goal is to determine whether the transformer models achieve better results than the RNN models on the conversational Finnish data.
+    % Word and subword vocabularies are compared for n-gram LMs, RNN LMs and transformer-XLs.
+    Other language modelling experiments in this work include tuning the hyperparameters and comparing word and subword vocabularies for n-gram LMs, RNN LMs and transformer-XL LMs. 
     % , tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs)
     
     % in the ASR task, in a similar manner as described by \citet{jain2020finnish}.
 
-    In the previous decade, i-vectors \citep{ivector} have been used to model speaker and channel variability and to add this information to the features. \citet{snyder2018x} described how also DNNs can  be utilised to create speaker embeddings, called x-vectors, that model differences between speakers. In this work, i-vectors and x-vectors are evaluated and compared on the conversational Finnish data. The aim is to explore how these speaker embeddings affect the ASR accuracy on the used data set.
-    
-
     % The baseline system is the same in this thesis, and the work begun by replicating the previous results. The Kaldi toolkit includes acoustic model training pipelines, called "recipes", that are tuned to achieve optimal results for a particular speech data set. In the past three years after the above mentioned previous best results were achieved, the Kaldi recipes have been developed further, and the latest machine learning algorithms have been implemented in the toolkit. By applying the latest Kaldi recipes for the Finnish speech data used in this thesis, the previous best results can be improved. Other acoustic modelling experiments of this work include modelling the speaker and channel variability using i-vectors \citep{ivector} and x-vectors \citep{snyder2018x}.
-
-    
 
     % , and experimenting with topic modelling (see e.g., \citet{xiong2018session, xing2016topic}).
 
-
-
-    
     % This thesis explores methods for improving ASR for conversational Finnish.
 
     % \subsection{The basic structure of an ASR system} 
@@ -435,7 +442,8 @@
 
     % possibly a bulletin list
     %  more interesting info here
-    The thesis is divided into seven chapters. The background theory is described in three chapters: Chapter \ref{sec:ml} defines some of the main concepts of machine learning, Chapter \ref{sec:lm} describes the relevant language modelling techniques, and acoustic modelling is discussed in Chapter \ref{sec:am}.
+    % The thesis is divided into seven chapters. 
+    The background theory of the utilised acoustic and language modelling methods is described in three separate chapters. Chapter \ref{sec:ml} defines some of the main concepts of machine learning as well as the basic structure of an ASR system. Chapter \ref{sec:lm} describes the relevant language modelling techniques: the n-gram, RNN, and transformer language models. Acoustic modelling and the Kaldi toolkit are described in Chapter \ref{sec:am}.
     % The first
     % % four
     % sections of this chapter respectively describe the
@@ -447,7 +455,9 @@
     %   \hat{\boldsymbol{w}} = \argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O}) = 
     %   \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
     % \end{equation} 
-    Chapter \ref{sec:experiments} describes the experiments and their results. Chapter \ref{sec:discussion} gives some discussion on the experiments and results, and Chapter \ref{sec:conclusion} concludes the thesis.
+    Chapter \ref{sec:experiments} presents the experiments and results. 
+    Chapter \ref{sec:discussion} discusses the results and desrcibes possible future work on the subject.
+    Chapter \ref{sec:conclusion} concludes the thesis.
 
 
 
@@ -546,7 +556,7 @@
     % Residual connections \citep{he2016deep}
     % highway networks
 
-  \subsection{Machines learning speech recognition}
+  \subsection{Machine learning for speech recognition}
 
     % Machine learning has been an integral part of ASR 
 
@@ -577,8 +587,9 @@
     \end{equation}
     Acoustic and language modelling are achieved using machine learning models, primarily deep neural networks (DNNs), which are estimated based on training data. To model acoustics a parallel corpus of speech and text is needed, whereas to model language only text is needed.
 
-    
+    In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results (e.g., by \citet{hannun2014deep, chan2016listen}). An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon, although E2E systems benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and for this reason, this thesis explores methods in this conventional paradigm.
 
+    
 \clearpage
 \section{Statistical language modelling} \label{sec:lm} 
 
@@ -1382,8 +1393,8 @@
 
     \begin{figure}[htb]
       \centering
-      \includegraphics[width=14cm]{lattice}
-      \caption{A word lattice generated by one of the ASR systems build during the thesis. The correct transcription is "nii voi joo siis ei se varmaa siis emmä usko et sitä ongelmaa niinku se mä vaan mietin niinku nyt tota et et et mitä se tuomas sano sanoks se niinku et ne avaimet on niinku menny sen roskiksen mukana niinku mä ehdotin vai sanoks se".
+      \includegraphics[width=16cm]{lat}
+      \caption{A word lattice FST generated by one of the ASR systems built during the thesis. The correct transcription is "nii voi joo siis ei se varmaa siis emmä usko et sitä ongelmaa niinku se mä vaan mietin niinku nyt tota et et et mitä se tuomas sano sanoks se niinku et ne avaimet on niinku menny sen roskiksen mukana niinku mä ehdotin vai sanoks se". Each edge of the lattice is assigned a word as well as acoustic and language model costs (not printed in the figure). The numbers in the figure are identifiers of nodes and words. As a path is taken through the lattice, a transcription is generated.
       % dspf004_dsp2013_01
       }
       \label{fig:lattice}
@@ -1779,12 +1790,12 @@
     \end{table}
 
 
-% \clearpage
-% \section{Discussion} \label{sec:discussion}
+\clearpage
+\section{Discussion} \label{sec:discussion}
   
 %   The conventional ASR system includes multiple independent components that each contribute to the accuracy of the transcriptions. Using multiple language models 
 
-%   \subsection{Possible future work}
+  \subsection{Possible future work}
 
 %     As noted in Sections \ref{sec:lattice} and \ref{sec:expt_transformer}, the use of n-best list insted of lattices when rescoring transformers 
 
@@ -1793,14 +1804,15 @@
 
   % The research questions would be "to evaluate recent acoustic and language modelling methods for recognising conversational Finnish. In particular, to evaluate the effect of different speaker embedding approaches and evaluate transformer LMs compared to LSTM LMs with word and subword vocabularies"
 
-  Spontaneous conversational Finnish speech is a challenging type of speech to recognise due to frequent dysfluencies in sentence structure as well as due to the use of various informal word forms.
+  Spontaneous conversational Finnish is a challenging type of speech to recognise due to frequent dysfluencies in sentence structure as well as due to the use of various informal word forms.
   % The previous best results on the conversational Finnish corpus were presented by \citet{enarvi2017automatic}. 
   This thesis work was an effort to improve the ASR accuracy for the conversational DSPCON corpus.
-  The aim was to evaluate recent acoustic and language modelling methods on the data. For acoustic modelling, the effect of different speaker embedding approaches was assessed. For language modelling, transformer LMs were compared to LSTM LMs with word and subword vocabularies.
+  The aim was to evaluate recent acoustic and language modelling methods on the data.
+  The main experiments included evaluating the effect of different speaker embedding approaches, and comparing transformer-XL LMs and LSTM LMs with word and subword vocabularies.
 
   In the speaker embedding experiments, the use of i-vectors and x-vectors achieved similar results when trained on the same speech corpus. Both methods decreased the evaluation set WER around 3\% when trained on the small Finnish conversational speech corpus, and roughly 7\% when trained on the significantly larger, English VoxCeleb corpus.
   % This demonstrates that a different language can be utilised for training  speaker embeddings that are useful for ASR.
-  Although i-vectors and x-vectors achieve roughly equal results, the two methods differ in how they are trained or how they embed speakers or utterances in a vector space. It is therefore possible that they encode different types of information about the speakers or utterances. To assess whether the methods encode overlapping information, in this work the two vectors were also concatenated and evaluated on the same ASR task. The concatenated i- and x-vectors achieved a small improvement compared to using only x-vectors (about 2\%). However, this improvement was not statistically significant.
+  Although i-vectors and x-vectors achieve roughly equal results, the two methods differ in how they are trained or how they embed speakers or utterances in a vector space. It is therefore possible that they encode different types of information about the speakers or utterances. To assess whether the methods encode overlapping information, the two vectors were also concatenated and evaluated on the same ASR task. The concatenated i- and x-vectors achieved a small improvement compared to using only x-vectors (about 2\%). However, this improvement was not statistically significant.
 
   Besides the speaker embedding experiments, the acoustic model was tuned for the development data. Since the previous best results presented by \citet{enarvi2017automatic}, the Kaldi recipes have been optimised further. Using the new Kaldi recipes also improved the results.
   In total, the ASR WER improved 21\% (from 31.7\% to 25.1\%), when comparing the results achieved using n-gram LM scoring. 
@@ -1810,12 +1822,11 @@
   
   The LSTM language models were used to rescore the lattices generated using the n-gram language models.
   % The LSTM language models are similar to those in \citep{enarvi2017automatic}.
-  It was hypothesised that the sequence length ought to be longer for the subword-based systems, since the tokens are shorter. This was shown to be true: increasing the sequence length from 25 to 40 improved the WER. Perhaps more surprisingly, the word-based systems benefited from decreasing the sequence length from 25 to 15.
+  It was hypothesised that the  sequence length of the context ought to be longer for the subword-based systems, since the tokens are shorter. This was shown to be the case: increasing the sequence length from 25 to 40 improved the WER. Perhaps more surprisingly, the word-based systems benefited from decreasing the sequence length from 25 to 15.
 
-  Transformer-XL models were used for rescoring n-best lists generated using n-gram or LSTM LMs. Rescoring a 50-best list generated after the LSTM rescoring improved the best result by a small margin, but this was not a statistically significant improvement. The inefficacy of the transformer LM is largely due to the use of n-best lists instead of lattices. 
+  Transformer-XL models were used for rescoring n-best lists generated using n-gram or LSTM LMs. For the word-based system, rescoring the n-best lists with a transformer LM did not improve the results. Rescoring a 50-best list generated after the LSTM rescoring improved the best result by a small margin (0.5\%) for the subword-based system, but this was not a statistically significant improvement.  The inefficacy of the transformer LM is probably due to the  use of n-best lists instead of lattices as well as the small size of the language modelling corpus. 
   
   Combining the best acoustic and language models built during this thesis work achieved a WER of 22.2\% on the conversational Finnish evaluation set, improving the WER by 18\% compared to previous best result.
-
 
 
 
