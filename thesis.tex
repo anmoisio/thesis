@@ -64,7 +64,7 @@
 
   \graphicspath{ {./images/} }
   
-  \renewcommand{\baselinestretch}{1.0}
+  \renewcommand{\baselinestretch}{1.1}
 
   \DeclareMathOperator*{\argmax}{argmax}
   \DeclareMathOperator*{\softmax}{softmax}
@@ -483,72 +483,80 @@
 \clearpage
 \section{Machine learning} \label{sec:ml} 
 
-  %
-    % \subsubsection{Statistical models} 
+  
+  % \subsubsection{Models} 
 
-    A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart. The term is very general: there are physical, statistical, and conceptual models, just to name a few different types. Brains, too, build 
-    % mental
-    models, conscious and subconscious, of phenomena that they encounter in their environment, which is the basis of how animals are able to perceive
-    % , 
-    % understand, predict, 
-    and act in an environment.
-    Language is a prominent phenomenon in the environment that humans live in, and the human brain naturally develops models to process and generate language. Humans learn a language gradually through exposure to it. Similarly, to build a statistical model of a language or its pronunciation, machine learning algorithms are used. This chapter briefly introduces some of the main concepts that are central to the language and acoustic modelling algorithms described respectively in the next two chapters.
+    A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
+    % The term is very general: there are physical, mathematical, and conceptual models, just to name a few different types.
+    Models can be either physical or conceptual, and the latter group can be subdivided into many different kinds of conceptual models, such as logical, scientific, or mathematical models. One category of mathematical models is \emph{statistical models}.
+    According to \citet{davison2003statistical}, a statistical model is "a probability distribution constructed to enable inferences to be drawn or decisions made from data". A basic example of a probability distribution is a normal, or \emph{Gaussian}, distribution, whose shape is defined by its \emph{parameters} $\theta$, the mean and variance. Given a set of data points, an optimal Gaussian distribution can be superimposed on the data by simply calculating the parameters values from their formula
+    \footnote{The mean is $\mu = \frac{\sum_i x_i}{N}$ and the variance is $ \sigma^2 = \frac{\sum_i (x_i - \mu)^2}{N-1}$ where $x_i$ is a data point and $i \in \{ 1,...,N \}$.}. However, if the data points are not assumed to be from a simple univariate Gaussian and more degrees of freedom are introduced to the model, there is no simple formula from which to determine the parameters. Instead, a numerical solution need to be sought, which is the task of mathematical optimisation.
+    % aasinsilta
+    \emph{Machine learning} is often formulated as optimisation of an objective function, with the added goal of being able to generalise to unseen samples of data. Most importantly to this thesis, statistical models of language and speech acoustics are created using machine learning algorithms.
+    This chapter briefly introduces some of the main concepts of machine learning that are central to the language and acoustic modelling algorithms described respectively in the next two chapters.
     
-    % Brains have evolved to build both unconscious and  consciously accessible models of consequential things, such as animals, weather, or phonemes that compose a language.
-    %     % of plants, of the body that contains the brain, of weather, water etc.
-    %     % representations of time, space, temperature etc. 
-    %     Model of any of these kinds, however, is ...
-
-    %     The abstraction and simplification can happen by grouping similar things into one. For example, a mental model of a tree integrates many individual leaves into one foliage, and
-    %     % , more fundamentally, 
-    %     a visual model of a leaf integrates many chloroplasts and other small things into one green surface that is perceived when looking at a leaf.
-
-    % \subsection{Fitness criterion}
-
-    A mathematical model is often formulated as a function that generates an output given an input, emulating how the real-world phenomenon behaves.
-    % Inputting a knife into a coconut outputs coconut milk, and an accurate mental model of a coconut should be able to predict that a coconut will function in this manner.
-    More generally, a model can be any kind of mapping from a domain to another. The acoustic and language models used in ASR are formulated as probabilistic models that output probabilities for a given input: how probable is a sequence of words, or how likely is a sequence of audio observations conditional on a particular phoneme sequence.
-        
-    %     % ; via lowering the resolution: a mental model of a 
-
-    % \subsubsection{Estimating models statistically}
-
-    There are two directions, ways to create a model of a phenomenon: top-down or bottom-up\footnote{In mathematics, solving a function in a top-down fashion is called an analytical or a symbolic solution, and bottom up a numerical solution.}.
     % 
-    Designing from top down means roughly to analyse the task on a high-level and deducing from that how the model should function in the lower levels.
-    For example, a chess program can be programmed top-down using if-else clauses, e.g. "if pawn is in D7 and D8 is empty, move pawn to D8". To build a competent chess program this way requires a good understanding of what moves are beneficial. Top-down design of models is an exclusively human undertaking.
-    % , and a rare way to build a model.
-    % a recipe for a dish, which is then used to cook up the real thing. This way the simplified model is created without the real phenomenon existing yet, or ever.
-    % However, top-down design depends on previous models that have ultimately been estimated from bottom up. 
-    A bottom-up generation of a model is the more usual way models come to being. In this approach, the abstract model is estimated from data gathered from the manifest world. In the chess example, the designing work can be delegated to an algorithm that performs bottom-up estimation of the desired behaviour using machine learning. In practice, the program learns by trial and error, preferring (reinforcing) those moves that have preceded winning. When the actual decisions of moves are left for the algorithm, the programmer herself need not understand the game. By merely defining the learning algorithm and leaving the model to teach itself, the model can eventually surpass the human-level competence, as has happened with most board games, among other tasks.
-    Some tasks are inherently so complex that no one has seriously tried to build rule-based models of them. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
+      % Brains have evolved to build both unconscious and  consciously accessible models of consequential things, such as animals, weather, or phonemes that compose a language.
+      %     % of plants, of the body that contains the brain, of weather, water etc.
+      %     % representations of time, space, temperature etc. 
+      %     Model of any of these kinds, however, is ...
+
+      %     The abstraction and simplification can happen by grouping similar things into one. For example, a mental model of a tree integrates many individual leaves into one foliage, and
+      %     % , more fundamentally, 
+      %     a visual model of a leaf integrates many chloroplasts and other small things into one green surface that is perceived when looking at a leaf.
+
+      % \subsection{Fitness criterion}
+
+      % A mathematical model is often formulated as a function that generates an output given an input, emulating how the real-world phenomenon behaves.
+      % % Inputting a knife into a coconut outputs coconut milk, and an accurate mental model of a coconut should be able to predict that a coconut will function in this manner.
+      % More generally, a model can be any kind of mapping from a domain to another. The acoustic and language models used in ASR are formulated as probabilistic models that output probabilities for a given input: how probable is a sequence of words, or how likely is a sequence of audio observations conditional on a particular phoneme sequence.
+          
+      % %     % ; via lowering the resolution: a mental model of a 
+
+      % % \subsubsection{Estimating models statistically}
+
+      % There are two directions, ways to create a model of a phenomenon: top-down or bottom-up\footnote{In mathematics, solving a function in a top-down fashion is called an analytical or a symbolic solution, and bottom up a numerical solution.}.
+      % % 
+      % Designing from top down means roughly to analyse the task on a high-level and deducing from that how the model should function in the lower levels.
+      % For example, a chess program can be programmed top-down using if-else clauses, e.g. "if pawn is in D7 and D8 is empty, move pawn to D8". To build a competent chess program this way requires a good understanding of what moves are beneficial. Top-down design of models is an exclusively human undertaking.
+      % % , and a rare way to build a model.
+      % % a recipe for a dish, which is then used to cook up the real thing. This way the simplified model is created without the real phenomenon existing yet, or ever.
+      % % However, top-down design depends on previous models that have ultimately been estimated from bottom up. 
+      % A bottom-up generation of a model is the more usual way models come to being. In this approach, the abstract model is estimated from data gathered from the manifest world. In the chess example, the designing work can be delegated to an algorithm that performs bottom-up estimation of the desired behaviour using machine learning. In practice, the program learns by trial and error, preferring (reinforcing) those moves that have preceded winning. When the actual decisions of moves are left for the algorithm, the programmer herself need not understand the game. By merely defining the learning algorithm and leaving the model to teach itself, the model can eventually surpass the human-level competence, as has happened with most board games, among other tasks.
+      % Some tasks are inherently so complex that no one has seriously tried to build rule-based models of them. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
+      
+      % a recipe for the dish can be developed by experimenting with random recipes in some finite search space of possible recipes, tasting the finished product, and iteratively narrowing down the search space, homing in on an optimal experience. Once a cook has done enough bottom-up design, top-down design becomes possible by deducing from the mental model what a never-before-experienced combination of ingredients will taste like.
+      
+      
+
+      %   In computer science, top-down design has been the usual way to develop systems.
+      %   % If the function to be estimated is simple enough
+      %   For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
+
+  \subsection{Objective function} 
+
+    % The mapping from input to output is determined by the parameters $\theta$ that are learned. 
+    There are different approaches to defining how good a model is, given a training dataset. Using the maximum likelihood estimation (MLE), the parameters are adjusted to maximise how probable the model judges the data set. The maximum likelihood estimate $\theta_{\textup{ML}}$ of the model parameters is the point in the parameter space that maximises the likelihood of the observed data. When a prior distribution is considered in addition to the current data, MLE becomes maximum a posteriori (MAP) estimation.  The confidence of how good the MLE/MAP point estimate is is related to its variance. If alternative samplings of the observations are likely to change the estimate, the variance is larger.  
     
-    % a recipe for the dish can be developed by experimenting with random recipes in some finite search space of possible recipes, tasting the finished product, and iteratively narrowing down the search space, homing in on an optimal experience. Once a cook has done enough bottom-up design, top-down design becomes possible by deducing from the mental model what a never-before-experienced combination of ingredients will taste like.
-    
-     
-
-    %   In computer science, top-down design has been the usual way to develop systems.
-    %   % If the function to be estimated is simple enough
-    %   For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
-
-  \subsection{Fitness criterion} 
-
-    The mapping from input to output is determined by the parameters $\theta$ that are learned. There are different approaches to defining how good a model is, given a training dataset. Using the maximum likelihood estimation (MLE), the parameters are adjusted to maximise how probable the model judges the data set. The maximum likelihood estimate $\theta_{\textup{ML}}$ of the model parameters is the point in the parameter space that maximises the likelihood of the observed data. The confidence of how good the point estimate is is related to its variance. If alternative samplings of the observations are likely to change the estimate, the variance is larger. In contrast to the MLE approach,
+    In contrast to the MLE/MAP approach,
     % and frequentist statistics in general,
-    the Bayesian approach is to generate a full probability distribution function for $\theta$. When the model is used to estimate the probability of an observation, the distribution is integrated over the parameter space, and the probabilities of the observations given by each parameter point estimate is weighted by how probable the parameter point is. This way the confidence on the parameter estimate is incorporated in the data likelihood. However, using a full probability distribution instead of a point estimate is computationally expensive, and therefore the MLE method is the more commonly used approach in machine learning.
+    the Bayesian approach is to generate a full probability distribution function for $\theta$. When the model is used to estimate the probability of an observation, the distribution is integrated over the parameter space, and the probabilities of the observations given by each parameter point estimate is weighted by how probable the parameter point is. This way the confidence on the parameter estimate is incorporated in the data likelihood. However, using a full probability distribution instead of a point estimate is computationally expensive, and therefore the MLE/MAP method is the more commonly used approach in machine learning.
     
     % incorporate the degree of certainty to the model itself
 
   \subsection{Optimisation} 
 
-    Depending on the criterion for an optimal model, a optimisation method is chosen and applied to tune the free parameters of a model. When the model to be estimated includes latent variables, the maximum likelihood estimate can be computed using the expectation maximisation (EM) algorithm. A latent (i.e., hidden) variable is a variable that is not directly observed, but can affect the observed variables. A general example of a latent variable is some phenomenon in the real world that is not directly observed, but whose properties are inferred from measurements that are observable. Two types of models that include latent variables are GMMs and HMMs, both of which are central to the conventional implementation methods in automatic speech recognition. In GMMs, the identity of the mixture component $c$ of a data point $o$ is a latent variable, and the probability distribution $P(o)$ is determined by the joint distribution $P(o,c)=P(o|c)P(c)$. Hidden Markov models are named after the latent, hidden sequence that generates an observed sequence\footnote{They are also named after the Russian mathematician Andrey Markov.}; in speech recognition the hidden sequence can be a sequence of phones that generate the sequence of processed audio signal chunks referred to as features.
+    Depending on the criterion for an optimal model, a optimisation method is chosen and applied to tune the free parameters $\theta$ of a model. The choice of optimisation algorithm depends also on other factors, one of which is whether the model includes latent variables.
+    A latent (i.e., hidden) variable is a variable that is not directly observed, but can affect the observed variables. In general, a latent variable is some phenomenon in the real world that is not directly observed, but whose properties are inferred from measurements that are observable.
+    Two types of models that include latent variables are GMMs and HMMs (see Section \ref{sec:sec:phoneme_hmm}), both of which are central to the conventional methods of automatic speech recognition. In GMMs, the identity of the mixture component $c$ of a data point $o$ is a latent variable, and the probability distribution $P(o)$ is determined by the joint distribution $P(o,c)=P(o|c)P(c)$.
+    Hidden Markov models are named after the latent, hidden sequence that generates an observed sequence\footnote{They are also named after the Russian mathematician Andrey Markov.}; in speech recognition the latent sequence can be a sequence of phones that generate the sequence of processed audio signal chunks referred to as features.
     % 'Maximum likelihood modeling with Gaussian distributions for classification'
     % gupta2011theory
 
-    Maximising the expectedness of the data can be turned around and seen as minimising how surprising the training data are to the model by modifying the model. Expectation maximisation is an iterative method to finding a local maximum for the likelihood of a set of data given a model.
-
-
-    The EM algorithm consists of iterating the expectation step (E-step) and the maximisation step (M-step). The E-step 
+    When the model to be estimated includes latent variables, the maximum likelihood estimate can be computed using the expectation maximisation (EM) algorithm.
+    % Maximising the expectedness of the data can be turned around and seen as minimising how surprising the training data are to the model by modifying the model.
+    Expectation maximisation is an iterative method to finding a local maximum for the likelihood of a set of data given a model.
+    The EM algorithm consists of iterating the expectation step (E-step) and the maximisation step (M-step). Roughly, the E-step estimates the latent variables by which a function can be created for calculating the likelihood of the parameters. The M-step then maximises the likelihood by setting the parameter values. In Section \ref{sec:hmm_est}, an EM algorithm is described for estimating the HMMs for acoustic modelling.
 
     % Goodfellow-et-al-2016
 
@@ -572,6 +580,14 @@
     % highway networks
 
   \subsection{Machine learning for speech recognition}
+
+    Brains, too, build 
+    % mental
+    models, conscious and subconscious, of phenomena that they encounter in their environment, which is the basis of how animals are able to perceive
+    % , 
+    % understand, predict, 
+    and act in an environment.
+    Language is a prominent phenomenon in the environment that humans live in, and the human brain naturally develops models to process and generate language. Humans learn a language gradually through exposure to it. Similarly, to build a statistical model of a language or its pronunciation, machine learning algorithms are used.
 
     % Machine learning has been an integral part of ASR 
 
@@ -1049,7 +1065,7 @@
           (\boldsymbol{o}_t - \boldsymbol{\mu}_j)^\top }
           {\sum^T_{t=1}L_j(t)}
       \end{equation}
-      The numerator and denominator sums for both parameter groups are \emph{accumulated} from the observations. This is the M-step in this expectation maximisation algorithm. The E-step includes finding the optimal alignment given the current HMM parameters. This is achieved by the forward-backward algorithm.
+      The numerator and denominator sums for both parameter groups are \emph{accumulated} from the observations. This is the M-step in this expectation maximisation algorithm. The E-step includes finding the optimal alignment given the current HMM parameters, which is achieved by the forward-backward algorithm.
 
       % kaldi: gmm-init, HTK: Hinit
 
