@@ -64,7 +64,7 @@
 
   \graphicspath{ {./images/} }
   
-  \renewcommand{\baselinestretch}{1.15}
+  \renewcommand{\baselinestretch}{1.0}
 
   \DeclareMathOperator*{\argmax}{argmax}
   \DeclareMathOperator*{\softmax}{softmax}
@@ -428,9 +428,24 @@
     % Word and subword vocabularies are compared for n-gram LMs, RNN LMs and transformer-XLs.
     Other language modelling experiments in this work include tuning the hyperparameters and comparing word and subword vocabularies for n-gram LMs, RNN LMs and transformer-XL LMs. 
     % , tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs)
+  
     
-    % in the ASR task, in a similar manner as described by \citet{jain2020finnish}.
+    \begin{enumerate}
+      \item Can the recognition accuracy be improved using new Kaldi recipes?
+      \item i-vectors vs x-vectors:
+        \begin{itemize}
+          \item Can x-vectors achieve better results than the previously used i-vectors?
+          \item Do extractors pre-trained on a different language (English) with more data improve the ASR accuracy?
+          \item Is it beneficial to concatenate i- and x-vectors
+        \end{itemize}
+      \item RNN vs Transformer language models:
+      \begin{itemize}
+        \item Can transformer models achieve better results than the RNN models on the conversational Finnish data?
+        \item 
+      \end{itemize}
+    \end{enumerate}
 
+    % in the ASR task, in a similar manner as described by \citet{jain2020finnish}.
     % The baseline system is the same in this thesis, and the work begun by replicating the previous results. The Kaldi toolkit includes acoustic model training pipelines, called "recipes", that are tuned to achieve optimal results for a particular speech data set. In the past three years after the above mentioned previous best results were achieved, the Kaldi recipes have been developed further, and the latest machine learning algorithms have been implemented in the toolkit. By applying the latest Kaldi recipes for the Finnish speech data used in this thesis, the previous best results can be improved. Other acoustic modelling experiments of this work include modelling the speaker and channel variability using i-vectors \citep{ivector} and x-vectors \citep{snyder2018x}.
 
     % , and experimenting with topic modelling (see e.g., \citet{xiong2018session, xing2016topic}).
@@ -456,7 +471,7 @@
     %   \argmax_{\boldsymbol{w}} \frac{P(\boldsymbol{w})P(\boldsymbol{O}|\boldsymbol{w})} {P(\boldsymbol{O})}
     % \end{equation} 
     Chapter \ref{sec:experiments} presents the experiments and results. 
-    Chapter \ref{sec:discussion} discusses the results and desrcibes possible future work on the subject.
+    Chapter \ref{sec:discussion} discusses the results and describes possible future work on the subject.
     Chapter \ref{sec:conclusion} concludes the thesis.
 
 
@@ -1257,7 +1272,10 @@
     
     A common method is to extract i-vectors from speakers \citep{ivector}, optionally perform a transformation of the i-vectors using a control network, and append them to the features that are fed to the DNN \citep{miao2015speaker}. i-vectors have usually a hundred or a few hundred dimensions that encode properties of a speaker as well as the environment, enabling the AM to generalise more robustly to speech in different conditions. The original paper by \citet{ivector} referred to the i-vector as the \emph{total factors} $\boldsymbol{w}$ in the \emph{total variability space} $\boldsymbol{T}$ because it models both speaker and channel variability in contrast with joint factor analysis \citep{kenny2005joint} which makes a distinction between the two sources of variability. 
     
-    The total variability space $\boldsymbol{T}$ models the variability between utterances, and it is also referred to as the i-vector extractor \citep{alam2014use}. i-vector extractor training starts by estimating a speaker-independent GMM called an \emph{universal background model}, or UBM. The purpose of the UBM is to represent the general, or universal, characteristics of speech, i.e., it is the speaker-independent model. Baum-Welch statistics are obtained from the UBM at the frame level. The i-vector is then defined as the mean vector of the posterior Gaussian distribution conditioned on the Baum-Welch statistics for a given utterance \citep{ivector}. In practice it is a MAP estimate \citep{kenny2005eigenvoice}. The mean vector (i-vector) is actually a concatenation of the mean vectors of the mixture components, called a supervector \citep{campbell2006svm}. A speaker-specific utterance supervector $\boldsymbol{M}$ is composed of the factors
+    The total variability space $\boldsymbol{T}$ models the variability between utterances.
+    % , and it is also referred to as the i-vector extractor \citep{alam2014use}.
+    % The i-vector extractor is characterised by $\boldsymbol{m}$ $\boldsymbol{T}$ and $\Sigma$
+    i-vector extractor training starts by estimating a speaker-independent GMM called an \emph{universal background model}, or UBM. The purpose of the UBM is to represent the general, or universal, characteristics of speech, i.e., it is the speaker-independent model. Baum-Welch statistics are obtained from the UBM at the frame level. The i-vector is then defined as the mean vector of the posterior Gaussian distribution conditioned on the Baum-Welch statistics for a given utterance \citep{ivector}. In practice it is a MAP estimate \citep{kenny2005eigenvoice}. The mean vector (i-vector) is actually a concatenation of the mean vectors of the mixture components, called a supervector \citep{campbell2006svm}. A speaker-specific utterance supervector $\boldsymbol{M}$ is composed of the factors
     \begin{equation}
       \boldsymbol{M} = \boldsymbol{m} + \boldsymbol{T} \boldsymbol{w}
     \end{equation}
@@ -1530,17 +1548,17 @@
 
                 None && 25.1 & 27.3   \\ \midrule
 
-                \multirow{4}{*}{i-vectors} & conv speech (online) & 23.9 & 26.5 \\ 
-                & conv speech (offline) & 24.0 & 26.5 \\ 
-                & VoxCelec pretrained & 23.9 & 25.5  \\ 
+                \multirow{4}{*}{i-vectors} & conv speech  & 23.9 & 26.5 \\ 
+                % & conv speech (offline) & 24.0 & 26.5 \\ 
+                & VoxCeleb pretrained & 23.9 & 25.5  \\ 
                 & Yle, parliament pretrained & \textbf{23.3} & 25.8 \\\midrule
 
                 \multirow{3}{*}{x-vectors} & conv speech & 24.3 & 26.3  \\ 
-                & VoxCelec pretrained & 23.7 & 25.5  \\
-                &  Voxceleb pretrained and conv speech finetuned & 24.2 & 25.3  \\ \midrule
+                & VoxCeleb pretrained & 23.7 & 25.5  \\
+                &  VoxCeleb pretrained and conv speech finetuned & 24.2 & 25.3  \\ \midrule
 
                 \multirow{2}{*}{i-x-ensemble} & conv speech & 24.0 & 25.8 \\ 
-                & Voxceleb  & 23.7 & \textbf{25.1}   \\ \bottomrule
+                & VoxCeleb  & 23.7 & \textbf{25.1}   \\ \bottomrule
 
             \end{tabularx}
             \caption{The WER results for the word-based system using different speaker embeddings concatenated with the input features. This is the 1st-pass, using a 4-gram language model.}
@@ -1683,7 +1701,7 @@
               1000-best list &   24.2 \\ \bottomrule
           \end{tabular}
           \caption{The effect of a larger number of hypotheses on the development set WER results. The n-best lists were generated from a first-pass decoding with an n-gram, which achieved a WER of 29.0 in this experiment.}
-          \label{tab:transformer_first}
+          \label{tab:transformer_n-best}
       \end{table}
 
       \begin{table}[ht!]
@@ -1696,7 +1714,21 @@
               800k &  26.0  \\ \bottomrule
           \end{tabular}
           \caption{The effect of further training on the development set WER results. The n-best lists were generated from a first-pass decoding with an n-gram, which achieved a WER of 29.0 in this experiment.}
-          \label{tab:transformer_first}
+          \label{tab:transformer_steps}
+      \end{table}
+
+      \begin{table}[ht!]
+        \center
+          \begin{tabular}{c|c}
+              \toprule
+              \textbf{LM} & \textbf{Devel WER} \\ \midrule
+              n-gram & 29.0 \\
+              LSTM &  \textbf{24.8}          \\ 
+              LSTM + n-gram & 25.1 \\ 
+              Transformer-xl &   26.0 \\ \bottomrule
+          \end{tabular}
+          \caption{Comparison of the LSTM and transformer models in the 50-best hypothesis rescoring.}
+          \label{tab:50-best}
       \end{table}
 
       \paragraph*{3rd pass results}
@@ -1793,11 +1825,11 @@
 \clearpage
 \section{Discussion} \label{sec:discussion}
   
-%   The conventional ASR system includes multiple independent components that each contribute to the accuracy of the transcriptions. Using multiple language models 
+  %   The conventional ASR system includes multiple independent components that each contribute to the accuracy of the transcriptions. Using multiple language models 
 
   \subsection{Possible future work}
 
-%     As noted in Sections \ref{sec:lattice} and \ref{sec:expt_transformer}, the use of n-best list insted of lattices when rescoring transformers 
+  %     As noted in Sections \ref{sec:lattice} and \ref{sec:expt_transformer}, the use of n-best list insted of lattices when rescoring transformers 
 
 \clearpage
 \section{Conclusion} \label{sec:conclusion}
