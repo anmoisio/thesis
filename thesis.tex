@@ -211,13 +211,15 @@
   % /examples
   $\boldsymbol{\Delta}$                       & delta feature vector \\
   $\boldsymbol{\mu}$                          & mean vector of a GMM \\
-  $\boldsymbol{\Sigma}$                       & covariance matrix of a GMM \\
+  $\Sigma$                       & covariance matrix of a GMM \\
+  $\theta$                          & the learnable parameters of a model \\
 
 
   $\boldsymbol{o}_t$    & observation, i.e., feature vector, at time $t$ \\ 
   % $p(.)$              & probability \\
   % $P(.|.)$            & likelihood \\
   $\boldsymbol{w} = w_1,...,w_N$ & a sequence of words or other units of text \\
+  
   
   \end{tabular}
 
@@ -483,17 +485,22 @@
 \clearpage
 \section{Machine learning} \label{sec:ml} 
 
-  
   % \subsubsection{Models} 
 
     A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
     % The term is very general: there are physical, mathematical, and conceptual models, just to name a few different types.
-    Models can be either physical or conceptual, and the latter group can be subdivided into many different kinds of conceptual models, such as logical, scientific, or mathematical models. One category of mathematical models is \emph{statistical models}.
-    According to \citet{davison2003statistical}, a statistical model is "a probability distribution constructed to enable inferences to be drawn or decisions made from data". A basic example of a probability distribution is a normal, or \emph{Gaussian}, distribution, whose shape is defined by its \emph{parameters} $\theta$, the mean and variance. Given a set of data points, an optimal Gaussian distribution can be superimposed on the data by simply calculating the parameters values from their formula
-    \footnote{The mean is $\mu = \frac{\sum_i x_i}{N}$ and the variance is $ \sigma^2 = \frac{\sum_i (x_i - \mu)^2}{N-1}$ where $x_i$ is a data point and $i \in \{ 1,...,N \}$.}. However, if the data points are not assumed to be from a simple univariate Gaussian and more degrees of freedom are introduced to the model, there is no simple formula from which to determine the parameters. Instead, a numerical solution need to be sought, which is the task of mathematical optimisation.
+    Models can be either physical or conceptual, and the latter group can be subdivided into many different kinds of conceptual models, such as logical, scientific, or mathematical models.
+    
+    One category of mathematical models is \emph{statistical models}.
+    According to \citet{davison2003statistical}, a statistical model is "a probability distribution constructed to enable inferences to be drawn or decisions made from data". A basic example of a probability distribution is a normal, or \emph{Gaussian}, distribution, whose shape is defined by its \emph{parameters} $\theta$, the mean and variance. Given a set of data points, an optimal Gaussian distribution can be superimposed on the data by simply calculating the parameter values from their
+    formulae\footnote{The mean is $\mu = \frac{1}{N} \sum_i x_i$ and the variance is $ \sigma^2 = \frac{1}{N-1} \sum_i (x_i - \mu)^2$ where $x_i$ is a data point and $i \in \{ 1,...,N \}$.}.
+    However, if the data points are not assumed to be from a simple univariate Gaussian and more degrees of freedom are introduced to the model, there are no simple formulae from which to determine the parameter values. Instead, a numerical solution need to be sought, which is the task of mathematical optimisation.
     % aasinsilta
-    \emph{Machine learning} is often formulated as optimisation of an objective function, with the added goal of being able to generalise to unseen samples of data. Most importantly to this thesis, statistical models of language and speech acoustics are created using machine learning algorithms.
-    This chapter briefly introduces some of the main concepts of machine learning that are central to the language and acoustic modelling algorithms described respectively in the next two chapters.
+
+    \emph{Machine learning} is often formulated as optimisation of an objective function, with the added goal of being able to generalise to unseen samples of data. Most relevant to this thesis, statistical models of language and speech acoustics are created using machine learning algorithms.
+    This chapter briefly introduces machine learning concepts that are central to the language and acoustic modelling methods described respectively in the next two chapters.
+
+    The next subsection ...
     
     % 
       % Brains have evolved to build both unconscious and  consciously accessible models of consequential things, such as animals, weather, or phonemes that compose a language.
@@ -533,14 +540,28 @@
       %   % If the function to be estimated is simple enough
       %   For example, the best computer chess programs were based on rules until the first decade of this century. In recent years, however, the designing work has been more and more often delegated to an algorithm that performs bottom-up estimation of the desired behaviour. This is referred to as machine learning\footnote{More accurately, machine learning is not the only bottom-up estimation approach, an example of another one being optimisation, which is similar to machine learning but does not aim to generalise beyond the data set used. Machine learning involves optimisation algorithms but what separates it from mere optimisation is the desire to build a model that can generalise to data that was not used for building the model.}. The best chess programs no longer do decisions by following human-written if-then clauses; instead they have estimated the mapping that inputs chess board configurations and outputs chess moves by playing a large number of games against themselves and taken notes about which moves lead to winning. As the behaviour to be modelled becomes too complex and non-linear for a human to design it, the only way is to teach it to the machine by brute-force trial and error. 
 
+  \subsection{Artificial neural networks} \label{sec:dnn_intro}
+
+    Artificial neural networks (ANN) are a family of model types, historically based on the concept of a perceptron \citep{rosenblatt1957perceptron}, which functions similarly to a biological neuron, and is therefore called an artificial neuron, or just neuron.
+    The core functioning, common to the perceptron and the biological neuron, is that an input either activates the output or not based on an activation function. In the case of a perceptron, the activation function is a unit step function: if the input is above a scalar threshold the output is activated. Perceptron learns a binary classifier by tuning this threshold based on information from training examples. The idea of a perceptron has since been generalised and extended into the wide range of different kinds of artificial neural networks, but the core idea of a neuron remains.
+    
+    A multilayer perceptron (MLP) stacks neurons in multiple layers that are connected in the forward direction from the input to the output layer, therefore called also feedforward neural networks. An MLP includes an input layer of neurons with linear or non-linear activation functions, one or more hidden layers, and an output layer. The layered network learns the weights of the connections through backpropagation, which process is described in the next two subsectons.
+    
+    An important class of ANNs are deep neural networks (DNNs), called "deep" because they include many hidden layers. MLPs are a subclass of DNNs; other subclasses include, for instance, recurrent neural networks (RNNs), which are particularly useful in speech recognition since they are capable of modelling long-term time dependencies in data by incorporating a cycle between the network connections. Section \ref{sec:rnn} discusses RNNs for language modelling.
+
   \subsection{Objective function} 
 
     % The mapping from input to output is determined by the parameters $\theta$ that are learned. 
-    There are different approaches to defining how good a model is, given a training dataset. Using the maximum likelihood estimation (MLE), the parameters are adjusted to maximise how probable the model judges the data set. The maximum likelihood estimate $\theta_{\textup{ML}}$ of the model parameters is the point in the parameter space that maximises the likelihood of the observed data. When a prior distribution is considered in addition to the current data, MLE becomes maximum a posteriori (MAP) estimation.  The confidence of how good the MLE/MAP point estimate is is related to its variance. If alternative samplings of the observations are likely to change the estimate, the variance is larger.  
+    There are different approaches to defining how good a model is, given a training dataset. Using the maximum likelihood estimation (MLE), the parameters are adjusted to maximise how probable the model judges the data set. The maximum likelihood estimate $\theta_{\textup{ML}}$ of the model parameters is the point in the parameter space that maximises the likelihood of the observed data. Incorporating some Bayesian reasoning into the approach, when a prior distribution is considered in addition to the current data, MLE becomes maximum a posteriori (MAP) estimation.  The confidence of how good the MLE/MAP point estimate is is related to its variance. If alternative samplings of the observations are likely to change the estimate, the variance is larger.  
     
     In contrast to the MLE/MAP approach,
     % and frequentist statistics in general,
-    the Bayesian approach is to generate a full probability distribution function for $\theta$. When the model is used to estimate the probability of an observation, the distribution is integrated over the parameter space, and the probabilities of the observations given by each parameter point estimate is weighted by how probable the parameter point is. This way the confidence on the parameter estimate is incorporated in the data likelihood. However, using a full probability distribution instead of a point estimate is computationally expensive, and therefore the MLE/MAP method is the more commonly used approach in machine learning.
+    the complete Bayesian approach is to generate a full probability distribution function for $\theta$. When the model is used to estimate the probability of an observation, the distribution is integrated over the parameter space, and the probabilities of the observations given by each parameter point estimate is weighted by how probable the parameter point is. This way the confidence on the parameter estimate is incorporated in the data likelihood. However, using a full probability distribution instead of a point estimate is computationally expensive, and therefore the MLE/MAP method is the more commonly used approach in machine learning. 
+
+    % To tune the model for a given data set
+    A machine learning process can be framed in different ways, and many related and synonymous terms are used in the literature.
+    In practice, a model is trained by optimising an \emph{objective function} that encodes the goal of the model. This function is also called the \emph{cost}, \emph{error} or \emph{loss function} when the output of the function is minimised, \emph{utility function} when it is maximised, or generally the \emph {criterion}. Maximising the likelihood of the parameters is often phrased as minimising a cost function. More specifically, the aim is to minimise the \emph{cross entropy} between the observed distribution and the model distribution, or equivalently, to minimise the negative log-likelihood of the model, given the data \citep{Goodfellow-et-al-2016}. 
+
     
     % incorporate the degree of certainty to the model itself
 
@@ -548,34 +569,21 @@
 
     Depending on the criterion for an optimal model, a optimisation method is chosen and applied to tune the free parameters $\theta$ of a model. The choice of optimisation algorithm depends also on other factors, one of which is whether the model includes latent variables.
     A latent (i.e., hidden) variable is a variable that is not directly observed, but can affect the observed variables. In general, a latent variable is some phenomenon in the real world that is not directly observed, but whose properties are inferred from measurements that are observable.
-    Two types of models that include latent variables are GMMs and HMMs (see Section \ref{sec:sec:phoneme_hmm}), both of which are central to the conventional methods of automatic speech recognition. In GMMs, the identity of the mixture component $c$ of a data point $o$ is a latent variable, and the probability distribution $P(o)$ is determined by the joint distribution $P(o,c)=P(o|c)P(c)$.
-    Hidden Markov models are named after the latent, hidden sequence that generates an observed sequence\footnote{They are also named after the Russian mathematician Andrey Markov.}; in speech recognition the latent sequence can be a sequence of phones that generate the sequence of processed audio signal chunks referred to as features.
+    Two types of models that include latent variables are GMMs and HMMs (see Section \ref{sec:phoneme_hmm}), both of which are central to the conventional methods of automatic speech recognition. Commonly in GMMs, one latent variable is the identity of the mixture component $c$ of a data point $o$, and the probability distribution $P(o)$ is determined by the joint distribution $P(o,c)=P(o|c)P(c)$.
+    Hidden Markov models are even named after the latent, hidden sequence that generates an observed sequence\footnote{They are also named after the Russian mathematician Andrey Markov.}; in speech recognition the latent sequence might be a sequence of phones that generate the sequence of processed audio signal chunks referred to as features.
     % 'Maximum likelihood modeling with Gaussian distributions for classification'
     % gupta2011theory
 
-    When the model to be estimated includes latent variables, the maximum likelihood estimate can be computed using the expectation maximisation (EM) algorithm.
+    When the model to be estimated includes latent variables, the maximum likelihood estimate can be computed using the \emph{expectation maximisation} (EM) algorithm.
     % Maximising the expectedness of the data can be turned around and seen as minimising how surprising the training data are to the model by modifying the model.
     Expectation maximisation is an iterative method to finding a local maximum for the likelihood of a set of data given a model.
-    The EM algorithm consists of iterating the expectation step (E-step) and the maximisation step (M-step). Roughly, the E-step estimates the latent variables by which a function can be created for calculating the likelihood of the parameters. The M-step then maximises the likelihood by setting the parameter values. In Section \ref{sec:hmm_est}, an EM algorithm is described for estimating the HMMs for acoustic modelling.
-
-    % Goodfellow-et-al-2016
-
-    % bayesing, MAP
-    % cross entropy
-    % 
-
-  \subsection{Artificial neural networks} \label{sec:dnn_intro}
-
-    Artificial neural networks (ANN) are a family of model types, historically based on the concept of a perceptron \citep{rosenblatt1957perceptron}, which functions similarly to a biological neuron, and is therefore called an artificial neuron, or just neuron.
-    The core functioning, common to the perceptron and the biological neuron, is that an input either activates the output or not based on an activation function. In the case of a perceptron, the activation function is a unit step function: if the input is above a scalar threshold the output is activated. Perceptron learns a binary classifier by tuning this threshold based on information from training examples. The idea of a perceptron has since been generalised and extended into the wide range of different kinds of artificial neural networks, but the core idea of a neuron remains.
+    The EM algorithm consists of iterating the expectation step (E-step) and the maximisation step (M-step). Roughly, the E-step estimates the latent variables by which a function can be created for calculating the likelihood of the parameters. The M-step then finds the parameter values that maximise the likelihood. In Section \ref{sec:hmm_est}, describes an EM algorithm for estimating the HMMs for modelling phonemes, called the Baum-Welch algorithm.
     
-    A multilayer perceptron (MLP) stacks neurons in multiple layers that are connected in the forward direction from the input to the output layer. An MLP includes an input layer of neurons with linear or non-linear activation functions, one or more hidden layers, and an output layer. The layered network learns the weights of the connections through backpropagation. 
-    
-    An important class of ANNs are deep neural networks (DNN), called "deep" because they include many hidden layers. MLPs are a subclass of DNNs; other subclasses include, for instance, convolutional NNs (CNN) and recurrent NNs (RNN), which are particularly useful in speech recognition since they are capable of modelling long-term time dependencies in data.
-    
-    % backprop gradient descent
+    An optimisation algorithm used in many machine learning approaches, and especially in training DNNs, is called \emph{gradient descend}.
+    This algorithm minimises the cost function by taking steps in the opposite direction of the gradient of the cost function for a given batch of training examples, since this is the direction of steepest decline. An important hyperparameter is the \emph{learning rate}, which determines the size of the step.
+    A sub-algorithm, so to speak, of gradient descend is the backpropagation algorithm, described by \citet{rumelhart1986learning}, which propagates the cost of the output backward in the DNN to calculate the gradient.
+
     % tdnn
-    % 
     % Residual connections \citep{he2016deep}
     % highway networks
 
@@ -1840,6 +1848,10 @@
 
 \clearpage
 \section{Discussion} \label{sec:discussion}
+
+  % conversational session based lm
+
+  % 
   
   %   The conventional ASR system includes multiple independent components that each contribute to the accuracy of the transcriptions. Using multiple language models 
 
