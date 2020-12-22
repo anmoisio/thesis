@@ -497,7 +497,7 @@
     However, if the data points are not assumed to be from a simple univariate Gaussian and more degrees of freedom are introduced to the model, there are no simple formulae from which to determine the parameter values. Instead, a numerical solution need to be sought, which is the task of mathematical optimisation.
     % aasinsilta
 
-    \emph{Machine learning} is often formulated as optimisation of an objective function, with the added goal of being able to generalise to unseen samples of data. Most relevant to this thesis, statistical models of language and speech acoustics are created using machine learning algorithms.
+    \emph{Machine learning} is often formulated as optimisation of an objective function, with the added goal of being able to generalise to unseen samples of data.  Most relevant to this thesis, statistical models of language and speech acoustics are created using machine learning algorithms.
     This chapter briefly introduces machine learning concepts that are central to the language and acoustic modelling methods described respectively in the next two chapters.
 
     The next subsection ...
@@ -542,17 +542,17 @@
 
   \subsection{Artificial neural networks} \label{sec:dnn_intro}
 
-    Artificial neural networks (ANN) are a family of model types, historically based on the concept of a perceptron \citep{rosenblatt1957perceptron}, which functions similarly to a biological neuron, and is therefore called an artificial neuron, or just neuron.
-    The core functioning, common to the perceptron and the biological neuron, is that an input either activates the output or not based on an activation function. In the case of a perceptron, the activation function is a unit step function: if the input is above a scalar threshold the output is activated. Perceptron learns a binary classifier by tuning this threshold based on information from training examples. The idea of a perceptron has since been generalised and extended into the wide range of different kinds of artificial neural networks, but the core idea of a neuron remains.
+    Artificial neural networks (ANN) are a family of model types, historically based on the concept of a perceptron \citep{rosenblatt1957perceptron}, which functions similarly to a biological neuron and is therefore called an artificial neuron, or just neuron.
+    The core functioning, common to the perceptron and the biological neuron, is that an input either activates or does not activate the output on an activation function. In the case of a perceptron, the activation function is a unit step function: if the input is above a scalar threshold the output is activated. Perceptron learns a binary classifier by tuning this threshold based on information from training examples. The idea of a perceptron has since been generalised and extended into the wide range of different kinds of artificial neural networks, but the core idea of a neuron remains.
     
-    A multilayer perceptron (MLP) stacks neurons in multiple layers that are connected in the forward direction from the input to the output layer, therefore called also feedforward neural networks. An MLP includes an input layer of neurons with linear or non-linear activation functions, one or more hidden layers, and an output layer. The layered network learns the weights of the connections through backpropagation, which process is described in the next two subsectons.
+    A multilayer perceptron (MLP) stacks neurons in multiple layers that are connected in the forward direction from the input to the output layer, therefore called also feedforward neural networks. An MLP includes an input layer of neurons with linear or non-linear activation functions, one or more hidden layers, and an output layer. The layered network learns the weights of the connections through backpropagation and other algorithms described in the next two subsectons.
     
     An important class of ANNs are deep neural networks (DNNs), called "deep" because they include many hidden layers. MLPs are a subclass of DNNs; other subclasses include, for instance, recurrent neural networks (RNNs), which are particularly useful in speech recognition since they are capable of modelling long-term time dependencies in data by incorporating a cycle between the network connections. Section \ref{sec:rnn} discusses RNNs for language modelling.
 
   \subsection{Objective function} 
 
     % The mapping from input to output is determined by the parameters $\theta$ that are learned. 
-    There are different approaches to defining how good a model is, given a training dataset. Using the maximum likelihood estimation (MLE), the parameters are adjusted to maximise how probable the model judges the data set. The maximum likelihood estimate $\theta_{\textup{ML}}$ of the model parameters is the point in the parameter space that maximises the likelihood of the observed data. Incorporating some Bayesian reasoning into the approach, when a prior distribution is considered in addition to the current data, MLE becomes maximum a posteriori (MAP) estimation.  The confidence of how good the MLE/MAP point estimate is is related to its variance. If alternative samplings of the observations are likely to change the estimate, the variance is larger.  
+    There are different approaches to defining how good a model is, given a training dataset. Using \emph{maximum likelihood estimation} (MLE), parameters of a model are adjusted to maximise how probable the model judges the data set. The maximum likelihood estimate $\theta_{\textup{ML}}$ of the model parameters is the point in the parameter space that maximises the likelihood of the observed data. Incorporating some Bayesian reasoning into the approach, when a prior distribution is considered in addition to the current data MLE becomes maximum a posteriori (MAP) estimation.  The confidence of how good the MLE/MAP point estimate is is related to its variance. If alternative samplings of the observations are likely to change the estimate, the variance is larger.  
     
     In contrast to the MLE/MAP approach,
     % and frequentist statistics in general,
@@ -567,21 +567,21 @@
 
   \subsection{Optimisation} 
 
-    Depending on the criterion for an optimal model, a optimisation method is chosen and applied to tune the free parameters $\theta$ of a model. The choice of optimisation algorithm depends also on other factors, one of which is whether the model includes latent variables.
+    Depending on the criterion for an optimal model, a optimisation method is chosen and applied to tune the learnable parameters $\theta$ of a model.  The choice of optimisation algorithm depends also on other factors, one of which is whether the model includes latent variables.
     A latent (i.e., hidden) variable is a variable that is not directly observed, but can affect the observed variables. In general, a latent variable is some phenomenon in the real world that is not directly observed, but whose properties are inferred from measurements that are observable.
     Two types of models that include latent variables are GMMs and HMMs (see Section \ref{sec:phoneme_hmm}), both of which are central to the conventional methods of automatic speech recognition. Commonly in GMMs, one latent variable is the identity of the mixture component $c$ of a data point $o$, and the probability distribution $P(o)$ is determined by the joint distribution $P(o,c)=P(o|c)P(c)$.
-    Hidden Markov models are even named after the latent, hidden sequence that generates an observed sequence\footnote{They are also named after the Russian mathematician Andrey Markov.}; in speech recognition the latent sequence might be a sequence of phones that generate the sequence of processed audio signal chunks referred to as features.
+    Hidden Markov models are even named after the latent, hidden sequence that generates an observed sequence\footnote{They are also named after the Russian mathematician Andrey Markov.}; in speech recognition the latent sequence might be a sequence of phones that generate the sequence of processed audio signal chunks, referred to as features (see Section \ref{sec:feats}).
     % 'Maximum likelihood modeling with Gaussian distributions for classification'
     % gupta2011theory
 
     When the model to be estimated includes latent variables, the maximum likelihood estimate can be computed using the \emph{expectation maximisation} (EM) algorithm.
     % Maximising the expectedness of the data can be turned around and seen as minimising how surprising the training data are to the model by modifying the model.
     Expectation maximisation is an iterative method to finding a local maximum for the likelihood of a set of data given a model.
-    The EM algorithm consists of iterating the expectation step (E-step) and the maximisation step (M-step). Roughly, the E-step estimates the latent variables by which a function can be created for calculating the likelihood of the parameters. The M-step then finds the parameter values that maximise the likelihood. In Section \ref{sec:hmm_est}, describes an EM algorithm for estimating the HMMs for modelling phonemes, called the Baum-Welch algorithm.
+    The EM algorithm consists of iterating the expectation step (E-step) and the maximisation step (M-step). Roughly, the E-step estimates the latent variables by which a function can be created for calculating the likelihood of the parameters. The M-step then finds the parameter values that maximise the likelihood. Section \ref{sec:hmm_est} describes an EM algorithm for estimating the HMMs for modelling phonemes, called the Baum-Welch algorithm.
     
     An optimisation algorithm used in many machine learning approaches, and especially in training DNNs, is called \emph{gradient descend}.
-    This algorithm minimises the cost function by taking steps in the opposite direction of the gradient of the cost function for a given batch of training examples, since this is the direction of steepest decline. An important hyperparameter is the \emph{learning rate}, which determines the size of the step.
-    A sub-algorithm, so to speak, of gradient descend is the backpropagation algorithm, described by \citet{rumelhart1986learning}, which propagates the cost of the output backward in the DNN to calculate the gradient.
+    This algorithm minimises the cost function by taking steps in the opposite direction of the gradient of the cost function for a given batch of training examples, since this is the direction of steepest decline. An important hyperparameter\footnote{Those parameters that are not learned but are set before the learning are called \emph{hyperparameters} of the model.} is the \emph{learning rate}, which determines the size of the step. 
+    An important part of gradient descend is the backpropagation algorithm, described by \citet{rumelhart1986learning}, which propagates the cost of the output backward in the DNN to calculate the gradient. 
 
     % tdnn
     % Residual connections \citep{he2016deep}
@@ -589,21 +589,22 @@
 
   \subsection{Machine learning for speech recognition}
 
-    Brains, too, build 
-    % mental
-    models, conscious and subconscious, of phenomena that they encounter in their environment, which is the basis of how animals are able to perceive
-    % , 
-    % understand, predict, 
-    and act in an environment.
-    Language is a prominent phenomenon in the environment that humans live in, and the human brain naturally develops models to process and generate language. Humans learn a language gradually through exposure to it. Similarly, to build a statistical model of a language or its pronunciation, machine learning algorithms are used.
+    % Brains, too, build 
+    % % mental
+    % models, conscious and subconscious, of phenomena that they encounter in their environment, which is the basis of how animals are able to perceive
+    % % , 
+    % % understand, predict, 
+    % and act in an environment.
+    % Language is a prominent phenomenon in the environment that humans live in, and the human brain naturally develops models to process and generate language. Humans learn a language gradually through exposure to it. Similarly, to build a statistical model of a language or its pronunciation, machine learning algorithms are used.
 
     % Machine learning has been an integral part of ASR 
 
-    The first ASR systems were developed in the 1960s. These machines could recognise a few words, for instance the digits, by matching templates of the words with the data. In the 1970s and 80s, the HMMs were demonstrated useful in ASR, after which HHM-based systems have remained as the state-of-the-art technology, until the breakthrough of the neural models during the previous decade.
+    Nowadays, machine learning is an integral method of speech recognition, but the first ASR systems in the 1960s did not utilise learning algorithms. These machines could recognise a few words, for instance the digits, by matching templates of the words with the data. In the 1970s and 80s, HMMs were demonstrated useful in ASR after which HHM-based systems, and learning algorithms in general, have remained as the basis of ASR. The breakthrough of neural models during the previous decade provided much improvement in the recognition accuracy. Incorporating DNNs into the acoustic models of a conventional HMM-based system is called the hybrid DNN/HMM approach.
+    % The latest paradigm of ASR systems, called end-to-end systems, dispenses also with HMMs, relying completely on DNNs. 
 
     % aasinsilta
 
-    In the conventional ASR system, the task is divided into subtasks. The first subtask, called feature extraction, is to divide the audio signal into $T$ segments, and convert the segments into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$. The observations are a compressed representation of the audio signal.
+    In the conventional and hybrid ASR systems, the task is divided into subtasks. The first subtask, called feature extraction, is to divide the audio signal into $T$ segments, and convert the segments into feature vectors, also called observations, $\boldsymbol{O}=\boldsymbol{o}_1,...,\boldsymbol{o}_T$. The observations are a compressed representation of the audio signal.
     % : \emph{feature extraction},  \emph{phoneme-to-grapheme mapping}, and creating
     The task is then to find $\argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O})$, where $\boldsymbol{w}=w_1,...,w_N$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
     \begin{equation}\label{eq:asr-bayes}
@@ -635,13 +636,15 @@
   %
     A language model defines the probability distribution
     % \footnote{This would be a probability mass function since word sequences are discrete but, since there is no limit to how long the sequences can be, there is an infinite set of possible word sequences.}
-    $P(\boldsymbol{w})$, from Eq. \ref{eq:asr-bayes}, over word sequences $\boldsymbol{w} = w_1,...,w_N$. Typically, $P(\boldsymbol{w})$ is calculated as the product of the constituent word probabilities:
+    $P(\boldsymbol{w})$ from Eq. \ref{eq:asr-bayes} over word sequences $\boldsymbol{w} = w_1,...,w_N$. In statistical language modelling, the distribution  is estimated based on statistics drawn from a training corpus. The statistical approach is in contrast with linguistically motivated models of language that take into account, for example, the grammaticality of a string when determining its probability. Currently, state-of-the-art language modelling is based solely on statistics, disregarding many such linguistic considerations.
+    
+    Typically, $P(\boldsymbol{w})$ is calculated as the product of the constituent word probabilities, which are conditional on the context of each word:
     \begin{equation} \label{eq:lm}
       P(w_1,...,w_N) = \prod_{i=1}^N P(w_i|context)
     \end{equation}
-    What constitutes the context depends on the method. The constant-order n-gram model uses a simple context of $n-1$ previous tokens. In more involved models, the context can also be of variable length and include subsequent tokens (bi-directional context). Often the context encompasses the all the previous words $w_1,...,w_{i-1}$ in the sequence.
+    What is included in the context of a word depends on the method. A constant-order n-gram model uses a simple context of $n-1$ previous tokens. Variable order n-grams use a context of a variable length, which depends on factors such as the frequency of the word sequence. In neural language models, the context can include also subsequent tokens, which creates a bi-directional context.
+    % In neural language models, the context can encompass the all the previous words $w_1,...,w_{i-1}$ in the sequence. max sequence
 
-    In statistical language modelling, the distribution  is estimated based on statistics drawn from a training corpus. The statistical approach is in contrast with linguistically motivated models of language that take into account, for example, the grammaticality of a string when determining its probability. 
 
   \subsection{Choice of vocabulary} \label{sec:vocab} 
 
@@ -654,7 +657,7 @@
 
     Byte pair encoding (BPE) \citep{gage1994new} is a compression method that can be, and is commonly, applied to segmenting words into smaller pieces \citep{sennrich2015neural}. The algorithm first divides the training corpus into characters. It then combines the two characters or subwords that are most frequently adjacent and combines these into a new subword. The algorithm iterates this for a number of times to generate the vocabulary that minimises the size of the training corpus given the size of the vocabulary.  
 
-    The Morfessor family of algorithms \citep{creutz2002unsupervised, creutz2007unsupervised} segments words in a more linguistically-motivated way. The segmenting model learns an optimal way to segment words into subwords based on a criterion, for example the maximum likelihood of the training data given the model. 
+    The Morfessor family of algorithms \citep{creutz2002unsupervised, creutz2007unsupervised} segments words in a more linguistically-motivated way. The segmenting model learns an optimal way to segment words into subwords based on a criterion, for example the maximum likelihood of the model  given the training data. 
 
 
   \subsection{n-gram language models} \label{sec:ngram} 
@@ -666,20 +669,19 @@
       P(w_1,...,w_N) = \prod_{i=1}^N P(w_i|w_{i-(n-1)},...,w_{i-1})
     \end{equation}
     
-
     A simple 
     % (the simplest of the ones that make any sense)
     method to define the probability of an n-gram is to let the probability of each word be its normalised frequency in the context:
     \begin{equation}\label{eq:ngram-ml}
       P(w_i|w_{i-(n-1)},...,w_{i-1}) = \frac{\textup{count}(w_{i-(n-1)},...,w_{i-1}, w_i)}{\textup{count}(w_{i-(n-1)},...,w_{i-1})}
     \end{equation}
-    This is called the maximum likelihood estimate of $P(w_i|w_{i-(n-1)},...,w_{i-1})$ since it maximises the likelihood of 
+    This is the maximum likelihood estimate of $P(w_i|w_{i-(n-1)},...,w_{i-1})$ since it maximises the likelihood of the language model conditional on
     % the language model for 
     this specific training data set \citep{chen1998empirical}. As in machine learning in general, however, the aim is to use the training data to distil from it a generalising model which predicts patterns also in previously unseen data instead of building a model that maximally accounts for the training data set. 
     
     % problems aimed to be fixed by smoothing
 
-    To improve the predictions, \emph{smoothing} can be applied to the simple occurrence counts by redistributing probability mass from the most common n-grams to the less common ones, i.e., \emph{discounting} the most frequent n-grams. Low occurrence counts become a problem especially when $n$ is high, since the number of possible n-grams increases exponentially as $n$ increases. If there is an insufficient number of examples of the n-grams of the desired order, the information of lower-order n-grams (unigrams,...,(n-1)-grams) can be used; the model can \emph{backoff} to the lower orders to make the probability distribution smoother. The lower-order n-gram scores can also be \emph{interpolated} with the scores of the n-grams of the nominal order $n$. 
+    To improve the predictions for unseen data, \emph{smoothing} can be applied to the simple occurrence counts by redistributing probability mass from the most common n-grams to the less common ones, i.e., \emph{discounting} the most frequent n-grams. Low occurrence counts become a problem especially when $n$ is high, since the number of possible n-grams increases exponentially as $n$ increases. If there is an insufficient number of examples of the n-grams of the desired order, the information of lower-order n-grams (unigrams,...,(n-1)-grams) can be used; the model can \emph{backoff} to the lower orders to make the probability distribution smoother. The lower-order n-gram scores can also be \emph{interpolated} with the scores of the n-grams of the nominal order $n$. 
     
     Backing off to lower orders revives % better  word ?
     problems that motivated using higher-order n-grams in the first place. One of them is that of two words that are equally frequent, and thus have the same unigram probability, one may have a very specific kind of context in which it almost always appears whereas the other appears in various contexts. Given a novel context, which is why backing off to unigrams is necessary, the former is statistically less probable to appear in it than the latter, but this is not captured by unigram statistics.
@@ -708,7 +710,7 @@
       P_{\textup{KN}}(w_i|w_{i-n+1}^{i-1}) = 
           &\frac{\max(\textup{count}_{\textup{KN}}(w_{i-n+1}^{i-1},w_{i})
               - d, 0)}{\sum_{w'} \textup{count}_{\textup{KN}}(w_{i-n+1}^{i-1},w')}
-              \nonumber \\[5pt]
+              \nonumber \\[6pt]
           &+ \ \lambda(w_{i-n+1}^{i-1})
           P_{\textup{KN}}(w_i|w_{i-n+2}^{i-1})
     \end{align}
@@ -723,14 +725,14 @@
 
   \subsection{Neural language models}  \label{sec:nnlm}
 
-    n-gram language models treat each word as an element in a set with no other attributes besides an ID. 
-
+    n-gram language models treat each word without relations to other words in the vocabulary. The words have no properties other than n-grams they belong to, and the probabilities of those n-grams.
+    % in a set with no other attributes besides an ID. 
     \citet{bengio2003neural} proposed a method able to take into account the similarity of words, and able to generalise exploiting the similarities. Words can be similar to each other in different ways: "cat" is similar to "dog", and "cat" is similar to "whiskers", but in a different way. Different kinds of similarities can be represented as dimensions in a vector that encodes a word. By this method, words are embedded into a vector space that encodes relations between words. Similarity  of words corresponds to proximity in the embedding space, and can be measured by the cosine similarity of two vectors $\boldsymbol{a}$ and $\boldsymbol{b}$
     \begin{equation}
       \cos(\theta) = {\boldsymbol{a} \cdot \boldsymbol{b} \over \|\boldsymbol{a}\| \|\boldsymbol{b}\|} 
     \end{equation}
     or some other similarity metric.
-    Being able to measure the similarity of two words allows for generalising from word sequences in the language modelling training text to sequences that have not been encountered. If an embedding space holds the information that "cat" is similar to "dog" in the particular way that "cat" is, the language model can generalise from a seen sentence "the cat is running" to a new sentence "the dog is running". 
+    Being able to measure the similarity of two words allows for generalising from word sequences in the language modelling training text to sequences that have not been encountered. If an embedding space holds the information that "cat" is similar to "dog" in the particular way that "cat" is, the language model can generalise from a seen sentence "the cat is running" to a new sentence "the dog is running" by assuming that "dog" works in this sequence similarly to "cat".
 
     One of the seminal word embedding models was published by \citet{mikolov2013efficient}, called Word2Vec. The goal of this model is to be able to train word embeddings using large data sets of billions of words and to create embedding spaces that encode multiple degrees of similarity between words. Substructures of the embedding space can be probed by the word analogy task, for example asking which word is closest in the vector space when the word "man" is subtracted from "king", and the word "woman" is added. The intuitive answer "queen" is given by Word2Vec embedding space
     % whereas LSA embedding space is not able to preserve this kind of information
@@ -747,7 +749,7 @@
     A widely used type of recurrent NN is called a long short-term memory (LSTM) network \citep{hochreiter1997long}. The term "short-term" alludes to the activations of recurrent connections as type of memory, in contrast with "long-term" memory in the form of the weights of the connections that change by learning. The short-term memory is made longer and more expressive than in the usual RNN memory by utilising special gate layers that comprise a memory cell unit. The LSTM cell contains in total four neural network layers that perform different gating functions and interact to jointly learn which information should be memorised, i.e., which of the processed previous inputs contain the relevant \emph{context} that the next output should depend on. The gate layers are called the forget gate, the add gate, the input gate, and the output gate.   Figure \ref{fig:lstm} illustrates the LSTM cell with its four gate layers.
     \begin{figure}[htb]
       \centering
-      \includegraphics[width=14cm]{lstm-cell}
+      \includegraphics[width=14cm]{LSTM-cell}
       \caption{An LSTM cell. At time step $t$ the cell inputs the input vector $\boldsymbol{x}_t$, the previous output (the high-level representation) $\boldsymbol{h}_{t-1}$, and the previous  context vector $\boldsymbol{c}_{t-1}$.}
       \label{fig:lstm}
     \end{figure}
@@ -773,18 +775,16 @@
       h_t &= o_t \circ \tanh(c_t)
     \end{align}
 
-
-
-    The LSTM cells can be stacked on top of each other to create a deep LSTM network. Each layer feeds the output to the input of the next layer, and the recurrent connection feeds the context vector and the output vector also to the same cell in the next time step.
-
-    LSTMs are inherently uni-directional, as the input sequence units are processed one-by-one. If an application benefits from bi-directional context, two separate cells can be used for the two directions.    
-    Figure \ref{fig:blstm} illustrates a bidirectional LSTM network.
+    LSTMs are inherently uni-directional, as the input sequence units are processed one-by-one. If an application benefits from bi-directional context, two separate cells can be used for the two directions. Furthermore, LSTM cells can be stacked on top of each other to create a deep LSTM network. Each layer feeds the output to the input of the next layer, and the recurrent connection feeds the context vector and the output vector also to the same cell in the next time step.   
+    Figure \ref{fig:blstm} illustrates a 2-layer bidirectional LSTM network.
     \begin{figure}[htb]
       \centering
       \includegraphics[width=14cm]{blstm}
       \caption{A bidirectional LSTM network.}
       \label{fig:blstm}
     \end{figure}
+    
+
 
 
   \subsubsection{Attention} \label{sec:attention}
@@ -1593,6 +1593,7 @@
 
     \subsubsection{Discussion}
 
+
   \subsection{Language modelling experiments} \label{sec:lm_expts} 
 
 
@@ -1848,16 +1849,31 @@
 
 \clearpage
 \section{Discussion} \label{sec:discussion}
-
-  % conversational session based lm
-
-  % 
   
-  %   The conventional ASR system includes multiple independent components that each contribute to the accuracy of the transcriptions. Using multiple language models 
+  The experiments described in the last chapter improved the WER results about 4.9 absolute percetages in total, compared to the previous best results. This chapter aims to analyse the experiments, clarify where the improvements come from, highlight possible limitations and defiencies of the experiments, and propose possible future work on the subject.
 
-  \subsection{Possible future work}
+    %   The conventional ASR system includes multiple independent components that each contribute to the accuracy of the transcriptions. Using multiple language models 
 
-  %     As noted in Sections \ref{sec:lattice} and \ref{sec:expt_transformer}, the use of n-best list insted of lattices when rescoring transformers 
+  \subsection{Acoustic modelling}
+    Th acoustic modelling data set is quite small, less than 37 hours in total. As comparison, the Wall Street Journal speech data set is about 80 hours. The size of the speech data set generally correlates with the accuracy of the ASR system. With more data, a more complex neural acoustic model could be trained, which could learn a more accurate mapping from features to phoneme classes. The reason for the small size of the used data set is simply that this is all the available conversational Finnish speech data. However, it is not clear whether the training speech needs to correspond to the conversational evaluation set so closely. It is plausible that using a larger data set would yield better results even if the speech is more formal and therefore different from the evaluation set. Though more data generally yields better results, a small data set and a small model does have the benefit of learning quicker, thus enabling easier hyperparameter tuning and making it feasible to do more experiments.
+
+    A large improvement on the recognition accuracy was achieved by utilising new Kaldi recipes for training the TDNN acoustic model. Kaldi recipes are tuned for a particular data sets. The recipe for training the TDNN used in this thesis was the Switchboard recipe. However, training the GMM AM was mostly done following the Wall Street Journal recipe. Experiments were also done training the TDNN with the WSJ recipe, but this yielded poorer results. The WSJ TDNN is a smaller model because the data set is  smaller. However, using the larger model seemed to be beneficial even though the data set used in this thesis is even smaller than the WSJ data set.
+
+  \subsection{Speaker embeddings}
+    Although i-vectors and x-vectors achieve roughly equal results, the two methods differ in how they are trained or how they embed speakers or utterances in a vector space. i-vectors are meant to encode both channel and speaker variability, which is why they are also called the total factors. They are often trained on a data set that has been artificially modified to include more speakers than the data actually includes by changing the speaker labels. More speakers helps the extractor to find the relevant differences across channels and speakers. An x-vector extractor, on the other hand, is trained to classify only speakers. The neural network can benefit from more data, unlike the i-vector GMMs, and the data is therefore augmented with noise for x-vector extractor training in the Kaldi recipes. 
+    Because of the differences between the two methods, it is possible that they encode different types of information about the speakers or utterances. To assess whether the methods encode overlapping information, the two vectors were also concatenated and evaluated on the same ASR task. The concatenated i- and x-vectors achieved a small improvement compared to using only x-vectors (about 2\%). However, this improvement was not statistically significant.
+
+
+
+  \subsection{Language modelling}
+
+    \subsubsection{Transformer-XL}
+      As noted in Sections \ref{sec:lattice} and \ref{sec:transformer_expts}, the use of n-best list instead of lattices when rescoring with the transformer-XL model limits the hypotheses more. Rescoring the lattices with transformers would be more efficient and probably improve the recognition accuracy, because lattices can generally encode more hypotheses.
+    
+    \subsubsection{Modelling conversational language}
+      The language modelling methods used in this thesis are not specifically designed for conversational language, although the corpora are selected to correspond to conversational speech. Some conversation-specific methods for ASR have been proposed in recent years. \citet{xiong2018session} proposed a session-level modelling approach, in which the utterances are in kept in the context of the conversation and turns of the speakers are recognised.
+
+
 
 \clearpage
 \section{Conclusion} \label{sec:conclusion}
