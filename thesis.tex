@@ -269,7 +269,7 @@
   PPL           & perplexity \\
   ReLU          & rectified linear unit \\
   RNN           & recurrent neural network \\
-  SAT           & speaker adaptive training \\
+  SAT           & speaker-adaptive training \\
   SD            & speaker dependent \\
   SI            & speaker independent \\
   TDNN          & time delay neural network \\
@@ -333,7 +333,7 @@
     % Step 5: Overview of thesis structure (required)
     % (What are the aims and contents of the following chapters?)
 
-  \subsection{The ASR task} 
+  \subsection{Automatic speech recognition} 
 
     \emph{Automatic speech recognition} (ASR) is the task of converting speech into text. The direct application of ASR is useful in many situations, for example to transcribe patient notes dictated by medical doctors. ASR has also an increasing number of use cases in systems with longer pipelines that achieve some speech-initiated task, such as \emph{voice user interfaces} or \emph{speech-to-speech translation} systems. The ASR piece can often be a bottleneck in the pipeline,  determining to a large degree the accuracy of the whole system.
 
@@ -367,9 +367,8 @@
     Acoustic and language modelling are achieved using machine learning models, primarily deep neural networks (DNNs), which are estimated based on training data. Modelling acoustics requires a parallel corpus of speech and correct transcriptions, whereas modelling language only requires text. 
 
 
-
   \subsection{Spontaneous, conversational Finnish}
-% move these up
+    % move these up
     The difficulty of ASR depends on how varied and noisy the speech audio signals are.
     The confined problem of recognising a few different words pronounced clearly by one speaker
     % recorded in noise-free conditions
@@ -385,7 +384,7 @@
     
     % For some of the most prominent languages, such as English or French, the size of the speech data sets enables training 
 
-  % \subsection{Spoken and written conversations in Finnish} \label{sec:conv}
+    % \subsection{Spoken and written conversations in Finnish} \label{sec:conv}
 
     Some inherent idiosyncratic properties of Finnish 
     % make it easier a language for ASR, while other properties make it more difficult a task, compared to ASR for other languages.
@@ -417,35 +416,44 @@
   % \subsection{Related work and methodology}
     % This thesis aims to experiment with some of the latest  methods to improve upon the previous best results obtained for this informal, spontaneous Finnish conversation speech data set. 
 % 
-  \subsection{The research questions and scope of the thesis}
+  \subsection{Research questions and contributions}
     %  maybe move to background -- expand on research context -> speaker adaptation, better LMs
-    The purpose of this thesis is to improve the ASR accuracy for the spontaneous, conversational DSPCON corpus.
-    The aim is to evaluate recent acoustic and language modelling methods on the data and assess whether they can improve the ASR accuracy. Furthermore, the ASR pipeline, which includes the acoustic models and language models built with different toolkits, is rebuilt using the newest versions of the toolkits. For example, utilising the latest Kaldi recipes for acoustic modelling improves the ASR accuracy compared to older recipes.
-
-    In the previous decade, i-vectors \citep{ivector} have been used to model speaker and channel variability. I-vectors can be added to the features, providing information that enables the ASR system to adapt to differing channels and speakers  during both training and testing. \citet{snyder2018x} described how also DNNs can  be utilised to create speaker embeddings, called x-vectors, which model differences between speakers. In this work, the effects of i-vectors and x-vectors on the ASR accuracy are evaluated and compared on the conversational Finnish data. The experiments aim to determine whether one of the methods is more suitable for this type of data.
-
-    \citet{vaswani2017attention} introduced a neural network architecture for language modelling, called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type for many language processing tasks.
-    % One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the previously common recurrent neural networks (RNN), since their hidden states do not depend on the hidden states of previous time steps.
-    In this thesis, Transformer-XL \citep{dai2019transformer} language models are trained and evaluated on the conversational Finnish data. The goal is to determine whether the transformer models achieve better results than the RNN models on the conversational Finnish data.
-    % Word and subword vocabularies are compared for n-gram LMs, RNN LMs and transformer-XLs.
-    Other language modelling experiments in this work include tuning the hyperparameters and comparing word and subword vocabularies for n-gram LMs, RNN LMs and transformer-XL LMs. 
-    % , tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs)
-  
-    
+    The purpose of this thesis is to improve the ASR accuracy for the spontaneous, conversational Finnish corpus.
+    The aim is to evaluate recent acoustic and language modelling methods on the data and assess whether they can improve the recognition results.
+    % Furthermore, the ASR pipeline, which includes the acoustic models and language models built with different toolkits, is rebuilt using the newest versions of the toolkits.
+    % The experiments showed that utilising the latest Kaldi recipes for acoustic modelling improves the recognition accuracy compared to older recipes.
+    These recent methods include speaker-adaptive features to improve the AM
+    % . The language modelling experiments included comparing recurrent neural LMs with 
+    and transformer LMs to improve the LM scores. The research questions of this thesis are:
     \begin{enumerate}
-      \item Can the recognition accuracy be improved using new Kaldi recipes?
-      \item i-vectors vs x-vectors:
+      % for Finnish conversational data
+      % leave out scores
+      % 
+      \item Can the recognition accuracy be improved using new Kaldi recipes? 
+      \item Speaker-adaptive features: i-vectors vs x-vectors
         \begin{itemize}
           \item Can x-vectors achieve better results than the previously used i-vectors?
           \item Do extractors pre-trained on a different language (English) with more data improve the ASR accuracy?
-          \item Is it beneficial to concatenate i- and x-vectors
+          \item Is it beneficial to concatenate i- and x-vectors?
         \end{itemize}
       \item RNN vs Transformer language models:
       \begin{itemize}
-        \item Can transformer models achieve better results than the RNN models on the conversational Finnish data?
-        \item 
+        \item Can transformer models achieve better results than the RNN models when rescoring the n-best lists generated with n-gram LM scoring?
+        \item Can transformer models improve the recognition results when rescoring the n-best lists generated with RNN LM scoring?
       \end{itemize}
     \end{enumerate}
+    Other contributions of this thesis work include tuning the hyperparameters of LMs and rebuilding the ASR system, which is based on the models developed by \citet{enarvi2017automatic}. The programming code is available on
+    Github\footnote{todo: link github repositories\url{}}.
+
+    % In the previous decade, i-vectors \citep{ivector} have been used to model speaker and channel variability. I-vectors can be added to the features, providing information that enables the ASR system to adapt to differing channels and speakers  during both training and testing. \citet{snyder2018x} described how also DNNs can  be utilised to create speaker embeddings, called x-vectors, which model differences between speakers. In this work, the effects of i-vectors and x-vectors on the ASR accuracy are evaluated and compared on the conversational Finnish data.
+    % The experiments aim to determine whether one of the methods is more suitable for this type of data.
+
+    % \citet{vaswani2017attention} introduced a neural network architecture for language modelling, called the Transformer, which is based solely on (self-)attention mechanisms \citep{bahdanau2014neural}. Since then, the state-of-the-art language models have been of the transformer model type for many language processing tasks.
+    % One of the advantages of attention mechanisms is that they are able to exploit parallel computing, unlike the previously common recurrent neural networks (RNN), since their hidden states do not depend on the hidden states of previous time steps.
+    % In this thesis, Transformer-XL \citep{dai2019transformer} language models are trained and evaluated on the conversational Finnish data. The goal is to determine whether the transformer models achieve better results than the RNN models on the conversational Finnish data.
+    % Word and subword vocabularies are compared for n-gram LMs, RNN LMs and transformer-XLs.
+    % Other language modelling experiments in this work include tuning the hyperparameters and comparing word and subword vocabularies for n-gram LMs, RNN LMs and transformer-XL LMs. 
+    % , tuning the hyperparameters of the language models (including constant- and variable-order \citep{siivola2007morfessor} n-gram models, RNN LMs as well as Transformer-XLs)
 
     % in the ASR task, in a similar manner as described by \citet{jain2020finnish}.
     % The baseline system is the same in this thesis, and the work begun by replicating the previous results. The Kaldi toolkit includes acoustic model training pipelines, called "recipes", that are tuned to achieve optimal results for a particular speech data set. In the past three years after the above mentioned previous best results were achieved, the Kaldi recipes have been developed further, and the latest machine learning algorithms have been implemented in the toolkit. By applying the latest Kaldi recipes for the Finnish speech data used in this thesis, the previous best results can be improved. Other acoustic modelling experiments of this work include modelling the speaker and channel variability using i-vectors \citep{ivector} and x-vectors \citep{snyder2018x}.
@@ -474,7 +482,7 @@
     % \end{equation} 
     Chapter \ref{sec:experiments} presents the experiments and results. 
     Chapter \ref{sec:discussion} discusses the results and describes possible future work on the subject.
-    Chapter \ref{sec:conclusion} concludes the thesis.
+    Chapter \ref{sec:conclusion} concludes the thesis by answering the research questions.
 
 
 
@@ -785,8 +793,6 @@
     \end{figure}
     
 
-
-
   \subsubsection{Attention} \label{sec:attention}
     \citet{bahdanau2014neural} developed a mechanism that has been widely adopted in speech and language processing systems, called \emph{attention}. The term refers to a search technique in which a model learns to determine which parts of the input are most relevant for an output at a particular time step: which parts of the input should be attended to when generating an output.
     
@@ -853,7 +859,7 @@
       Figure \ref{fig:attention} illustrates the attention mechanism used in an encoder-decoder model.
       \begin{figure}[htb]
         \centering
-        \includegraphics[width=14cm]{attention}
+        \includegraphics[width=12cm]{attention}
         \caption{Flow chart of the attention calculations.}
         \label{fig:attention}
       \end{figure}
@@ -955,7 +961,8 @@
 
   \subsection{Feature extraction and feature-space transforms} \label{sec:feats} 
 
-    A speech audio signal contains a lot of information that is irrelevant for converting the signal to text. The first step of ASR is to find the features of the signal that contain the information about what is being said. An assumption is made that the speech signal does not change meaningfully in a time frame of about 10 milliseconds so that the signal can be divided into frames with this time resolution. The frames overlap so that each frame is about 20 or 25 milliseconds, and a tapered window function, such as Hamming, is applied to (i.e., multiplied by) each frame. This window function removes the discontinuities that occur on the borders of frames, and the overlapping compensates for the tapering of the window function so that the distorting effect on the signal statistics is minimised \citet{}. % https://wiki.aalto.fi/display/ITSP/Windowing
+    A speech audio signal contains a lot of information that is irrelevant for converting the signal to text. The first step of ASR is to find the features of the signal that contain the information about what is being said. An assumption is made that the speech signal does not change meaningfully in a time frame of about 10 milliseconds so that the signal can be divided into frames with this time resolution. The frames overlap so that each frame is about 20 or 25 milliseconds, and a tapered window function, such as Hamming, is applied to (i.e., multiplied by) each frame. This window function removes the discontinuities that occur on the borders of frames, and the overlapping compensates for the tapering of the window function so that the distorting effect on the signal statistics is minimised.
+    %  \citet{}. % https://wiki.aalto.fi/display/ITSP/Windowing
 
     \paragraph*{Mel-frequency cepstral coefficients}
       The stationary frames' frequency components can be then computed with the Fourier transform. A commonly used method is to extract the MFCCs by applying a logarithmic mel-scale filterbank to the frequency spectrum, and lastly computing the DCT. The log mel-scale emphasises the lower frequencies emulating the way humans perceive sound, i.e., the way the human inner ear recognises lower frequencies with higher frequency resolution. The DCT decorrelates the coefficients so that the use of diagonal covariance matrices is possible in the subsequent stages of the modelling, namely when using GMMs to model the HMM state emissions (Section \ref{sec:phoneme_hmm}). The use of diagonal covariance matrices greatly reduces the number of free parameters, but the trade-off is that correlation between feature vector elements is not modelled.
@@ -974,17 +981,18 @@
       \boldsymbol{\Delta}_t = \frac{\sum_{\theta=1}^{\Theta}
       \theta(\boldsymbol{c}_{t+\theta}-\boldsymbol{c}_{t-\theta})}{2\sum_{\theta=1}^{\Theta}\theta^2}
       \end{equation}
-      In Kaldi, the default window length $\boldsymbol{\Theta}$ is 2, so the $\boldsymbol{\Delta}$s are computed by multiplying the MFCCs with a sliding window of values $[-2,-1,0,1,2]$ and then normalising by dividing by $2*(1^2 + 2^2)= 10$. The $\boldsymbol{\Delta\Delta}$s are computed by applying the same method to the $\boldsymbol{\Delta}$ features. The first and last MFCCs are replicated to fill the window \citep{htkbook}.
+      In Kaldi, the default window length $\boldsymbol{\Theta}$ is 2, so the $\boldsymbol{\Delta}$s are computed by multiplying the MFCCs with a sliding window of values $[-2,-1,0,1,2]$ and then normalising by dividing by $2(1^2 + 2^2)= 10$. The $\boldsymbol{\Delta\Delta}$s are computed by applying the same method to the $\boldsymbol{\Delta}$ features. The first and last MFCCs are replicated to fill the window \citep{htkbook}.
+
+      Another commonly used method to add temporal context to the feature vectors is to \emph{splice} the MFCC features. This simply means concatenating a few (e.g. 3 or 4) previous and a few subsequent feature vectors. For example if the MFCCs are 13-dimensional, splicing with a context of $\pm$3 frames would increase the dimensionality to 91. After splicing, it is common to reduce the dimensionality back to about 40 using LDA (see below).
 
 
     \paragraph*{Cepstral mean and variance normalisation}
 
-      The cepstral mean normalisation (CMN) \citep{rosenberg1994cepstral} and cepstral mean and variance normalisation (CMVN) \citep{viikki1998cepstral} are methods to make the features more useful in noisy conditions. In these techniques, the MFCC feature vectors are normalised to have a zero mean, and in CMVN unit variance, over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
+      Cepstral mean normalisation (CMN) \citep{rosenberg1994cepstral} and cepstral mean and variance normalisation (CMVN) \citep{viikki1998cepstral} are methods to make the features more useful in noisy conditions. In these techniques, MFCC feature vectors are normalised to have a zero mean and, in CMVN, a unit variance, over a sliding finite segment. After the normalisation, clean and noisy MFCCs are more similar, which mitigates the performance reduction caused by noisy environments.
       
-      The variance of the MFCCs of a noisy speech signal is generally lower than the variance of those of a clean signal. By requiring the variance be constantly unity, noisy and clean speech MFCCs resemble each other more closely. Similarly, when noise is added to a signal, the mean changes, and by requiring the mean to be zero the characteristics of clean and noisy signals become more alike. Normalising variability between the speech signals is in general important in training an ASR system that ought to recognise different types of speech by different speakers in different recording conditions.
+      Variance of MFCCs from a noisy speech signal is generally lower than variance of those from a clean signal. By requiring the variance be constantly unity, noisy and clean speech MFCCs resemble each other more closely. Similarly, when noise is added to a signal the mean changes, and by requiring the mean to be zero the characteristics of clean and noisy signals become more alike. Normalising variability between the speech signals is in general important in training an ASR system that ought to recognise different types of speech by different speakers in different recording conditions.
       
-      The topic of handling meaningless variability, i.e., variability that does not contribute to the phoneme content of the utterance, between the utterances is revisited in Section \ref{sec:adaptive_training} which describes speaker adaptive training.
-
+      The topic of handling meaningless variability, i.e., variability that does not contribute to the phoneme content of the utterance, between the utterances is revisited in Section \ref{sec:adaptive_training}, which addresses speaker-adaptive training.
 
 
     \paragraph*{Dimensionality reduction and feature-space transforms}
@@ -994,17 +1002,21 @@
       The general idea of these methods is to find a linear combination of variables that best explain the observations.
       PCA achieves this by performing an orthogonal transformation that transforms the data matrix into a space where the dimensions, called the principal components, are ordered by their variances in decreasing order. After this, dimensionality reduction is achieved by pruning the dimensions with the lowest variance since they contribute the least to the information content of the features. LDA, on the other hand, searches for those dimensions that best discriminate between classes. For LDA, labelled training data is needed. 
 
-
       % MLLT and LDA \citep{somervuo2003feature, pylkkonen2006lda} transforms 
       
-      MLLT is a feature orthogonalizing transform that makes the features more accurately modeled by diagonal-covariance Gaussians
+      Maximum likelihood linear transform (MLLT), also called \emph{semi-tied co-variance matrix}, is a feature orthogonalizing linear transform. MLLT transforms the data into a space where the data is more closely Gaussian distributed, thus enabling the GMMs, as well as DNNs, to model the data more accurately \citep{gales1999semi,gopinath1998maximum}.
+      Dimensionality reduction methods such as LDA and dimension decorrelation methods such as MLLT can be, and often are, applied to the same features in succession.
+      % that makes the features more accurately modeled by diagonal-covariance Gaussians
       % ->Improved feature processing for Deep Neural Networks
 
       % The intuition behind LDA is that defining new axes that maximise variance between speakers makes discriminating easier.
 
+
     \paragraph*{Differences between GMM and DNN input}
 
-      GMMs are sensitive to the number of dimensions of the feature vectors: even a small increase in the vector length will increase the number of GMM parameters substantially. The usual number of dimensions used with GMMs is about 40. With DNNs, however, the input vector determines only the width of the input layer--widths of the other layers are not constrained by the dimensionality of the input features. Therefore, DNNs can learn to use longer feature vectors, and often the used number of dimensions is a few hundred \citep{rath2013improved}.
+      GMMs are sensitive to the number of dimensions of the feature vectors: even a small increase in the vector length will increase the number of GMM parameters substantially. The usual number of dimensions used with GMMs is about 40. With DNNs, however, the input vector determines only the width of the input layer--widths of the other layers are not constrained by the dimensionality of the input features. Therefore, DNNs can learn to use longer feature vectors, and often the used number of dimensions is a few hundred \citep{rath2013improved}. 
+
+      
 
       % frame splicing
 
@@ -1013,12 +1025,12 @@
 
     Estimating the likelihoods of observations given phonemes is achieved by creating a HMM for each phoneme. 
     The phoneme-specific HMMs
-    generate likelihoods of the observed sequences which can be used to map observations to phonemes. This way the task becomes to estimate the parameters of the HMMs so that each of them models the associated phoneme as accurately as possible.
+    generate likelihoods given observed sequences which can be used to map observations to phonemes. This way the task becomes to estimate the parameters of the HMMs so that each of them models the associated phoneme as accurately as possible.
     % In the conventional ASR system, used also in this thesis, phonemes are modelled by HMMs, which are then concatenated to model utterances.
 
     A hidden Markov model consists of a hidden Markov chain, also called regime, and the observation sequence, i.e., feature vectors. Each observation $\boldsymbol{o}_t$ has a probability $b_i(\boldsymbol{o}_t)$ of being generated when a hidden state $i$ is entered. In other words, the observation is a probabilistic function of the hidden state. 
     % Gaussian mixtures
-    A state's emission probabilities are represented by a PDF, typically a mixture of multivariate Gaussian densities
+    A state's emission probabilities are represented by a probability density function (PDF), typically a mixture of multivariate Gaussian densities
     \begin{equation}\label{}
       b_i(\boldsymbol{o}_t) = \sum^{M_j}_{m=1}c_{jm}
         \mathcal{N}(\boldsymbol{o}_t ; \boldsymbol{\mu}_{jm}, \boldsymbol{\Sigma}_{jm})
@@ -1050,7 +1062,9 @@
 
   \subsection{Training HMM/GMM AMs and finding the hidden state sequence} \label{sec:hmm_est} 
 
-    The speech recognition system is trained in a supervised manner, meaning that the training data consists of a parallel corpus of speech audio and corresponding correct transcription. However, the task of the acoustic model is not as straightforward as finding a label for an input vector\footnote{In End-to-end ASR the whole ASR task is simplified to outputting an arbitrary length grapheme sequence given the sequence of observed features}. The reference transcription can be of arbitrary length but the AM is required to map each observation to a HMM state, generating an equal-length \emph{alignment} of observations and states. The states correspond to phonemes, so an alignment can be mapped to a transcription of the audio, given a lexicon that maps the phoneme sequences to word sequences.
+    The speech recognition system is trained in a supervised manner, meaning that the training data consists of a parallel corpus of speech audio and corresponding correct transcription.
+    % However, the task of the acoustic model is not as straightforward as finding a label for an input vector\footnote{In End-to-end ASR the whole ASR task is simplified to outputting an arbitrary length grapheme sequence given the sequence of observed features}.
+    The reference transcription can be of arbitrary length but the AM is required to map each observation to a HMM state, generating an equal-length \emph{alignment} of observations and states. The states correspond to phonemes, so an alignment can be mapped to a transcription of the audio, given a lexicon that maps the phoneme sequences to word sequences.
 
     ML is one criterion of determining the best HMM parameters; others include the MMI criterion which is discussed in Section \ref{sec:mmi}. Section \ref{sec:ml} was a brief discussion about different fitness criteria and optimisation algorithms. It was noted there that for finding the maximum likelihood estimate of a model with latent variables, expectation maximisation is a commonly used optimisation algorithm.
 
@@ -1256,9 +1270,9 @@
 
     % acoustic normalisation = feature space
 
-    Variability between speakers poses a challenge to an ASR system. Each speaker may have an idiosyncratic voice, distinct style of pronunciation as well as distinct recording conditions, which can degrade the ASR performance, as the training speech set and test speech set differ from each other. This section describes some of the methods to account for inter-speaker variability by adapting either the model or the features to a particular speaker. An exhaustive overview of all the used methods is beyond the scope of this thesis.
+    Variability between speakers poses a challenge to an ASR system. Each speaker may have an idiosyncratic voice, distinct style of pronunciation as well as distinct recording conditions, which can degrade the ASR performance as the training speech set and test speech set differ from each other. This section describes some of the methods to account for inter-speaker variability by adapting either the model or the features to a particular speaker. An exhaustive overview of all the used methods is beyond the scope of this thesis.
 
-    The adaptation can be done either in testing or training, usually respectively referred to as \emph{speaker adaptation} and \emph{speaker adaptive training} (SAT). Speaker adaptation can be done by modifying a speaker-independent (SI) model to create personal, speaker-dependent (SD) models for each speaker.  This can be done by taking a small number of speech data from the speaker and using this adapt a SI model to the specific speaker \citep{shinoda2011speaker}. In SAT, speaker-specific information is incorporated in the training of the model. When a model is trained using SAT, it naturally benefits to use an adaptation scheme also in testing. Both GMM- and DNN-based AMs have been shown to benefit from speaker adaptation as well as SAT. A commonly used SAT method for GMMs is the feature-space MLLR. For DNNs, speaker embeddings can be appended to the speech feature vectors. These methods are described in this section.
+    The adaptation can be done either in testing or training, usually respectively referred to as \emph{speaker adaptation} and \emph{speaker-adaptive training} (SAT). Speaker adaptation can be done by modifying a speaker-independent (SI) model to create personal, speaker-dependent (SD) models for each speaker.  This can be done by taking a small number of speech data from the speaker and using this adapt a SI model to the specific speaker \citep{shinoda2011speaker}. In SAT, speaker-specific information is incorporated in the training of the model. When a model is trained using SAT, it naturally benefits to use an adaptation scheme also in testing. Both GMM- and DNN-based AMs have been shown to benefit from speaker adaptation as well as SAT. A commonly used SAT method for GMMs is the feature-space MLLR. For DNNs, speaker embeddings can be appended to the speech feature vectors. These methods are described in this section.
 
     % Cepstral mean and variance normalisation, mentioned in Section \ref{sec:feats}, mitigates the problem of different noise conditions of speech signals. 
     
@@ -1271,7 +1285,7 @@
     % This is called speaker-adaptive training, or SAT for short.  
     SAT requires identifying each speaker from the metadata that indicates the speaker ID. Adaptation can be useful even if the speaker-identifying metadata is absent, in which case a separate adaptation is learned for each utterance, as if each utterance were spoken by a different person. In this case, the adaptation is for inter-utterance variability in general, so speaker-adaptive training becomes a misnomer. Furthermore, the adaptation can, of course, be done w.r.t any attribute of the data that has been labelled in the metadata, and thus these methods could be termed more generally \emph{attribute-aware training} \citep{rownicka2019embeddings}.
 
-    With a HMM/GMM acoustic model, speaker adaptive training can be done by representing each speaker's distinct qualities as a transform in the feature space or in the model space. A feature space transform is applied on the observation vectors, and model space transform on the mean and variance of the GMM. Furthermore, a model space transform can be unconstrained or constrained, the former being separate transforms for the means and variances and the latter using the same transform for both \citep{gales1998maximum}.
+    With a HMM/GMM acoustic model, speaker-adaptive training can be done by representing each speaker's distinct qualities as a transform in the feature space or in the model space. A feature space transform is applied on the observation vectors, and model space transform on the mean and variance of the GMM. Furthermore, a model space transform can be unconstrained or constrained, the former being separate transforms for the means and variances and the latter using the same transform for both \citep{gales1998maximum}.
 
     Using the model space transform, the aim is to learn the optimal model $\boldsymbol{M}$ and adaptation $\boldsymbol{G}^{(r)}$ for speaker $r$
     \begin{equation}
@@ -1430,9 +1444,6 @@
     % about\footnote{not necessarily exactly due to $\epsilon$ labels.}
     $T+1$ states with arcs between the states that correspond to the HMM states at the time step $t$. The costs of the arcs encode the acoustic log-likelihoods. The utterance-specific \emph{search graph} $S$ that is traversed during decoding is generated by composing $U$ with the decoding graph. The search graph is not searched completely, but a subset of the best paths are selected by \emph{beam pruning}.
     When generating the lattice that encodes the subset of the best paths, some of the desiderata are: that the lattice includes all word sequences within the beam size $\alpha$ that represents a log-likelihood difference to the optimal path; that the scores and alignments in the lattice are accurate; that the lattice does not contain duplicate paths of the same word sequence \citep{povey2012wfst}. Figure \ref{fig:lattice} depicts a word lattice.
-
-    An alternative to a word lattice is to simply create lists of $n$ best transcriptions of the utterance. Though sometimes simpler to create and use, n-best lists are less efficient than lattices. In n-best lists, there are often transcriptions that differ only by a few words, which is redundant. n-best lists are capable of encoding far fewer transcriptions than lattices in the same amount of memory, and are therefore usually much more restrictive when, for instance, doing rescoring with a language model.
-
     \begin{figure}[htb]
       \centering
       \includegraphics[width=16cm]{lat}
@@ -1441,6 +1452,8 @@
       }
       \label{fig:lattice}
     \end{figure}
+
+    An alternative to a word lattice is to simply create lists of $n$ best transcriptions of the utterance. Though sometimes simpler to create and use, n-best lists are less efficient than lattices. In n-best lists, there are often transcriptions that differ only by a few words, which is redundant. n-best lists are capable of encoding far fewer transcriptions than lattices in the same amount of memory, and are therefore usually much more restrictive when, for instance, doing rescoring with a language model.
 
 \clearpage
 \section{Experiments} \label{sec:experiments} 
@@ -1485,7 +1498,7 @@
       
       The GMM phoneme model set was trained for the most part by following the Kaldi recipe for the Wall Street Journal corpus\footnote{\url{https://github.com/kaldi-asr/kaldi/blob/master/egs/wsj/s5/run.sh}}. The monophone model set is trained with a subset of 2000 shortest utterances. The features are first aligned equally with the states, after which 40 iterations of Viterbi training are performed to estimate the HMM/GMM model set and generate an improved alignment. The number of Gaussians is increased in between iterations, reaching a total of 1000 Gaussians. 
 
-      The triphone model set is initialised from the monophone models and their alignments, and is trained in a three consecutive steps. Subsets of the data set is selected, including 4000 utterances for the first step, 8000 utterances for the second step, and then using the whole ~15000 utterance training data set for the third triphone training step. The first step (\texttt{train\_deltas.sh}) is similar to monophone training, using the delta and delta-delta features in addition to the MFCCs, and increasing the total number of Gaussians to 10k. The second step (\texttt{train\_lda\_mllt.sh}) splices the MFCC features, reduces the dimensionality back to 40 using LDA, and estimates an MLLT transform. The MLLT transform is applied on the features and new estimates of the models are computed, increasing the total number of Gaussians to 15k. The third and final triphone training step (\texttt{train\_sat.sh}) does speaker adaptive training utilising fMMLR. The total number of Gaussians is increased to 40k.
+      The triphone model set is initialised from the monophone models and their alignments, and is trained in a three consecutive steps. Subsets of the data set is selected, including 4000 utterances for the first step, 8000 utterances for the second step, and then using the whole ~15000 utterance training data set for the third triphone training step. The first step (\texttt{train\_deltas.sh}) is similar to monophone training, using the delta and delta-delta features in addition to the MFCCs, and increasing the total number of Gaussians to 10k. The second step (\texttt{train\_lda\_mllt.sh}) splices the MFCC features, reduces the dimensionality back to 40 using LDA, and estimates an MLLT transform. The MLLT transform is applied on the features and new estimates of the models are computed, increasing the total number of Gaussians to 15k. The third and final triphone training step (\texttt{train\_sat.sh}) does speaker-adaptive training utilising fMMLR. The total number of Gaussians is increased to 40k.
 
       After the triphone model set is trained, silence probabilities (see Section \ref{sec:sil_prob}) are estimated from the statistics of the training data alignments. Since the Finnish lexicon is a one-to-one mapping from letters to phonemes, there are no optional pronunciations of words for which to calculate pronunciation probabilities.
 
@@ -1591,7 +1604,7 @@
 
         The fact that the pretrained speaker embedding extractors get better results than the embeddings trained on the conversational speech data suggest that the domain of the speech is not as important as the quantity of the speech. The domain means the language as well as the type of speech, since the Voxceleb speech is in English.
 
-    \subsubsection{Discussion}
+    % \subsubsection{Discussion}
 
 
   \subsection{Language modelling experiments} \label{sec:lm_expts} 
@@ -1776,7 +1789,7 @@
       % \end{table}
 
 
-    \subsubsection{Discussion}
+    % \subsubsection{Discussion}
 
     
   \subsection{Combined results}
@@ -1880,31 +1893,31 @@
 
   % The research questions would be "to evaluate recent acoustic and language modelling methods for recognising conversational Finnish. In particular, to evaluate the effect of different speaker embedding approaches and evaluate transformer LMs compared to LSTM LMs with word and subword vocabularies"
 
-  Spontaneous conversational Finnish is a challenging type of speech to recognise due to frequent dysfluencies in sentence structure as well as due to the use of various informal word forms.
+  Spontaneous conversational Finnish is a challenging type of speech to recognise due to many factors, such as frequent dysfluencies in sentence structure and the use of various informal word forms.
   % The previous best results on the conversational Finnish corpus were presented by \citet{enarvi2017automatic}. 
-  This thesis work was an effort to improve the ASR accuracy for the conversational DSPCON corpus.
+  This thesis work was an effort to improve the ASR accuracy for conversational Finnish, specifically using the DSPCON corpus.
   The aim was to evaluate recent acoustic and language modelling methods on the data.
-  The main experiments included evaluating the effect of different speaker embedding approaches, and comparing transformer-XL LMs and LSTM LMs with word and subword vocabularies.
+  The main experiments included evaluating the effect of different speaker embedding approaches and comparing Transformer-XL LMs and LSTM LMs with word and subword vocabularies.
 
-  In the speaker embedding experiments, the use of i-vectors and x-vectors achieved similar results when trained on the same speech corpus. Both methods decreased the evaluation set WER around 3\% when trained on the small Finnish conversational speech corpus, and roughly 7\% when trained on the significantly larger, English VoxCeleb corpus.
+  In the speaker embedding experiments, the use of i-vectors and x-vectors achieved similar results when trained on the same speech corpus. Both methods decreased the evaluation set WER around 3\% (relative improvement) when trained on the small Finnish conversational speech corpus, and roughly 7\% when trained on the significantly larger, English VoxCeleb corpus.
   % This demonstrates that a different language can be utilised for training  speaker embeddings that are useful for ASR.
-  Although i-vectors and x-vectors achieve roughly equal results, the two methods differ in how they are trained or how they embed speakers or utterances in a vector space. It is therefore possible that they encode different types of information about the speakers or utterances. To assess whether the methods encode overlapping information, the two vectors were also concatenated and evaluated on the same ASR task. The concatenated i- and x-vectors achieved a small improvement compared to using only x-vectors (about 2\%). However, this improvement was not statistically significant.
-
-  Besides the speaker embedding experiments, the acoustic model was tuned for the development data. Since the previous best results presented by \citet{enarvi2017automatic}, the Kaldi recipes have been optimised further. Using the new Kaldi recipes also improved the results.
-  In total, the ASR WER improved 21\% (from 31.7\% to 25.1\%), when comparing the results achieved using n-gram LM scoring. 
+  % Although i-vectors and x-vectors achieve roughly equal results, the two methods differ in how they are trained or how they embed speakers or utterances in a vector space. It is therefore possible that they encode different types of information about the speakers or utterances. To assess whether the methods encode overlapping information, the two vectors were also concatenated and evaluated on the same ASR task.
+  The concatenated i- and x-vectors achieved a small improvement compared to using only x-vectors (about 2\% relative improvement). However, this improvement was not statistically significant.
+  Besides the speaker embedding experiments, the acoustic model was tuned for the development data.
+  % Since the previous best results presented by \citet{enarvi2017automatic}, the Kaldi recipes have been optimised further.
+  Using the new Kaldi recipes also improved the results.
+  In total, the ASR accuracy improved 21\% (WER decreased from 31.7\% to 25.1\%), when comparing the results achieved by first-pass decoding in this work and in the work by \citet{enarvi2017automatic}. 
 
   The language modelling experiments included evaluating different language models with word and subword vocabularies. 
   In the lattice generation phase, evaluating different n-grams showed that a simple 4-gram LM achieved the best WER results for both word-based and subword-based systems. 
-  
-  The LSTM language models were used to rescore the lattices generated using the n-gram language models.
+  % The LSTM language models were used to rescore the lattices generated using the n-gram language models.
   % The LSTM language models are similar to those in \citep{enarvi2017automatic}.
-  It was hypothesised that the  sequence length of the context ought to be longer for the subword-based systems, since the tokens are shorter. This was shown to be the case: increasing the sequence length from 25 to 40 improved the WER. Perhaps more surprisingly, the word-based systems benefited from decreasing the sequence length from 25 to 15.
-
-  Transformer-XL models were used for rescoring n-best lists generated using n-gram or LSTM LMs. For the word-based system, rescoring the n-best lists with a transformer LM did not improve the results. Rescoring a 50-best list generated after the LSTM rescoring improved the best result by a small margin (0.5\%) for the subword-based system, but this was not a statistically significant improvement.  The inefficacy of the transformer LM is probably due to the  use of n-best lists instead of lattices as well as the small size of the language modelling corpus. 
+  % It was hypothesised that the  sequence length of the context ought to be longer for the subword-based systems, since the tokens are shorter. This was shown to be the case: increasing the sequence length from 25 to 40 improved the WER. Perhaps more surprisingly, the word-based systems benefited from decreasing the sequence length from 25 to 15.
+  Transformer-XL models were used for rescoring n-best lists generated using n-gram or LSTM LMs. For the word-based system, rescoring the n-best lists with a transformer LM did not improve the results. For the subword-based system, rescoring n-best lists generated after the n-gram scoring did not improve the results, but rescoring LSTM-scored 50-best lists improved the best result by a small margin (0.5\% relative). However, this was not a statistically significant improvement.  The inefficacy of the transformer LMs might be due to the  use of n-best lists instead of lattices as well as the small size of the language modelling corpus. 
   
-  Combining the best acoustic and language models built during this thesis work achieved a WER of 22.2\% on the conversational Finnish evaluation set, improving the WER by 18\% compared to previous best result.
+  Combining the best acoustic and language models built during this thesis work achieved a WER of 22.2\% on the conversational Finnish evaluation set, improving the WER by 4.9 absolute percentages (18\% relative improvement) compared to the previous best result.
 
-
+% 
 
 \clearpage
 \small
