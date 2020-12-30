@@ -82,10 +82,10 @@
   %% Specify the title again without the linebreak characters in the optional
   %% argument in box brackets. This is done because the title is part of the 
   %% metadata in the pdf/a file, and the metadata cannot contain linebreaks.
-  \thesistitle{Automatic recognition of conversational speech} % working title
+  \thesistitle{Speech Recognition for Conversational Finnish} % working title
   %\thesistitle[Title of the thesis]{Title of\\ the thesis}
-  \place{Espoo}
-  \date{}
+  \place{Helsinki}
+  \date{\today}
 
   %% Thesis supervisor
   %% Note the "\" character in the title after the period and before the space
@@ -96,7 +96,8 @@
   \supervisor{Prof.\ Mikko Kurimo}
 
   %% Advisor(s)---two at the most---of the thesis.
-  \advisor{Dr.}
+  \advisor{Dr.\ Tamás Grósz}
+  \advisor{Dr.\ Mittul Singh}
 
   %% Aaltologo: syntax:
   %% \uselogo{aaltoRed|aaltoBlue|aaltoYellow|aaltoGray|aaltoGrayScale}{?|!|''}
@@ -108,11 +109,15 @@
   %% above.
   %% Thesis keywords:
   %% Note! The keywords are separated using the \spc macro
-  \keywords{For keywords choose\spc concepts that are\spc central to your\spc thesis}
+  \keywords{ASR\spc speaker embedding\spc LSTM\spc Transformer-XL}
 
   %% The abstract text. This text is included in the metadata of the pdf file as well
   %% as the abstract page.
-  \thesisabstract{abstract here
+  \thesisabstract{
+    Spontaneous conversational Finnish is a challenging type of speech to recognise due to frequent dysfluencies in sentence structure and the use of various informal word forms. This thesis work was an effort to improve the speech recognition accuracy for conversational Finnish.
+    The purpose was to evaluate recent acoustic and language modelling methods on conversational Finnish.
+    The main experiments included evaluating the effect of different speaker embedding approaches and comparing Transformer-XL and recurrent neural language models, using word and subword vocabularies.
+    Combining the best acoustic and language models built during this thesis work improved the word error rate by 4.9 absolute percentages compared to the previous best result.
   }
 
   %% Copyright text. Copyright of a work is with the creator/author of the work
@@ -148,14 +153,14 @@
   \pagenumbering{roman}
 
   %% Create the coverpage
-  % \makecoverpage
+  \makecoverpage
 
   %% Typeset the copyright text.
   %% If you wish, you may leave out the copyright text from the human-readable
   %% page of the pdf file. This may seem like a attractive idea for the printed
   %% document especially if "Copyright (c) yyyy Eddie Engineer" is the only text
   %% on the page. However, the recommendation is to print this copyright text.
-  % \makecopyrightpage
+  \makecopyrightpage
 
   %% Note that when writting your thesis in English, place the English abstract
   %% first followed by the possible Finnish or Swedish abstract.
@@ -163,36 +168,46 @@
   %% Abstract text
   %% The text in the \thesisabstract macro is stored in the macro \abstractext, so
   %% you can use the text metadata abstract directly as follows:
-  % \begin{abstractpage}[english]
-  %   \abstracttext{}
-  % \end{abstractpage}
+  \begin{abstractpage}[english]
+    \abstracttext{}
+  \end{abstractpage}
 
-  % \newpage
-  % %% Abstract in Finnish.
-  % \thesistitle{Opinnäyteen otsikko}
-  % \supervisor{Prof.}
-  % \advisor{TkT}
-  % \degreeprogram{Tieto-, tietoliikenne- ja informaatiotekniikka}
-  % \major{Signaalin-, puheen- ja kielenkäsittely}
-  % %% The keywords need not be separated by \spc now.
-  % \keywords{}
-  % %% Abstract text
-  % \begin{abstractpage}[finnish]
-  %   tiivistelmä tähän
-  % \end{abstractpage}
+  \newpage
+  %% Abstract in Finnish.
+  \thesistitle{Puhekielisen suomen automaattinen tunnistus}
+  \supervisor{Prof. Mikko Kurimo}
+  \advisor{TkT Tamás Grósz}
+  \advisor{TkT Mittul Singh}
+  \degreeprogram{Tieto-, tietoliikenne- ja informaatiotekniikka}
+  \major{Signaalin-, puheen- ja kielenkäsittely}
+  %% The keywords need not be separated by \spc now.
+  \keywords{puheentunnistus, keskustelumuotoinen suomi}
+  %% Abstract text
+  \begin{abstractpage}[finnish]
+    % Spontaneous conversational Finnish is a challenging type of speech to recognise due to frequent dysfluencies in sentence structure and the use of various informal word forms.
+    Puhekielistä suomea on hankala mallintaa arkikielisten ilmaisujen sekä katkonaisten lauseiden takia. 
+    % This thesis work was an effort to improve the speech recognition accuracy for conversational Finnish.
+    Tämän diplomityön tarkoitus oli parantaa puheentunnistusjärjestelmien tarkkuutta puhekieliselle suomelle. 
+    % The purpose was to evaluate recent acoustic and language modelling methods on conversational Finnish.
+    Tavoitteena oli arvioida viimeaikaisten kielen- ja akustiikanmallintamismenetelmien hyödyllisyyttä puhekielisen suomen tunnistamisessa.
+    % The main experiments included evaluating the effect of different speaker embedding approaches and comparing Transformer-XL and recurrent neural language models, using word and subword vocabularies.
+    Työn tärkeimpiä kokeita ovat puhujaan mukautettujen akustiikkamallien vertailu (i-vektorit ja x-vektorit) sekä Transformer-kielimallien ja takaisinkytkettyjen hermoverkkokielimallien vertailu.
+    % Combining the best acoustic and language models built during this thesis work improved the word error rate by 4.9 absolute percentages compared to the previous best result.
+    Yhteensä kieli- ja akustiikkamallikokeet paransivat puheentunnistusjärjestelmän sanavirheastetta 4.9 prosenttiyksikköä.
+  \end{abstractpage}
 
-  % %% Preface
-  % %% This section is optional. Remove it if you do not want a preface.
+  %% Preface
+  %% This section is optional. Remove it if you do not want a preface.
   % \mysection{Preface}
   % preface here
 
   % \vspace{5cm}
-  % Otaniemi, 31.8.2018
+  % Helsinki, 30.12.2020
 
-  % % \vspace{5mm}
-  % % {\hfill Eddie E.\ A.\ Engineer \hspace{1cm}}
+  % \vspace{5mm}
+  % {\hfill Eddie E.\ A.\ Engineer \hspace{1cm}}
 
-  % \newpage
+  \newpage
   \thesistableofcontents
 %%
 
@@ -216,8 +231,7 @@
 
 
   $\boldsymbol{o}_t$    & observation, i.e., feature vector, at time $t$ \\ 
-  % $p(.)$              & probability \\
-  % $P(.|.)$            & likelihood \\
+  $r$                   & speaker \\
   $\boldsymbol{w} = w_1,...,w_N$ & a sequence of words or other units of text \\
   
   
@@ -415,7 +429,7 @@
   % 3. What will be your methodology?
   % \subsection{Related work and methodology}
     % This thesis aims to experiment with some of the latest  methods to improve upon the previous best results obtained for this informal, spontaneous Finnish conversation speech data set. 
-% 
+  % 
   \subsection{Research questions and contributions}
     %  maybe move to background -- expand on research context -> speaker adaptation, better LMs
     The purpose of this thesis is to improve the ASR accuracy for the spontaneous, conversational Finnish corpus.
@@ -443,7 +457,9 @@
       \end{itemize}
     \end{enumerate}
     Other contributions of this thesis work include tuning the hyperparameters of LMs and rebuilding the ASR system, which is based on the models developed by \citet{enarvi2017automatic}. The programming code is available on
-    Github\footnote{todo: link github repositories\url{}}.
+    Github\footnote{AM experiments: \url{https://github.com/anmoisio/keskustelu2020},\newline
+    LSTM experiments: \url{https://github.com/anmoisio/conv_lm},\newline 
+    Transformer-XL experiments: \url{https://github.com/anmoisio/transformer-xl}}.
 
     % In the previous decade, i-vectors \citep{ivector} have been used to model speaker and channel variability. I-vectors can be added to the features, providing information that enables the ASR system to adapt to differing channels and speakers  during both training and testing. \citet{snyder2018x} described how also DNNs can  be utilised to create speaker embeddings, called x-vectors, which model differences between speakers. In this work, the effects of i-vectors and x-vectors on the ASR accuracy are evaluated and compared on the conversational Finnish data.
     % The experiments aim to determine whether one of the methods is more suitable for this type of data.
@@ -794,7 +810,7 @@
     
 
   \subsubsection{Attention} \label{sec:attention}
-    \citet{bahdanau2014neural} developed a mechanism that has been widely adopted in speech and language processing systems, called \emph{attention}. The term refers to a search technique in which a model learns to determine which parts of the input are most relevant for an output at a particular time step: which parts of the input should be attended to when generating an output.
+    \citet{Bahdanau2015NeuralMT} developed a mechanism that has been widely adopted in speech and language processing systems, called \emph{attention}. The term refers to a search technique in which a model learns to determine which parts of the input are most relevant for an output at a particular time step: which parts of the input should be attended to when generating an output.
     
     \paragraph*{Background: seq2seq encoder-decoder models} 
       Attention was introduced in the context of machine translation with sequence-to-sequence \citep{sutskever2014sequence} encoder-decoder systems. "Sequence-to-sequence" means that the system maps an input sequence to an output sequence; in machine translation these are a sentence in two different languages. "Encoder-decoder" is a neural network architecture type that first encodes the input sequence as a high-level representation and then a decodes the output using this representation vector. The encoder typically uses a feedforward neural network to project the tokens in the sequence into an embedding space, and an RNN, e.g., an LSTM network, to turn the word embedding sequence (multiple vectors) into the single context\footnote{The term "context" is used in the context LSTMs and attention; it denotes different kinds context vectors in LSTMs and in the attention mechanism.} vector $\boldsymbol{c}$. 
@@ -844,7 +860,7 @@
       e_{ij} &= score(\boldsymbol{h}^d_{i-1},
               \boldsymbol{h}^e_{j}) 
       \end{align}
-      The scoring function is called the \emph{alignment model} by \citet{bahdanau2014neural} as it aligns the encoder states with the decoder outputs. As the encoder states are dependent on the inputs at the same time step, the alignment is between the input sequence and the output sequence. In the application of machine translation, this means an alignment of the words in the source and target languages. If the application is end-to-end ASR, the alignment would be between observations and output tokens (e.g., characters, as in the influential paper by \citet{chan2016listen}). The alignment is soft, i.e., each input affects many outputs with variable weights.
+      The scoring function is called the \emph{alignment model} by \citet{Bahdanau2015NeuralMT} as it aligns the encoder states with the decoder outputs. As the encoder states are dependent on the inputs at the same time step, the alignment is between the input sequence and the output sequence. In the application of machine translation, this means an alignment of the words in the source and target languages. If the application is end-to-end ASR, the alignment would be between observations and output tokens (e.g., characters, as in the influential paper by \citet{chan2016listen}). The alignment is soft, i.e., each input affects many outputs with variable weights.
       The scores are normalised with the usual softmax function to ensure that they are positive values which add up to one:
       \begin{equation} \label{eq:att_softmax}
         \alpha_{ij} = \softmax(e_{ij}) = \frac{\exp(e_{ij})}
@@ -958,6 +974,9 @@
   %
     Kaldi\footnote{"Kaldi" is one in the series of coffee-related names for computer science projects. The Kaldi documentation explains: "According to legend, Kaldi was the Ethiopian goatherder who discovered the coffee plant."} is a toolkit for automatic speech recognition \citep{Povey_ASRU2011}, used in the ASR experiments in this study. This chapter aims to give an overview of the most relevant theoretical underpinnings of Kaldi ASR systems, as well as some of the practical details of using Kaldi.
 
+    The acoustic models built in this thesis are hybrid HMM/DNN models, in which a deep neural network is used to generate the probability distributions over phonemes, given observations. However, training DNNs requires alignments of the observations and phonemes. These can be generated from a HMM/GMM acoustic model. The first step of acoustic modelling is feature extraction, described in Section \ref{sec:feats}. Building HMM/GMM acoustic models is discussed in Sections \ref{sec:phoneme_hmm} and \ref{sec:hmm_est}. DNN AMs are described in Section \ref{sec:dnn_am}. The last sections in this chapter explain in more detail some further methods for modelling the acoustics.
+    
+    % Section \ref{sec:adaptive_training} explains some of the speaker adaptation methods for both GMM and DNN AMs.
 
   \subsection{Feature extraction and feature-space transforms} \label{sec:feats} 
 
@@ -1075,7 +1094,7 @@
       In practice, there are many states which is why the parameters need to be estimated numerically, iteratively. 
       However, the initial parameter values can be taken from simple statistics of the observations. Initially, the observations are divided equally between the states and the means and variances of the states are taken from the average values.
 
-      The maximum likelihood estimates for the parameters are 
+      The maximum likelihood estimates for the mean and covariance are 
       \begin{equation}\label{eq:mu_hat}
         \hat{\boldsymbol{\mu}}_j = \frac{\sum^T_{t=1}L_j(t)\boldsymbol{o}_t}
           {\sum^T_{t=1}L_j(t)}
@@ -1087,7 +1106,7 @@
           (\boldsymbol{o}_t - \boldsymbol{\mu}_j)^\top }
           {\sum^T_{t=1}L_j(t)}
       \end{equation}
-      The numerator and denominator sums for both parameter groups are \emph{accumulated} from the observations. This is the M-step in this expectation maximisation algorithm. The E-step includes finding the optimal alignment given the current HMM parameters, which is achieved by the forward-backward algorithm.
+      The numerator and denominator sums for both parameter groups are \emph{accumulated} from the observations. This is the M-step in this expectation maximisation algorithm. The E-step includes finding the optimal alignment given the current HMM parameters, which is achieved using the forward-backward algorithm.
 
       % kaldi: gmm-init, HTK: Hinit
 
@@ -1107,32 +1126,31 @@
         \beta_j(t) &= P(\boldsymbol{o}_{t+1},...,\boldsymbol{o}_T|x(t)=j,M) \label{eq:back}
       \end{align}
       Spelled out, $\alpha_j(t)$ is the probability of the partial observation sequence up to time $t$ and that $M$ is in state $j$ at the time step. The backward probability is the probability of the partial observation sequence at the subsequent time steps up to the last vector, given that at the current time the model state is $j$. 
-      The forward probability is a joint probability of the observations and the state, whereas the backward probability of the observations is conditional on the state. This allows for the state occupation probability to be determined by the product of the forward and backward probabilities (from Eqs. \ref{eq:occ}, \ref{eq:forward}, and \ref{eq:back})
+      The forward probability is a joint probability of the observations and the state, whereas the backward probability of the observations is conditional on the state. This allows for the state occupation probability to be determined by the product of the forward and backward probabilities (from Eqs. \ref{eq:occ}, \ref{eq:forward}, and \ref{eq:back}):
       \begin{align}\label{}
         L_j(t) = \frac{ \alpha_j(t) \beta_j(t) }{P(\boldsymbol{O}|M)}
       \end{align}
-      
-      $\alpha$ and $\beta$ are calculated respectively using the recursions
+
+      The forward and backward probabilities, $\alpha$ and $\beta$, are calculated respectively using the recursions
       \begin{align}
         \alpha_j(t) &= \bigg[ \sum^{N-1}_{i=2}\alpha_i(t-1)a_{ij} \bigg] b_j(\boldsymbol{o}_t)
         \label{eq:alpha_recurs} \\
         \beta_i(t) &= \sum^{N-1}_{j=2} \beta_j(t+1) a_{ij} b_j(\boldsymbol{o}_{t+1}) 
         \label{eq:beta_recurs}
       \end{align}
-      and the initial conditions,
+      and the initial conditions
       \begin{align}
-        \alpha_1(1) &= 1, \; \; \; \; \alpha_j(1) = a_{ij} b_j(\boldsymbol{o}_1) 
+        \alpha_1(1) &= 1, \; \; \; \; \alpha_j(1) = a_{1j} b_j(\boldsymbol{o}_1) 
         \label{eq:alpha_init} \\
         \beta_i(T) &= a_{iN} \label{eq:beta_init}
       \end{align}
-      for $1<j<N$ and the final conditions
+      for $1<j<N$. The final conditions are
       \begin{align}
         \alpha_N(T) &= \sum^{N-1}_{i=2}\alpha_i(T)a_{iN} \label{eq:afinal} \\
         \beta_1(1) &= \sum^{N-1}_{j=2} a_{1j} b_j(\boldsymbol{o}_1) \beta_j(1) \label{eq:bfinal}
       \end{align}
       where the limits of the sums exclude the states $1$ and $N$ because they are non-emitting. The recursion of Eq. \ref{eq:alpha_recurs} calculates the forward probabilities (of seeing the specified observations and being at the state $j$) by summing all possible forward probabilities for all possible predecessor states $i$ weighted by the transition probability $a_{ij}$.
-
-      From Eqs. \ref{eq:forward}, \ref{eq:afinal}, and \ref{eq:bfinal} it follows that calculating the forward probability also yields the total likelihood $P(\boldsymbol{O}|M)=\alpha_N(T)$.
+      From Eqs. \ref{eq:forward}, \ref{eq:afinal}, and \ref{eq:bfinal} it follows that calculating the forward probability also yields the total likelihood $P(\boldsymbol{O}|M)=\alpha_N(T)$. This allows for selecting the hidden path with the maximum likelihood, which was the aim of the E-step.
       % By calculating the forward probability the best hidden path can be determined. The forward-backward algorithm is therefore the E-step that finds the optimal alignment given the HMM parameters.
       % The M-step consists of accumulating the averages from training examples
 
@@ -1148,7 +1166,7 @@
       and initially
       \begin{align}
         &\phi_1(1) = 1 \\
-        &\phi_j(1) = a_{1j}b_j(\boldsymbol{o}_t).
+        &\phi_j(1) = a_{1j}b_j(\boldsymbol{o}_1).
       \end{align}
       for $1<j<N$. This alignment process finds an arc $ij$ for each observation $\boldsymbol{o}_t$.
       % so that the last 
@@ -1159,7 +1177,7 @@
       % Within each state, a further alignment is made to align observations with mixture components. 
       % Using the Viterbi algorithm, the states are aligned with the observation sequence by maximising
 
-      In order to find the most likely hidden sequence the Viterbi algorithm is applied.  The Viterbi algorithm creates paths through the sequence by selecting for each time step the maximum of the previous state likelihoods multiplied by the transition probability to the state. After finding the maximum of the preceding state probabilities for each time step, the sequence is traced back starting from the last unit and selecting the best preceding tags for each tag. This traceback determines the most likely sequence. In practice, the algorithm becomes computationally too expensive to calculate for long sequences and with large vocabulary, so to approximate the most likely sequence beam search is used, which keeps only the $k$ best hypotheses of each hidden state.
+      In order to find the most likely hidden sequence the Viterbi algorithm is applied.  The Viterbi algorithm creates paths through the sequence by selecting for each time step the maximum of the previous state likelihoods multiplied by the transition probability to the state. After finding the maximum of the preceding state probabilities for each time step, the sequence is traced back starting from the last unit and selecting the best preceding tags for each tag. This trace-back determines the most likely sequence. In practice, the algorithm becomes computationally too expensive to calculate for long sequences with a large vocabulary, so to approximate the most likely sequence beam search is used, which keeps only $k$ best hypotheses of each hidden state.
 
       Viterbi training results in an approximation of the maximum likelihood estimate, which was computed in the Baum-Welch algorithm (in theory; beam search makes also the Baum-Welch an approximation). The approximation is convenient, since using only the best hidden sequence for updating the HMM parameters makes the Viterbi training is computationally less expensive than the Baum-Welch algorithm. Viterbi training is used in the Kaldi toolkit for estimating the HMM/GMM acoustic models in the standard recipes.
 
@@ -1179,7 +1197,7 @@
       % The HMMs competing for being the most accurate model of the observations are not compared to each other.
       In discriminative training, instead of maximising the likelihood of the data given the
       % generative
-      model, a model is trained to discriminate between the classes, which in this case are different phoneme sequences, corresponding to the HMMs. This way, in principle, more of the model capacity is used to model the boundaries between different HMMs, instead of using it to model just the relations between individual HMMs and alignments. 
+      model, a model is trained to discriminate between the classes, which in this case are different phoneme sequences, corresponding to HMMs. This way, in principle, more of the model capacity is utilised to model the boundaries between different HMMs, instead of using it to model just the relations between individual HMMs and alignments. 
 
       The discriminative objective function can be simply the difference between the correct classifications (e.g., a phoneme sequence) for a set of examples and the classifications assigned to them by the model. This is called the minimum classification error (MCE) criterion \citep{juang1997minimum}.
       Another type of objective function is the maximum mutual information (MMI) \citep{bahl1986maximum} criterion
@@ -1201,7 +1219,6 @@
 
       % Traditionally this has been done by training a cross-entropy system, generating word lattices with a weak language model, and using these lattices as an approx- imation for all possible word sequences in the discriminative objective function– as was done when Gaussian Mixture Mod- els were the state of the art povey2016purely
 
-
     \subsubsection{Phone context, state tying, and phonetic decision trees} \label{sec:triphone} 
       Phones of the same phoneme sound different when flanked by different phonemes. For this reason, contextual information is modelled, too, by taking into account the preceding and subsequent phonemes of the modelled phoneme. These phonemes with left and right context of one are called triphones, and each can be assigned a HMM \citep{schwartz1985context}.
 
@@ -1214,36 +1231,45 @@
       % The transition probabilities from a state to another are essentially the counts of the transitions seen in the training corpus.
 
       % tying
-      When considering triphones instead of monophones, the number of possible phonemes increases to the power of three. This means each class of triphone will include fewer instances in the training data, which brings difficulties in estimating the state output PDFs. To alleviate the data sparseness, the states of the phoneme HMMs are can be tied together so that the parameters of the output distributions of those states are shared. This makes the estimation of the parameters more robust because there are more training data occurrences, and also makes the total system more compact with fewer parameters \citep{young1992general}. States are clustered based on a chosen metric of similarity.  
-
+      When considering triphones instead of monophones, the number of possible phonemes increases significantly. This means each class of triphone will include fewer instances in the training data, which brings difficulties in estimating the state output PDFs. To alleviate the data sparseness, the states of the phoneme HMMs are can be tied together so that the parameters of the output distributions of those states are shared. This makes the estimation of the parameters more robust because there are more training data occurrences, and also makes the total system more compact with fewer parameters \citep{young1992general}.
+      
+      States are clustered based on a chosen metric of similarity.
       % http://kaldi-asr.org/doc/tree_externals.html
       In tree-based clustering as described by \citet{young1994tree}, the states are divided into branches in a top-down optimisation procedure. Starting from the root node, the question that maximises the likelihood is selected for the node, with the data on each side of the divide being modelled by a single Gaussian.
       In phonetic decision trees the questions are about the context of the phone, e.g. "Is the phone on the left of the current phone a fricative?". 
       After the procedure, the leaves of the tree are the state clusters in which the states are tied. In the final stage, leaves can be merged if the likelihood does not decrease more than a threshold value.
 
-      After a tree has been constructed for the states of the triphone models, also previously unseen triphones can be synthesised by traversing the tree to the appropriate leaf node, i.e. cluster, by answering the questions about that triphone's context and using the tied states of that cluster.
+      After a tree has been constructed for the states of the triphone models, also previously unseen triphones can be synthesised by traversing the tree to the appropriate leaf node, i.e., cluster, by answering the questions about that triphone's context and using the tied states of that cluster.
 
 
   \subsection{Deep neural networks for acoustic modelling} \label{sec:dnn_am} 
 
     In the previous decade, deep neural networks achieved state-of-the-art results in acoustic modelling, supplanting the Gaussian mixture models as the most accurate method to classify observations into phoneme classes. In the HMM/DNN hybrid approach, DNNs provide \emph{pseudo-likelihoods} of the observations for each HMM state.
     % This is due to DNNs being discriminative instead of generative like GMMs.
+    
     The approach defined in Eq. \ref{eq:asr-bayes-2} works well for traditional ASR systems that use GMMs for acoustic modelling. However, if the generative GMM is replaced with a discriminative neural network model, it does not produce an acoustic likelihood $P(\boldsymbol{o}_t|\boldsymbol{s}(t))$ but a state level posterior probability $P(\boldsymbol{s}(t)|\boldsymbol{o}_t)$, which is a problem because the decoding (Eq. \ref{eq:asr-bayes-2}) relies on the likelihoods. This mismatch can be bypassed by applying the Bayes' rule to produce pseudo-likelihoods:
     \begin{equation}
-      P(\boldsymbol{x}_t|\boldsymbol{s}(t)) =
-      \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)P(\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))} \propto	 
-      \frac{P(\boldsymbol{s}(t)|\boldsymbol{x}_t)} {P(\boldsymbol{s}(t))}
+      P(\boldsymbol{o}_t|\boldsymbol{s}(t)) =
+      \frac{P(\boldsymbol{s}(t)|\boldsymbol{o}_t)P(\boldsymbol{o}_t)} {P(\boldsymbol{s}(t))} \propto	 
+      \frac{P(\boldsymbol{s}(t)|\boldsymbol{o}_t)} {P(\boldsymbol{s}(t))}
     \end{equation}
     The state priors $P(\boldsymbol{s}(t))$ can be gathered from corpus frequencies \citep{Bourlard1994}. 
 
     \subsubsection{TDNNs and RNNs} 
-      Two common types of DNN used for acoustic modelling are RNNs and time delay neural networks (TDNN). Both RNNs and TDNNs are inherently suited to modelling time-series data, where it is important to capture long-term time dependencies, such as speech. However, the two types of DNN are different in how they achieve this.
+      Two common types of DNN used for acoustic modelling are RNNs and time delay neural networks (TDNN) \citep{waibel1989phoneme}. Both RNNs and TDNNs are inherently suited to modelling time-series data, where it is important to capture dependencies across time steps, such as speech. However, the two types of DNN are different in how they achieve this.
 
-      RNNs (see Section \ref{sec:rnn})
+      As described in Section \ref{sec:rnn}, RNNs include a cycle between network connections, which creates a dependence of the current ouput on the previous outputs. LSTMs, also described in Section \ref{sec:rnn}, are a commonly used type of RNN used for acoustic modelling.
+      
+      TDNNs, also called 1-dimensional convolutional neural networks, are feedforward networks whose layers have a hierarchical structure. Each unit processes inputs from the previous layer across some predefined context, for instance units from time steps $t-4$ to $t+3$. As the next layer has also a context of a few temporal steps, the units in the last layer have a widest temporal dependence. In addition, subsampling the processsed inputs can be used to decrese the computational costs \citep{peddinti2015time}. This is similar to the stride of convolutional neural networks, and the subsampling factor is also called time-stride in Kaldi scripts. Figure \ref{fig:tdnn} illustrates the TDNN structure with and without subsampling. 
 
-      TDNNs 
+      \begin{figure}[htb]
+        \centering
+        \includegraphics[width=12cm]{tdnn}
+        \caption{TDNN structure with (red) and without (red and blue) subsampling \citep{peddinti2015time}.}
+        \label{fig:tdnn}
+      \end{figure}
 
-      \citep{peddinti2015time}
+      In Kaldi, TDNN layer weights are often decomposed into two smaller factors to reduce the number of parameters of an already-trained neural network. The smaller number of dimensions of the two factor matrices is called the bottleneck dimension \citep{povey2018semi}.
 
     % (explaining RNNs and TDNNs in previous sections?)
 
@@ -1254,7 +1280,7 @@
     \subsubsection{Regularisation of DNN AMs} 
       Regularisation is important in DNN training to impede overfitting. Kaldi chain models incorporate a number of regularisation methods in the DNN architectures. One of the methods is called \emph{L2-regularisation}, which applies the euclidean norm to penalise elements in the output vector that tend to blow up. This is achieved by subtracting $\frac{1}{2}c||\boldsymbol{y}||_2^2$ from the objective function of each frame output $\boldsymbol{y}$, where $c$ is a user-set scaling factor, e.g. 0.005 \citep{povey2016purely}. In Kaldi, L2-regularisation is applied on the outputs; note that this method is different from the L2-regularisation applied to the weights, which is another commonly used regularisation method.
       
-      Another widely used regularisation method for deep neural nets are \emph{dropout layers} which randomly sample a subset of the neurons and their connections which are omitted, dropped out, during an iteration of the training \citep{srivastava2014dropout}. This prevents the neurons from relying on the other neuron's outputs too much, i.e., prevents too much \emph{co-adaptation} among the parameters. Dropping out random units in training shifts the unit of adaptation down from large groups of neurons to individual neurons, since it is not guaranteed that the other neurons are present. This principle is explained through an analogy to sexual selection, in the above mentioned original paper. Since genes are mixed randomly with another set of genes from a conspecific between every generation, individual genes cannot rely on specific other genes to be present in the future. This inhibits aggregation of large interdependent gene complexes, in which genes function well only with the group of co-adapted genes. These kinds of complexes would become rigid, and fragile to the inevitable mutations that will always occur quite randomly: new genes would be difficult to incorporate in the complex. This kind of rigidity is analogous to overfitting to the training data and failing to find generalisable rules that apply to new data samples from the hidden distribution, which regularisation attempts to lessen.
+      Another widely used regularisation method for deep neural nets are \emph{dropout layers} which randomly sample a subset of the neurons and their connections which are omitted, dropped out, during an iteration of the training \citep{srivastava2014dropout}. This prevents the neurons from relying on the other neuron's outputs too much, i.e., prevents too much \emph{co-adaptation} among the parameters. Dropping out random units in training shifts the unit of adaptation down from large groups of neurons to individual neurons, since it is not guaranteed that the other neurons are present. This principle is explained through an analogy to sexual selection in the above mentioned original paper. Since genes are mixed randomly with another set of genes from a conspecific between every generation, individual genes cannot rely on some particular other genes to be present in the future. This inhibits aggregation of large interdependent gene complexes, in which genes function well only with the group of co-adapted genes. These kinds of complexes would become rigid, and fragile to the inevitable mutations that will always occur quite randomly: new genes would be difficult to incorporate in the complex. This kind of rigidity is analogous to overfitting to the training data and failing to find generalisable rules that apply to new data samples from the hidden distribution, which regularisation attempts to lessen. Kaldi uses dropout schedules that vary the dropout rate as a function of the number of epochs trained \citep{cheng2017exploration}. For example, if the dropout rate is 0 at the start of training ($f(0)=0$), 0.2 midway of the training ($f(0.5)=0.2$), and 0 at the end of the training ($f(1)=0$), the Kaldi notation for the dropout schedule is \texttt{0@0,0.2@0.5,0@1}, which is written in shorthand just \texttt{0,0.2@0.5,1}. The dropout rate is linearly interpolated between these points.
 
       % It has been empirically shown that dropout layers 
 
@@ -1285,18 +1311,19 @@
     % This is called speaker-adaptive training, or SAT for short.  
     SAT requires identifying each speaker from the metadata that indicates the speaker ID. Adaptation can be useful even if the speaker-identifying metadata is absent, in which case a separate adaptation is learned for each utterance, as if each utterance were spoken by a different person. In this case, the adaptation is for inter-utterance variability in general, so speaker-adaptive training becomes a misnomer. Furthermore, the adaptation can, of course, be done w.r.t any attribute of the data that has been labelled in the metadata, and thus these methods could be termed more generally \emph{attribute-aware training} \citep{rownicka2019embeddings}.
 
+    \paragraph*{Speaker-adaptive training for GMM AMs}
     With a HMM/GMM acoustic model, speaker-adaptive training can be done by representing each speaker's distinct qualities as a transform in the feature space or in the model space. A feature space transform is applied on the observation vectors, and model space transform on the mean and variance of the GMM. Furthermore, a model space transform can be unconstrained or constrained, the former being separate transforms for the means and variances and the latter using the same transform for both \citep{gales1998maximum}.
 
-    Using the model space transform, the aim is to learn the optimal model $\boldsymbol{M}$ and adaptation $\boldsymbol{G}^{(r)}$ for speaker $r$
+    Using the model space transform, the aim is to learn the optimal model $\boldsymbol{\theta}$ and adaptation $\boldsymbol{G}^{(r)}$ for speaker $r$
     \begin{equation}
-      (\hat{\boldsymbol{M}}, \hat{\boldsymbol{G}}) =
-          \argmax_{(\boldsymbol{M},\boldsymbol{G})} \prod^R_{r=1}
-          P(\boldsymbol{O}^{(r)}; \boldsymbol{G}^{(r)}(\boldsymbol{M}))
+      (\hat{\boldsymbol{\theta}}, \hat{\boldsymbol{G}}) =
+          \argmax_{(\boldsymbol{\theta},\boldsymbol{G})} \prod^R_{r=1}
+          P(\boldsymbol{O}^{(r)}; \boldsymbol{G}^{(r)}(\boldsymbol{\theta}))
     \end{equation}
-    where $\hat{\boldsymbol{M}}$ are the model parameters \citep{anastasakos1996compact}.
+    where $\hat{\boldsymbol{\theta}}$ are the model parameters \citep{anastasakos1996compact}.
     The feature space transform is analogous, only transforming the observations instead of the model.
 
-    A common SAT transform is the maximum likelihood linear regression where $\boldsymbol{G}(\boldsymbol{M})$ is an affine\footnote{\emph{Linear} regression is thus a slight misnomer.} transformation defined by the matrix $\boldsymbol{A}$ and bias $\boldsymbol{b}$ 
+    A common SAT transform is the maximum likelihood linear regression where $\boldsymbol{G}(\boldsymbol{\theta})$ is an affine\footnote{\emph{Linear} regression is thus a slight misnomer.} transformation defined by the matrix $\boldsymbol{A}$ and bias $\boldsymbol{b}$ 
     \begin{equation}
       \boldsymbol{\mu}^{(r)} = \boldsymbol{A}^{(r)}\boldsymbol{\mu}+\boldsymbol{b}^{(r)}
     \end{equation}
@@ -1304,8 +1331,8 @@
 
     In practice, in the Kaldi implementation, affine transform is applied by appending a 1 to the feature vector, and multiplying it with the linear transform $\boldsymbol{A}$ concatenated with the constant offset (bias) $\boldsymbol{b}$: $\bracketVectorstack{  \boldsymbol{A} ; \boldsymbol{b}} \bracketVectorstack{\boldsymbol{o} \\ 1}$. The Kaldi program \texttt{transform-feats} is used to multiply the feature vectors with transform matrices.
     % \citep{povey2008fast}
-    \newline
 
+    \paragraph*{Speaker-adaptive training for DNN AMs}
     As well as GMM parameters, also DNN acoustic models (see Section \ref{sec:dnn_am}) can be estimated speaker-adaptively. Adapting can be performed in the feature-space by appending or transforming the observations or in the model-space by modifying the DNN AM parameters.
     
     A common method is to extract i-vectors from speakers \citep{ivector}, optionally perform a transformation of the i-vectors using a control network, and append them to the features that are fed to the DNN \citep{miao2015speaker}. i-vectors have usually a hundred or a few hundred dimensions that encode properties of a speaker as well as the environment, enabling the AM to generalise more robustly to speech in different conditions. The original paper by \citet{ivector} referred to the i-vector as the \emph{total factors} $\boldsymbol{w}$ in the \emph{total variability space} $\boldsymbol{T}$ because it models both speaker and channel variability in contrast with joint factor analysis \citep{kenny2005joint} which makes a distinction between the two sources of variability. 
@@ -1320,7 +1347,15 @@
     where $\boldsymbol{m}$ is the UBM supervector.  The extractor compresses the high-dimensional statistics from the UBM into the dense i-vector representation for a given utterance. 
 
     Another approach to modelling speaker characteristics is to train a feedforward deep neural network to project speakers into an embedding space that models the speaker variance. \citet{snyder2017deep} introduced a \emph{speaker embedding} method  where the DNN is trained to classify speakers from variable-length segments. The DNN learns to assign each speaker an embedding space vector which can be then used in the AM training similarly to an i-vector.
-    \citet{snyder2018x} describe the use of speaker embeddings, which they call x-vectors, in speaker  recognition. In contrast with i-vectors, x-vectors model only the speaker characteristics since the DNN is trained to identify speakers. 
+    \citet{snyder2018x} describe the use of DNN-generated speaker embeddings, which they call x-vectors, in speaker  recognition.
+    In contrast with i-vectors, x-vectors model only the speaker characteristics since the DNN is trained to identify speakers. 
+
+    \begin{figure}[htb]
+      \centering
+      \includegraphics[width=10cm]{xvec}
+      \caption{The DNN used for x-vector extraction \citep{snyder2017deep}.}
+      \label{fig:tdnn}
+    \end{figure}
 
     Speaker embeddings can be extracted either online or offline. This refers to which frames can be used in the extraction. When streamed audio is transcribed on the fly, the transcribed utterance is partial: only the frames up to time $t$ can be be used in the embedding instead of the complete utterance. Online decoding is simulated in the standard recipes in Kaldi, and the embeddings are extracted using partial utterances every 10 frames or so. In online extraction, the features are carried over from previous utterances of the same speaker.
     Offline extraction can be used when there is no need to stream the features or you do not want to simulate this application). Offline extraction is standard when using the embeddings in speaker recognition instead of speech recognition.
@@ -1390,8 +1425,8 @@
       \label{tab:lexicon}
     \end{table}
 
-    A lexicon for a language like English has to be constructed largely by hand, as most of the mapping from letters to phonemes does not have a sound
-    \footnote{Ignore the pun.}
+    A lexicon for a language like English has to be constructed largely by hand, as most of the mapping from letters to phonemes does not have a
+    sound\footnote{Ignore the pun.}
     logic behind it. This is due to historical change in the pronunciations of words that was not translated into corresponding change in their written forms (e.g., during the Great Vowel Shift) as well as loan words from other languages which have different rules of orthography \citep{english}. For a language that does not have a phonemic orthography but some constant patterns of pronunciation, a machine learning approach can also be used to learn a mapping for the dictionary.
     
     Similar change can be observed in Finnish as words are imported from other languages, mainly from English. Loan words often do not follow the Finnish orthography, which means that the one-to-one mapping from letters to phonemes is no longer accurate for these words. For example, "googlata" is pronounced "G U U G L A T A"\footnote{These are not official phonetic alphabet (they are the phoneme symbols that are used in this thesis) but hopefully the example still makes sense.} instead of following the Finnish orthographic rules to pronounce it "G O O G L A T A", or alternatively spelling it "guuglata". In this study these inaccuracies are ignored, and the Finnish lexicon is generated automatically using the simple letter-to-phoneme correspondence, where a letter corresponds to a single phoneme, usually denoted by itself (with a few exceptions, e.g., "c"->"K", "q"->"K V"). Table \ref{tab:lexicon} is an example of a few lexicon entries that follow the word-to-phoneme mapping used in the experiments of this thesis.
@@ -1462,6 +1497,8 @@
 
   %   The baseline language models and the ASR system is based on the systems developed by \citet{enarvi2017automatic}.
 
+  This chapter describes the experiments and presents the results. Statistical significance of differences between two results was assessed using the Wilcoxon Signed Rank \citep{wilcoxon1992individual} for the speaker WER.  
+
   \subsection{Acoustic modelling experiments}
 
     \subsubsection{Speech corpora} 
@@ -1488,7 +1525,7 @@
           \label{tab:am_data}
       \end{table}
 
-      \emph{Speed perturbation} is a data augmentation method in which the speed of the audio is increased or decreased \citep{ko2015audio}. This method is used for the DNN AM training data, augmenting the speech data by changing its speed by a factor of 0.9 and 1.1, increasing the amount of data by a factor of three. As the quality, or domain, of the three different data sets is different, it could be useful to augment only the in-domain data, i.e., DSPCON. A system is trained with the whole dataset augmented, as well as one system augmenting only DSPCON. The difference
+      \emph{Speed perturbation} is a data augmentation method in which the speed of the audio is increased or decreased \citep{ko2015audio}. This method is used for the DNN AM training data, augmenting the speech data by changing its speed by a factor of 0.9 and 1.1, increasing the amount of data by a factor of three. As the quality, or domain, of the three different data sets is different, it could be useful to augment only the in-domain data, i.e., DSPCON. A system is trained with the whole dataset augmented, as well as one system augmenting only DSPCON. Augmenting only DSPCON yielded worse results than augmenting the complete data set.
 
       
     \subsubsection{HMM/GMM acoustic model architecture and training}
@@ -1504,14 +1541,15 @@
 
       An MMI (see Section \ref{sec:mmi}) system is trained based on the triphone alignments and silence probabilities. The MMI model generates the alignments that are used to train the deep neural network acoustic model.
 
-      The GMM triphone model set was kept fixed throughout the experiments, after first running a couple of experiments to tune the model. These experiments included evaluating the MMI model compared to a fourth triphone training step and experimenting on a couple of different 
+      The GMM triphone model set was kept fixed throughout the experiments, after first running a couple of experiments to tune the model. These experiments included evaluating the MMI model compared to a fourth triphone training step.
+      %  and experimenting on a couple of different 
 
 
     \subsubsection{HMM/DNN acoustic model architecture and training}
 
-      The DNN AM inputs higher-resolution features than the GMM AM. 40-dimensional MFCCs are extracted from the data set, which has been augmented using speed perturbation.
+      The DNN AM inputs higher-resolution features than the GMM AM. 40-dimensional MFCCs are extracted from the data set, which has been augmented using speed perturbation. The MFCCs are concatenated with a speaker embedding vector, either i-vector or x-vector (see Section \ref{sec:emb_expts}), which has 100 or 200 dimensions. 
 
-      The DNN is a Kaldi chain model, trained on the LF-MMI objective
+      The DNN/HMM is a Kaldi chain model, trained on the LF-MMI objective. The DNN is a TDNN with 15 layers that have 1536 dimensions and a bottleneck dimensionality of 160. The time-stride is 1 for the first 3 layers. 0 for the 4th layer, and 3 for the remaining layers. The affine layer before softmax has 256 dimensions. The dropout schedule is set to \texttt{0,0@0.20,0.5@0.50,0}, the xent-regularize factor to 0.1, and the leaky-hmm coefficient to 0.1. The mini-batch size is set to 64. The TDNN is trained for 6 epochs with an initial learning rate of 0.00025 and final learning rate of 0.000025.
       
       % The first layer of the DNN
 
@@ -1528,7 +1566,7 @@
       % \end{table}
       
 
-    \subsubsection{Speaker embedding experiments}
+    \subsubsection{Speaker embedding experiments} \label{sec:emb_expts}
 
       %  spk embs can be trained with out of domain data
 
@@ -1544,7 +1582,7 @@
 
 
       \paragraph*{Pretrained i-vector extractor trained on Yle and Parliament data}
-        A pretrained i-vector extractor was used as a comparison to the models trained in this work. This extractor was trained on the Yle and Parliament speech data.
+        A pretrained i-vector extractor was used as a comparison to the models trained in this work. This extractor was trained on the Yle and Parliament speech data. This data set includes Finnish speech from Yle broadcast news and Finnish parliament sessions. In total, there are 782 different speakers and about 800k utterances.
 
       \paragraph*{i-vector extractor trained on the conversational Finnish data}
 
@@ -1554,12 +1592,11 @@
 
         An x-vector extractor is trained also on the conversational data. This model uses the same setup and hyperparameters as the Voxceleb x-vector extractor. The data is augmented similarly to the Voxceleb model, increasing the number of utterances up to about 100k.
 
-
       \paragraph*{Domain adaptation by finetuning the pretrained extractors}
 
         Since the VoxCeleb extractor models are trained on English speech, it is possible that the extractors are suboptimal for Finnish. The extractors are trained on task of identifying speakers based on an utterance. There could be differences in the two languages in what kind of acoustic cues are utilised to identify the speaker. As with other modelling tasks, such as acoustic modelling, the extractor model could benefit from finetuning the large pretrained model on a smaller set of in-domain (or closer to the test domain) speech corpus. 
 
-        The Voxceleb x-vector extractor was finetuned with the augmented Finnish speech corpus. The softmax layer was replaced so that the number of target classes (speakers) was compatible with the finetuning data. Apart from the ouptu layer, all the other layers and their parameters were kept from the pretrained model, and the model was trained on the Finnish data for one epoch. This improves the evaluation set WER result a little (Table \ref{tab:spk_emb}).
+        The Voxceleb x-vector extractor was finetuned with the augmented Finnish speech corpus. The softmax layer was replaced so that the number of target classes (speakers) was compatible with the finetuning data. Apart from the output layer, all the other layers and their parameters were kept from the pretrained model, and the model was trained on the Finnish data for one epoch. This improves the evaluation set WER result a little (Table \ref{tab:spk_emb}), but this was not a statistically significant improvement.
 
         Replacing the last hidden layer of the extractor model was experimented on, but this did not improve the WER results. Adding a new layer after the 7th layer was also tried, but here too the results were worse than for the pretrained model.
 
@@ -1568,7 +1605,7 @@
 
         Since the method of modelling speaker variability is different in the two embedding types (see Section \ref{sec:adaptive_training}), it is possible that they encode different, not completely overlapping information.
         % One of the main differences between the methods is that the x-vector extractor has been explicitly trained to classify speakers, while the i-vector extractor 
-        Therefore it might benefit to combine the two speaker embeddings. Simply concatenating the two vectors improved the WER results by a small margin, compared to using only x- or i-vectors. In Table \ref{tab:spk_emb} this method is called the i-x-ensemble vectors.
+        Therefore it might benefit to combine the two speaker embeddings. Simply concatenating the two vectors improved the WER results by a small margin, compared to using only x- or i-vectors. In Table \ref{tab:spk_emb} this method is called the i-x-ensemble vectors. This is a promising result, but the improvement is not statistically significant, based on the Wilcoxon Signed Rank test.
         
        
       \paragraph*{Results}
@@ -1585,7 +1622,7 @@
 
                 None && 25.1 & 27.3   \\ \midrule
 
-                \multirow{4}{*}{i-vectors} & conv speech  & 23.9 & 26.5 \\ 
+                \multirow{3}{*}{i-vectors} & conv speech  & 23.9 & 26.5 \\ 
                 % & conv speech (offline) & 24.0 & 26.5 \\ 
                 & VoxCeleb pretrained & 23.9 & 25.5  \\ 
                 & Yle, parliament pretrained & \textbf{23.3} & 25.8 \\\midrule
@@ -1622,8 +1659,8 @@
         \begin{tabularx}{\columnwidth}{c|l}
           \toprule
           \textbf{LM training corpus} & \textbf{\# of word tokens} \\ \midrule
-          DSP conversational speech corpus transcriptions & 61k  \\ 
-          WEB corpus, conversational written text corpus & 75.9M \\ \bottomrule
+          DSPCON conversational speech corpus transcriptions & 61k  \\ 
+          WEBCON corpus, conversational written text corpus & 75.9M \\ \bottomrule
         \end{tabularx}
         \caption{The two language modelling corpora. DSPCON is more similar to the development and test corpora than the WEBCON, but it is significantly smaller. The two coprpora are used to generate separate n-gram models, which are interpolated. The interpolation weights are optimised on the development set.}
         \label{tab:lm_corpora}
@@ -1634,7 +1671,7 @@
 
       The word-based systems use an n-gram LM with $n=4$ for the first-pass decoding and lattice generation. The SRILM \citep{stolcke2002srilm} is used to train KN-discounted n-gram in the ARPA format (see Section \ref{sec:ngram}). The two corpora are interpolated with weights that are optimised on the development data, similarly to \citep{enarvi2017automatic}.
 
-      The subword-based systems use an n-gram LM with $n=5$ for the first-pass decoding and lattice generation. Different constant and variable values of $n$ were evaluated on the development data to find a suitable value. The VariKN \citep{siivola2007morfessor} tool was used to evaluate variable-order pruned n-grams. 
+      The subword-based systems use an n-gram LM with $n=4$ for the first-pass decoding and lattice generation. Different constant and variable values of $n$ were evaluated on the development data to find a suitable value. The VariKN \citep{siivola2007morfessor} tool was used to evaluate variable-order pruned n-grams. 
 
       \begin{table}[ht!]
         \center
@@ -1687,24 +1724,23 @@
 
     \subsubsection{Rescoring lattices with LSTM LM} \label{sec:lstm_expts} 
 
-      The lattices generated in the first pass are rescored with an LSTM language model. 
-
+      The lattices generated in the first pass are rescored with an LSTM language model (2nd pass). 
       The LSTM language model was mostly the same as in \citep{enarvi2017automatic}. The projection layer has a dimension of 500, after which there is one LSTM layer followed by four highway layers, all with 1500 dimensions. There are dropout layers in between all of the layers, with a dropout rate of 0.2. 
 
       In order to weight the in-domain DSPCON corpus more, the WEBCON is subsampled with a factor of 0.2 at each epoch. That is, only a random subset of 20\% of the WEBCON corpus is used, resampled at each epoch. The vocabulary is reduced to the 100k most common words to reduce the  memory requirements.
 
-      For the subword models, the cross-entropy objective is used. For the word models, the training objective is noise contrastive estimation (NCE) \citep{gutmann2010noise} to limit the memory requirements of the word models. This objective NCE samples random words and learns to classify words as training words or noise words. The higher the number of noise samples the slower but more stable the training. The number of noise samples is set to 500 per one training word. The noise words are the same for each batch of training words, and the batch size is set to 24. The noise dampening hyperparameter determines whether noise words are sampled uniformly (0) or according to the unigram distribution (1). This is set to 0.5. The Adagrad \citep{duchi2011adaptive} optimisation method is used with a learning rate of 0.1. 
+      For the subword models, the cross-entropy objective is used. For the word models, the training objective is noise contrastive estimation (NCE) \citep{gutmann2010noise} to limit the memory requirements of the word models. This objective NCE samples random words and learns to classify words as training words or noise words. The higher the number of noise samples the slower but more stable the training. The number of noise samples is set to 500 per one training word. The noise words are the same for each batch of training words, and the batch size is set to 24. The noise dampening hyperparameter determines whether noise words are sampled uniformly (0) or according to the unigram distribution (1). This is set to 0.5. The Adagrad \citep{duchi2011adaptive} optimisation method is used with a learning rate of 0.1. The models were trained for a maximum of 25 epochs.
       % Noise-contrastive estimation (NCE) samples random words, but instead of optimizing the cross-entropy cost directly, it uses an auxiliary cost that learns to classify a word as a training word or a noise word [13]. This allows it to treat the normalization term as a parameter of the network. BlackOut
 
-      The maximum length of the token sequence that is processed limits the memory of the LSTM network. It determines how far back the LM can learn dependencies. As the subword tokens are shorter, i.e., fewer characters long, they should probably have a longer context than word tokens. A few different sequence lengths were applied to see how this hyperparameter affects the second-pass WER results. The results are presented in Table \ref{tab:lstm_seq}. 
+      The maximum length of the token sequence that is processed limits the memory of the LSTM network. It determines how far back the LM can learn dependencies. As the subword tokens are shorter, i.e., fewer characters long, they should probably have a longer context than word tokens. A few different sequence lengths were applied to see how this hyperparameter affects the second-pass WER results. The results are presented in Table \ref{tab:lstm_seq}. It was assumed that the word-based models would not benefit from decreasing the sequence length, which is why shorter than 25 sequences were not experimented with.
 
       \begin{table}[ht!]
         \center
           \begin{tabular}{c|c|c}
               \toprule
               Sequence length & Word LM & Subword LM \\ \midrule
-              8 & 24.3 &  \\ 
-              15 & \textbf{24.2} &  \\ 
+              8 & 24.3 & - \\ 
+              15 & \textbf{24.2} & - \\ 
               25 & 24.5 & 23.5 \\ 
               40 & 24.8 & \textbf{23.1} \\ \bottomrule
           \end{tabular}
@@ -1720,10 +1756,12 @@
       The Transformer-Xl models rescored the n-best lists generated from the first or second pass. The use of n-best lists instead of lattices is due to its computational simplicity. n-best lists are suboptimal compared to lattices, but the rescoring of lattices with transformers is not as straight forward as with RNNs, since the state of a position depends not only on the previous state, but on all of the states of other positions, too. This has been done before (e.g., \citep{irie2019language}), but implementing it was beyond the scope of this thesis work.
 
       
-      The Transformer-Xl model hyperparamters were optimised for the development set to some degree. 
-      The network embeds the input to 256 dimensions. The model layers have a total dimensionality of 400. The attention layers have 8 heads with 40 dimensions each. 
-      The number of tokens to predict is set to 70.
-      \textbf{todo: more details about hyperparams and training}
+      The Transformer-Xl model hyperparamters were set to the values that were found optimal by \citet{jain2020finnish}.
+      % optimised for the development set to some degree. 
+      The network embeds the input to 256 dimensions. The model layers have a total dimensionality of 400. The attention layers have 8 heads with 40 dimensions each and the feedforward layers have 1024 dimensions. The total number of layers is 32. 
+      The number of tokens to predict is set to 70.  The optimiser is Adam with a learning rate of 0.0001. 
+
+      % \textbf{todo: more details about hyperparams and training}
 
       \paragraph*{2nd pass results}
 
@@ -1736,7 +1774,7 @@
               \textbf{\# of hypotheses} & \textbf{Devel WER} \\ \midrule
               50-best list & 26.2\\ 
               200-best list & 25.1 \\ 
-              1000-best list &   24.2 \\ \bottomrule
+              1000-best list & 24.2 \\ \bottomrule
           \end{tabular}
           \caption{The effect of a larger number of hypotheses on the development set WER results. The n-best lists were generated from a first-pass decoding with an n-gram, which achieved a WER of 29.0 in this experiment.}
           \label{tab:transformer_n-best}
@@ -1794,7 +1832,7 @@
     
   \subsection{Combined results}
 
-    Table \ref{tab:combined} lists the best results from the 3-pass decoding scheme.
+    Table \ref{tab:combined} lists the best results from the acoustic and language modelling experiments. 
 
     \begin{table}[ht!]
       \center
@@ -1841,15 +1879,17 @@
 
     % According to the significance test, the improvement from LSTM rescoring to the transformer rescoring is
 
-
+  \newpage
   \subsection{Comparison of model sizes and training time} 
+
+    Table \ref{tab:model_size} lists the total number of parameters in the language models. Having a smaller vocabulary makes the input and output layers smaller for the subword-based models, decreasing the number of parameters. 
 
     \begin{table}[ht!]
         \center
           \begin{tabular}{l|l|l}
               \toprule
               \textbf{Vocab}& \textbf{Model} & \textbf{Number of parameters} \\ \midrule
-              & DNN AM & 17M \\  \midrule
+              % & DNN AM & 17M \\  \midrule
               \multirow{2}{*}{Word} & LSTM LM & 230M \\
               & Transformer-XL & 56M  \\ \midrule
               \multirow{2}{*}{Subword} & LSTM LM  & 115M  \\
@@ -1884,8 +1924,7 @@
       As noted in Sections \ref{sec:lattice} and \ref{sec:transformer_expts}, the use of n-best list instead of lattices when rescoring with the transformer-XL model limits the hypotheses more. Rescoring the lattices with transformers would be more efficient and probably improve the recognition accuracy, because lattices can generally encode more hypotheses.
     
     \subsubsection{Modelling conversational language}
-      The language modelling methods used in this thesis are not specifically designed for conversational language, although the corpora are selected to correspond to conversational speech. Some conversation-specific methods for ASR have been proposed in recent years. \citet{xiong2018session} proposed a session-level modelling approach, in which the utterances are in kept in the context of the conversation and turns of the speakers are recognised.
-
+      The language modelling methods used in this thesis are not specifically designed for conversational language, although the corpora are selected to correspond to conversational speech. Some conversation-specific methods for ASR have been proposed in recent years. \citet{xiong2018session} proposed a session-level modelling approach, in which the utterances are in kept in the context of the conversation and turns of the speakers are recognised. Because of limitations of the WEBCON corpus, this method was not tried in this work. The WEBCON corpus does not include complete conversations but only sentences with no context. With a text corpus that includes complete conversations and labelled speaker turns this method could be implemented.
 
 
 \clearpage
