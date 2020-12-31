@@ -918,7 +918,7 @@
       \newline
       After the publication of the transformer network, its variants have been applied to many natural language processing and understanding tasks with success. Currently, the common benchmark for these kinds of general language models is the General Language Understanding Evaluation (GLUE), which includes tasks such as classifying sentence sentiment or entailment \citep{wang2018glue}. GLUE aims to assess whether a system is able to extract a variety of information from text, similarly to how humans understand text by extracting meaning from it.
       
-      \citet{radford2018improving} pre-trained a large transformer \emph{generatively} on a large corpus of diverse text and applied \emph{discriminative} fine-tuning to modify the model for a specific task with in-domain text. They call the model GPT, or generative pre-trained transformer. GPT was able to achieve SOTA results on many tasks similar to the GLUE score (which released after GPT), demonstrating the efficacy of general generative pre-training followed by task-specific fine-tuning, and further fortifying the position of transformers as a replacement of RNNs in language modelling.
+      \citet{radford2018improving} pre-trained a large transformer \emph{generatively} on a large corpus of diverse text and applied \emph{discriminative} fine-tuning to modify the model for a specific task with in-domain text. They call the model GPT, or generative pre-trained transformer. GPT was able to achieve SOTA results on many tasks similar to the GLUE score (which was released after GPT), demonstrating the efficacy of general generative pre-training followed by task-specific fine-tuning, and further fortifying the position of transformers as a replacement of RNNs in language modelling.
 
       \citet{devlin2018bert} developed another prominent transformer system called BERT or Bidirectional Encoder Representations from Transformers.
       % BERT was designed to be applicable to many different NLP and NLU tasks, and it was
@@ -964,7 +964,6 @@
       where $\textcolor{blue}{\boldsymbol{u}_{i-j}^{\textup{rel}}}$ is a relative counterpart to $\boldsymbol{u}_i^{\textup{abs}}$. When the positional encoding is relative, only the distance between $i$ and $j$ is taken into account. Furthermore, $\textcolor{red}{\boldsymbol{v}^{x}}$ and $\textcolor{red}{\boldsymbol{v}^{u}}$ are learnable vectors of parameters which replace $\boldsymbol{u}_i^{\textup{abs}} W_q$. This is motivated by the fact that the query vector is equal
       (not multiplied by $\boldsymbol{x}_i$ in these terms)
       for all query positions, which suggests that the attentive bias towards different positions should also be equal for each query position. The weights for content $W_{k,x}$ and position $W_{k,u}$ are also distinguished from each other. 
-      
       This formulation allows for an intuitive interpretation: the first term encodes content-based attention, the second term encodes content-dependent positional information, the third term encodes global content bias, and the last term encodes global positional bias \citep{dai2019transformer}.
 
       
@@ -1261,9 +1260,9 @@
     \subsubsection{TDNNs and RNNs} 
       Two common types of DNN used for acoustic modelling are RNNs and time delay neural networks (TDNN) \citep{waibel1989phoneme}. Both RNNs and TDNNs are inherently suited to modelling time-series data, where it is important to capture dependencies across time steps, such as speech. However, the two types of DNN are different in how they achieve this.
 
-      As described in Section \ref{sec:rnn}, RNNs include a cycle between network connections, which creates a dependence of the current ouput on the previous outputs. LSTMs, also described in Section \ref{sec:rnn}, are a commonly used type of RNN used for acoustic modelling.
+      As described in Section \ref{sec:rnn}, RNNs include a cycle between network connections, which creates a dependence of the current output on the previous outputs. LSTMs, also described in Section \ref{sec:rnn}, are a commonly used type of RNN used for acoustic modelling.
       
-      TDNNs, also called 1-dimensional convolutional neural networks, are feedforward networks whose layers have a hierarchical structure. Each unit processes inputs from the previous layer across some predefined context, for instance units from time steps $t-4$ to $t+3$. As the next layer has also a context of a few temporal steps, the units in the last layer have a widest temporal dependence. In addition, subsampling the processsed inputs can be used to decrese the computational costs \citep{peddinti2015time}. This is similar to the stride of convolutional neural networks, and the subsampling factor is also called time-stride in Kaldi scripts. Figure \ref{fig:tdnn} illustrates the TDNN structure with and without subsampling. 
+      TDNNs, also called 1-dimensional convolutional neural networks, are feedforward networks whose layers have a hierarchical structure. Each unit processes inputs from the previous layer across some predefined context, for instance units from time steps $t-4$ to $t+3$. As the next layer has also a context of a few temporal steps, the units in the last layer have a widest temporal dependence. In addition, subsampling the processed inputs can be used to decrease the computational costs \citep{peddinti2015time}. This is similar to the stride of convolutional neural networks, and the subsampling factor is also called time-stride in Kaldi scripts. Figure \ref{fig:tdnn} illustrates the TDNN structure with and without subsampling. 
 
       \begin{figure}[htb]
         \centering
@@ -1277,7 +1276,7 @@
     % (explaining RNNs and TDNNs in previous sections?)
 
     \subsubsection{Sequence-level lattice-free MMI} 
-      Currently, the state-of-the-art implementations of DNNs in Kaldi are trained using lattice-free MMI (LF-MMI) training criterion, as described by \citet{povey2016purely}. These are called "chain" models in Kaldi. LF-MMI is a sequence discriminative criterion, which means that the aim is to maximise the conditional log-likelihood (Eq. \ref{eq:mmi}) of the correct transcript on the sequence level. In the traditional MMI approach, a cross-entropy system is trained to  generate lattices for a weak language model, and the lattices are used to approximate the possible word sequences for the discriminative objective function denominator. In LF-MMI, however, the possible word sequences are not approximated with a lattice, but a phone-level language model is computed so that the sum in the denominator is not approximated, but can be computed exactly. This is possible since a phone-level LM requires significantly less mamory than a normal word-level LM.  The phone LM is represented as an FST, created in a similar manner as the normal decoding FST described in Section \ref{sec:wfst}. In this case there is no lexicon and grammar FSTs but a phone grammar FST, so the graph consists of the component FSTs $H$, $C$, and $P$. The numerator FST uses a lattice to represent the utterance. The numerator FST is composed with the denominator FST so that the phoneme LM of the denominator removes illegal output sequences. The composition also ensures that the objective function value is negative. 
+      Currently, the state-of-the-art implementations of DNNs in Kaldi are trained using lattice-free MMI (LF-MMI) training criterion, as described by \citet{povey2016purely}. These are called "chain" models in Kaldi. LF-MMI is a sequence discriminative criterion, which means that the aim is to maximise the conditional log-likelihood (Eq. \ref{eq:mmi}) of the correct transcript on the sequence level. In the traditional MMI approach, a cross-entropy system is trained to  generate lattices for a weak language model, and the lattices are used to approximate the possible word sequences for the discriminative objective function denominator. In LF-MMI, however, the possible word sequences are not approximated with a lattice, but a phone-level language model is computed so that the sum in the denominator is not approximated, but can be computed exactly. This is possible since a phone-level LM requires significantly less memory than a normal word-level LM.  The phone LM is represented as an FST, created in a similar manner as the normal decoding FST described in Section \ref{sec:wfst}. In this case there is no lexicon and grammar FSTs but a phone grammar FST, so the graph consists of the component FSTs $H$, $C$, and $P$. The numerator FST uses a lattice to represent the utterance. The numerator FST is composed with the denominator FST so that the phoneme LM of the denominator removes illegal output sequences. The composition also ensures that the objective function value is negative. 
       % https://desh2608.github.io/2019-05-21-chain/
 
     \subsubsection{Regularisation of DNN AMs} 
@@ -1453,8 +1452,10 @@
 
     The n-gram language model that is used in decoding
     % (in training, only a lexicon is needed)
-    is converted from the ARPA format, described in \ref{tab:arpa}, into the $G$ transducer using the \texttt{arpa2fst} program. The purpose of $G$ is not to transduce a sequence from one domain to another, but to assign weights to the possible word sequences. For this reason, the input and output labels are equal, making it technically a finite-state acceptor. The ARPA model lists the conditional base-10 logarithmic probabilities for each n-gram. These give weights to the arcs of the corresponding paths in the acceptor, the arc weights having an inverse relation to the probabilities (i.e., they are negated) and using natural logarithm instead of 10-base.  Referring to the weight of decoding graph FST as "cost" is more intuitive, so in this text this term is used, too. A complete path through the acceptor corresponds to a word sequence and the cost of the path indicates how \emph{un}likely the sequence is.
-    If a probability of the highest-order n-gram has not been explicitly specified  in the n-gram model, a path is taken through the backoff node which corresponds to the lower-order backoff n-grams and the costs are determined by the associated backoff probabilities. Since the model can recursively back off  all the way to unigrams, any word sequence is accepted and given a cost. The backoff arcs do not have a word label, which raises the problem that there are multiple paths for a single input sequence, making processing the graph inefficient\footnote{more disadvantages?}. The backoff arcs are therefore assigned a \emph{disambiguation symbol} "\texttt{\#0}" as the input label. The disambiguation symbol allows for an operation (in practice, an algorithm) called \emph{determinisation}. A deterministic transducer has the property that one input string matches at most one path \citep{mohri2008speech}.
+    is converted from the ARPA format into the $G$ transducer using the \texttt{arpa2fst} program. The purpose of $G$ is not to transduce a sequence from one domain to another, but to assign weights to the possible word sequences. For this reason, the input and output labels are equal, making it technically a finite-state acceptor. The ARPA model lists the conditional base-10 logarithmic probabilities for each n-gram. These give weights to the arcs of the corresponding paths in the acceptor, the arc weights having an inverse relation to the probabilities (i.e., they are negated) and using natural logarithm instead of 10-base.  Referring to the weight of decoding graph FST as "cost" is more intuitive, so in this text this term is used, too. A complete path through the acceptor corresponds to a word sequence and the cost of the path indicates how \emph{un}likely the sequence is.
+    If a probability of the highest-order n-gram has not been explicitly specified  in the n-gram model, a path is taken through the backoff node which corresponds to the lower-order backoff n-grams and the costs are determined by the associated backoff probabilities. Since the model can recursively back off  all the way to unigrams, any word sequence is accepted and given a cost. The backoff arcs do not have a word label, which raises the problem that there are multiple paths for a single input sequence, making processing the graph inefficient.
+    % \footnote{more disadvantages?}
+    The backoff arcs are therefore assigned a \emph{disambiguation symbol} "\texttt{\#0}" as the input label. The disambiguation symbol allows for an operation (in practice, an algorithm) called \emph{determinisation}. A deterministic transducer has the property that one input string matches at most one path \citep{mohri2008speech}.
     The acceptor also dismisses sentence start and end tokens of the LM  (\texttt{<s>} and \texttt{</s>} or whatever they are) since these are not wanted in the speech transcripts. The number of word types used in speech recognition can also be limited to make the decoding graph of feasible size, in which case some types are omitted from the LM acceptor.
 
     The lexicon transducer $L$ maps a phoneme sequence input to an output consisting of one word. If the lexicon has multiple words with the same pronunciation, or when a phoneme sequence is a part of multiple word pronunciations, word disambiguation symbols \{\texttt{\#1}, \texttt{\#2},...\} are needed to ensure each phoneme sequence has only one possible word output. Ambiguity in the transducer means that there could be multiple paths matching one input string.  
@@ -1521,7 +1522,7 @@
 
     \subsubsection{Speech corpora} 
 
-      The acoustic model training, development and test sets are the same as in \citep{enarvi2017automatic}. The training speech data are 85 hours of read and spontaneous speech from three different sources. The SPEECON corpus consists of 550 speakers reading 30 sentences and 30 single words as well as speaking 10 spontaneous sentences \citep {iskra2002speecon}. The DSPCON\footnote{\url{http://urn.fi/urn:nbn:fi:lb-201708251}} corpus consists of 5281 spontaneous sentences from 218 different male students and 24 female students, totalling 9.8 hours \citep{enarvi2018modeling}. The third source is the FinDialogue part of the FinINTAS corpus \citep{lennes2009segmental}. The development and test sets contain additionally spontaneous utterances from radio shows, referred to as RadioCon. Table \ref{tab:am_data} lists the acoustic modelling data sets.
+      The acoustic model development and test sets are the same as in \citep{enarvi2017automatic}. The training speech data are 37 hours of spontaneous speech from three different sources. The SPEECON corpus consists of 550 speakers speaking 10 spontaneous sentences each \citep {iskra2002speecon}. The DSPCON\footnote{\url{http://urn.fi/urn:nbn:fi:lb-201708251}} corpus consists of 5281 spontaneous sentences from 218 different male students and 24 female students, totalling 9.8 hours \citep{enarvi2018modeling}. The third source is the FinDialogue part of the FinINTAS corpus \citep{lennes2009segmental}. The development and test sets contain additionally spontaneous utterances from radio shows, referred to as RadioCon. Table \ref{tab:am_data} lists the acoustic modelling data sets.
 
       \begin{table}[ht!]
           \begin{tabularx}{\columnwidth}{l|l|lll|l|lll|c}
@@ -1633,7 +1634,6 @@
         % don't repeat terms
 
         Table \ref{tab:spk_emb} presents the results of the speaker embedding experiments.
-
         \begin{table}[ht!]
             \begin{tabularx}{\columnwidth}{l|l|ll}
                 \multicolumn{1}{l}{\textbf{Method}} & \multicolumn{1}{l}{\textbf{Data set}} & \multicolumn{1}{l}{\textbf{devel}} & \textbf{eval}  \\   \toprule
@@ -1656,7 +1656,6 @@
             \caption{The WER results for the word-based system using different speaker embeddings concatenated with the input features. This is the 1st-pass, using a 4-gram language model.}
             \label{tab:spk_emb}
         \end{table}
-
         The fact that the pretrained speaker embedding extractors get better results than the embeddings trained on the conversational speech data suggest that the domain of the speech is not as important as the quantity of the speech. The domain means the language as well as the type of speech, since the Voxceleb speech is in English.
 
 
@@ -1784,7 +1783,7 @@
 
       \paragraph*{2nd pass results}
 
-      When the n-best lists were generated from the n-gram LM decoding, the rescoring improved the development results about 17\%, from the first pass 29.0\% WER, listed in Table \ref{tab:transformer_first}. These numbers are not comparable to those of the Sections \ref{sec:ngram_expts} and \ref{sec:lstm_expts}, since a different acoustic model was used. The table shows the effect of scoring more hypotheses: 50, 200 or 1000. Iterating the training for more steps brings little improvement after 130k training steps, when rescoring the 50-best list.
+      When the n-best lists were generated from the n-gram LM decoding, the rescoring improved the development results about 17\%, from the first pass 29.0\% WER, listed in Table \ref{tab:transformer_n-best}. These numbers are not comparable to those of the Sections \ref{sec:ngram_expts} and \ref{sec:lstm_expts}, since a different acoustic model was used. The table shows the effect of scoring more hypotheses: 50, 200 or 1000.
 
       \begin{table}[ht!]
         \center
@@ -1799,6 +1798,9 @@
           \label{tab:transformer_n-best}
       \end{table}
 
+      Table \ref{tab:transformer_steps} lists the development set WER results with different amounts of training. 
+      Iterating the training for more steps brings little improvement after 130k training steps, when rescoring the 50-best list.
+
       \begin{table}[ht!]
         \center
           \begin{tabular}{c|c}
@@ -1812,6 +1814,8 @@
           \label{tab:transformer_steps}
       \end{table}
 
+
+      Table \ref{tab:50-best} presents the results from rescoring the 50-best list generated from n-gram decoding. LSTM LM achieves the best results.
       \begin{table}[ht!]
         \center
           \begin{tabular}{c|c}
@@ -1845,10 +1849,10 @@
       %     \label{tab:3pass}
       % \end{table}
 
-
+  \newpage
   \subsection{Combined results}
 
-    Table \ref{tab:combined} lists the best results from the acoustic and language modelling experiments. 
+    Table \ref{tab:combined} lists the best results from the acoustic and language modelling experiments. Rescoring the 50-best list generated by LSTM decoding with a Transformer model does not bring a statistically significant improvement with this acoustic model, although in some experiments the improvement was larger.s
 
     \begin{table}[ht!]
       \center
@@ -1921,7 +1925,7 @@
   
   The experiments described in the last chapter improved the WER results about 4.9 absolute percentages in total, compared to the previous best results. This chapter aims to analyse the experiments, 
   % clarify where the improvements come from,
-  highlight possible limitations and deficiencies of the experiments, and propose possible future work on the subject.
+  highlight possible limitations of the experiments, and propose possible future work on the subject.
 
     %   The conventional ASR system includes multiple independent components that each contribute to the accuracy of the transcriptions. Using multiple language models 
 
@@ -1953,7 +1957,7 @@
 
       Another interesting approach to language modelling is include in it some type of topic recognition. For example, \citet{watanabe2011topic} described a topic tracking language model that adapts the language model based on the previously processed speech. 
       This method is analogous to the speaker- and channel-aware acoustic modelling discussed in this thesis, which adapts the acoustic modelling features w.r.t. the speaker.
-      Considering how humans recognise speech, topic-aware language model seems an intuitive method to improve the language models and in that way the speech recognition accuracy. However, this method requires labelled text corpus in which the current topics are labelled. The WEBCON corpus includes no such labels, so topic-aware language modelling is left for future work.
+      Considering how humans recognise speech, topic-aware language model seems an intuitive method to improve the language models and in that way the speech recognition accuracy. However, this method requires labelled text corpus in which the topics are labelled. The WEBCON corpus includes no such labels, so topic-aware language modelling is left for future work.
 
 
 \clearpage
@@ -1970,7 +1974,7 @@
   In the speaker embedding experiments, the use of i-vectors and x-vectors achieved similar results when trained on the same speech corpus. Both methods decreased the evaluation set WER around 3\% (relative improvement) when trained on the small Finnish conversational speech corpus, and roughly 7\% when trained on the significantly larger, English VoxCeleb corpus.
   % This demonstrates that a different language can be utilised for training  speaker embeddings that are useful for ASR.
   % Although i-vectors and x-vectors achieve roughly equal results, the two methods differ in how they are trained or how they embed speakers or utterances in a vector space. It is therefore possible that they encode different types of information about the speakers or utterances. To assess whether the methods encode overlapping information, the two vectors were also concatenated and evaluated on the same ASR task.
-  The concatenated i- and x-vectors achieved a small improvement compared to using only x-vectors (about 2\% relative improvement). However, this improvement was not statistically significant.
+  The concatenated i- and x-vectors achieved a small improvement compared to using only x-vectors (about 2\% relative improvement), which is a promising but statistically not a significant improvement.
   Besides the speaker embedding experiments, the acoustic model was tuned for the development data.
   % Since the previous best results presented by \citet{enarvi2017automatic}, the Kaldi recipes have been optimised further.
   Using the new Kaldi recipes also improved the results.
