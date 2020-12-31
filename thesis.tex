@@ -162,7 +162,7 @@
   %% on the page. However, the recommendation is to print this copyright text.
   \makecopyrightpage
 
-  %% Note that when writting your thesis in English, place the English abstract
+  %% Note that when writing your thesis in English, place the English abstract
   %% first followed by the possible Finnish or Swedish abstract.
 
   %% Abstract text
@@ -181,19 +181,19 @@
   \degreeprogram{Tieto-, tietoliikenne- ja informaatiotekniikka}
   \major{Signaalin-, puheen- ja kielenkäsittely}
   %% The keywords need not be separated by \spc now.
-  \keywords{puheentunnistus, keskustelumuotoinen suomi}
+  \keywords{puheentunnistus, puhekielinen suomi}
   %% Abstract text
   \begin{abstractpage}[finnish]
     % Spontaneous conversational Finnish is a challenging type of speech to recognise due to frequent dysfluencies in sentence structure and the use of various informal word forms.
-    Puhekielistä suomea on hankala mallintaa arkikielisten ilmaisujen sekä katkonaisten lauseiden takia. 
+    Puhekielistä suomea on vaikea mallintaa arkikielisten ilmaisujen sekä katkonaisten lauseiden takia. 
     % This thesis work was an effort to improve the speech recognition accuracy for conversational Finnish.
     Tämän diplomityön tarkoitus oli parantaa puheentunnistusjärjestelmien tarkkuutta puhekieliselle suomelle. 
     % The purpose was to evaluate recent acoustic and language modelling methods on conversational Finnish.
     Tavoitteena oli arvioida viimeaikaisten kielen- ja akustiikanmallintamismenetelmien hyödyllisyyttä puhekielisen suomen tunnistamisessa.
     % The main experiments included evaluating the effect of different speaker embedding approaches and comparing Transformer-XL and recurrent neural language models, using word and subword vocabularies.
-    Työn tärkeimpiä kokeita ovat puhujaan mukautettujen akustiikkamallien vertailu (i-vektorit ja x-vektorit) sekä Transformer-kielimallien ja takaisinkytkettyjen hermoverkkokielimallien vertailu.
+    Työn tärkeimpiä kokeita ovat puhujan suhteen mukautettujen akustiikkapiirteiden vertailu (i-vektorit ja x-vektorit) sekä Transformer-kielimallien ja takaisinkytkettyjen hermoverkkokielimallien vertailu.
     % Combining the best acoustic and language models built during this thesis work improved the word error rate by 4.9 absolute percentages compared to the previous best result.
-    Yhteensä kieli- ja akustiikkamallikokeet paransivat puheentunnistusjärjestelmän sanavirheastetta 4.9 prosenttiyksikköä.
+    Yhteensä kieli- ja akustiikkamallikokeet pienensivät puheentunnistusjärjestelmän sanavirheastetta 4.9 prosenttiyksikköä verrattuna aiempiin tuloksiin.
   \end{abstractpage}
 
   %% Preface
@@ -225,14 +225,22 @@
   % $\downarrow$     & electron spin direction down \\
   % /examples
   $\boldsymbol{\Delta}$                       & delta feature vector \\
+  $\boldsymbol{\Delta\Delta}$                & delta-delta feature vector \\
+  $\theta$                          & the learnable parameters of a model \\
+  $\lambda$                                   & language model weight \\
   $\boldsymbol{\mu}$                          & mean vector of a GMM \\
   $\Sigma$                       & covariance matrix of a GMM \\
-  $\theta$                          & the learnable parameters of a model \\
-
-
+  
+  $\boldsymbol{b}$ & a bias vector in a neural net layer or affine transform \\
+  $\boldsymbol{h}$      & high-level representation vector in an encoder-decoder model \\
   $\boldsymbol{o}_t$    & observation, i.e., feature vector, at time $t$ \\ 
+  $P()$                 & probability \\
   $r$                   & speaker \\
   $\boldsymbol{w} = w_1,...,w_N$ & a sequence of words or other units of text \\
+  $W$                     & a weight matrix in a neural net layer \\
+  $x$                   & input of a neural network \\
+  $y$                   & output of a neural network \\
+
   
   
   \end{tabular}
@@ -349,11 +357,11 @@
 
   \subsection{Automatic speech recognition} 
 
-    \emph{Automatic speech recognition} (ASR) is the task of converting speech into text. The direct application of ASR is useful in many situations, for example to transcribe patient notes dictated by medical doctors. ASR has also an increasing number of use cases in systems with longer pipelines that achieve some speech-initiated task, such as \emph{voice user interfaces} or \emph{speech-to-speech translation} systems. The ASR piece can often be a bottleneck in the pipeline,  determining to a large degree the accuracy of the whole system.
+    \emph{Automatic speech recognition} (ASR) is the task of converting speech into text. The direct application of ASR is useful in many situations, for example to transcribe patient notes dictated by medical doctors. Speech recognition has also an increasing number of use cases in systems with longer pipelines that achieve some speech-initiated task, such as \emph{voice user interfaces} or \emph{speech-to-speech translation} systems. The ASR piece can often be a bottleneck in the pipeline,  determining to a large degree the accuracy of the whole system.
 
     % maybe lose the eqs
     In the conventional ASR system, the task is divided into subtasks.
-    The first subtask, called feature extraction, is to divide the audio signal into  segments, and convert the segments into feature vectors, also called observations. The observations are a compressed representation of the audio signal.
+    The first subtask, called \emph{feature extraction}, is to divide the audio signal into  segments, and convert the segments into feature vectors, also called observations. The observations are a compressed representation of the audio signal.
     % % : \emph{feature extraction},  \emph{phoneme-to-grapheme mapping}, and creating
     % The task is then to find $\argmax_{\boldsymbol{w}} P(\boldsymbol{w}|\boldsymbol{O})$, where $\boldsymbol{w}=w_1,...,w_N$ is a word sequence. This probability is not practicable to compute directly, but by Bayes' rule it can be expanded to 
     % \begin{equation}\label{eq:asr-bayes}
@@ -416,9 +424,8 @@
     % , and to a varying degree common,
     to also \emph{write} colloquial Finnish as it is spoken. 
     It is therefore possible to find written text that resembles the spoken language, and  use this to model colloquial Finnish. The above mentioned incorrect inflections are examples of informal Finnish that is also written in the incorrect way, as it is pronounced.
-
     Colloquial Finnish is written, for example, on online forums, especially in direct-message conversations. 
-    \citet{enarvi2013studies} collected a conversational Finnish text corpus from Internet forums by searching for key phrases that indicate informal conversations.
+    \citet{enarvi2013studies} collected a conversational Finnish text corpus from Internet forums by searching for key phrases that indicate informal conversations. This text corpus is similar in style to informal spoken Finnish, and it can be used to model conversational Finnish.
     % This text corpus is used also in this thesis to model conversational Finnish.
     % \citet{enarvi2017automatic} developed and evaluated different ASR systems for the conversational data.
     % In their work, the acoustic models are trained on 85 hours of speech.
@@ -514,7 +521,6 @@
     A \emph{model} is a simplified or abstract representation of a phenomenon, an artefact that aims to hold relevant and distilled information about its real-world counterpart.
     % The term is very general: there are physical, mathematical, and conceptual models, just to name a few different types.
     Models can be either physical or conceptual, and the latter group can be subdivided into many different kinds of conceptual models, such as logical, scientific, or mathematical models.
-    
     One category of mathematical models is \emph{statistical models}.
     According to \citet{davison2003statistical}, a statistical model is "a probability distribution constructed to enable inferences to be drawn or decisions made from data". A basic example of a probability distribution is a normal, or \emph{Gaussian}, distribution, whose shape is defined by its \emph{parameters} $\theta$, the mean and variance. Given a set of data points, an optimal Gaussian distribution can be superimposed on the data by simply calculating the parameter values from their
     formulae\footnote{The mean is $\mu = \frac{1}{N} \sum_i x_i$ and the variance is $ \sigma^2 = \frac{1}{N-1} \sum_i (x_i - \mu)^2$ where $x_i$ is a data point and $i \in \{ 1,...,N \}$.}.
@@ -523,8 +529,6 @@
 
     \emph{Machine learning} is often formulated as optimisation of an objective function, with the added goal of being able to generalise to unseen samples of data.  Most relevant to this thesis, statistical models of language and speech acoustics are created using machine learning algorithms.
     This chapter briefly introduces machine learning concepts that are central to the language and acoustic modelling methods described respectively in the next two chapters.
-
-    The next subsection ...
     
     % 
       % Brains have evolved to build both unconscious and  consciously accessible models of consequential things, such as animals, weather, or phonemes that compose a language.
@@ -569,7 +573,7 @@
     Artificial neural networks (ANN) are a family of model types, historically based on the concept of a perceptron \citep{rosenblatt1957perceptron}, which functions similarly to a biological neuron and is therefore called an artificial neuron, or just neuron.
     The core functioning, common to the perceptron and the biological neuron, is that an input either activates or does not activate the output on an activation function. In the case of a perceptron, the activation function is a unit step function: if the input is above a scalar threshold the output is activated. Perceptron learns a binary classifier by tuning this threshold based on information from training examples. The idea of a perceptron has since been generalised and extended into the wide range of different kinds of artificial neural networks, but the core idea of a neuron remains.
     
-    A multilayer perceptron (MLP) stacks neurons in multiple layers that are connected in the forward direction from the input to the output layer, therefore called also feedforward neural networks. An MLP includes an input layer of neurons with linear or non-linear activation functions, one or more hidden layers, and an output layer. The layered network learns the weights of the connections through backpropagation and other algorithms described in the next two subsectons.
+    A multilayer perceptron (MLP) \citep{rosenblatt1962principles} stacks neurons in multiple layers that are connected in the forward direction from the input to the output layer, therefore called also feedforward neural networks. An MLP includes an input layer of neurons with linear or non-linear activation functions, one or more hidden layers, and an output layer. The layered network learns the weights of the connections through backpropagation and other algorithms described in the next two subsectons.
     
     An important class of ANNs are deep neural networks (DNNs), called "deep" because they include many hidden layers. MLPs are a subclass of DNNs; other subclasses include, for instance, recurrent neural networks (RNNs), which are particularly useful in speech recognition since they are capable of modelling long-term time dependencies in data by incorporating a cycle between the network connections. Section \ref{sec:rnn} discusses RNNs for language modelling.
 
@@ -623,7 +627,7 @@
 
     % Machine learning has been an integral part of ASR 
 
-    Nowadays, machine learning is an integral method of speech recognition, but the first ASR systems in the 1960s did not utilise learning algorithms. These machines could recognise a few words, for instance the digits, by matching templates of the words with the data. In the 1970s and 80s, HMMs were demonstrated useful in ASR after which HHM-based systems, and learning algorithms in general, have remained as the basis of ASR. The breakthrough of neural models during the previous decade provided much improvement in the recognition accuracy. Incorporating DNNs into the acoustic models of a conventional HMM-based system is called the hybrid DNN/HMM approach.
+    Nowadays, machine learning is an integral method of speech recognition, but the first ASR systems in the 1960s did not utilise learning algorithms. These machines could recognise a few words, for instance the digits, by matching templates of the words with the data. In the 1970s and 80s, HMMs were demonstrated useful in ASR after which HHM-based systems, and learning algorithms in general, have remained as the basis of ASR. The breakthrough of neural models during the previous decade provided much improvement in the recognition accuracy. Incorporating a DNN into the acoustic model of a conventional HMM-based system is called the hybrid DNN/HMM approach.
     % The latest paradigm of ASR systems, called end-to-end systems, dispenses also with HMMs, relying completely on DNNs. 
 
     % aasinsilta
@@ -651,7 +655,7 @@
     \end{equation}
     Acoustic and language modelling are achieved using machine learning models, primarily deep neural networks (DNNs), which are estimated based on training data. To model acoustics a parallel corpus of speech and text is needed, whereas to model language only text is needed.
 
-    In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results (e.g., by \citet{hannun2014deep, chan2016listen}). An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon, although E2E systems benefit from the simplified training procedure. The state-of-the-art results are still obtained with the conventional systems in many ASR tasks, and for this reason, this thesis explores methods in this conventional paradigm.
+    In the past few years, end-to-end (E2E) speech recognition systems have achieved promising results (e.g., \citet{hannun2014deep, chan2016listen}). An E2E system dispenses with the division to an LM and an AM, and instead learns a mapping  from (preprocessed) audio straight to the transcription. This makes the training procedure simpler since only one model is trained instead of multiple. However, it has been shown that E2E models can still benefit from, for example, incorporating an external language model \citep{toshniwal2018comparison} or speaker embeddings \citep{rouhe2020speaker}, into an E2E system, making it arguably no longer a pure E2E model, depending on how "E2E" is defined. Results such as these indicate that pure E2E systems will not completely supplant conventional ASR systems, or systems that include multiple separately trained models, any time soon, although E2E systems benefit from the simplified training procedure. The state-of-the-art results are still obtained with the HMM/DNN systems in many ASR tasks, and for this reason, this thesis explores methods in this conventional paradigm.
 
     
 \clearpage
@@ -685,7 +689,6 @@
 
 
   \subsection{n-gram language models} \label{sec:ngram} 
-
 
     An n-gram language model bases the prediction of the last token in a sequence of $n$ tokens on statistics gathered from a training corpus. 
     The probability of a word sequence is the product of the probabilities of the constituent words, and the probability of each word is conditional on $n-1$ previous words (i.e., the context). The Eq. \ref{eq:lm} becomes
@@ -749,28 +752,28 @@
 
   \subsection{Neural language models}  \label{sec:nnlm}
 
-    n-gram language models treat each word without relations to other words in the vocabulary. The words have no properties other than n-grams they belong to, and the probabilities of those n-grams.
-    % in a set with no other attributes besides an ID. 
-    \citet{bengio2003neural} proposed a method able to take into account the similarity of words, and able to generalise exploiting the similarities. Words can be similar to each other in different ways: "cat" is similar to "dog", and "cat" is similar to "whiskers", but in a different way. Different kinds of similarities can be represented as dimensions in a vector that encodes a word. By this method, words are embedded into a vector space that encodes relations between words. Similarity  of words corresponds to proximity in the embedding space, and can be measured by the cosine similarity of two vectors $\boldsymbol{a}$ and $\boldsymbol{b}$
-    \begin{equation}
-      \cos(\theta) = {\boldsymbol{a} \cdot \boldsymbol{b} \over \|\boldsymbol{a}\| \|\boldsymbol{b}\|} 
-    \end{equation}
-    or some other similarity metric.
-    Being able to measure the similarity of two words allows for generalising from word sequences in the language modelling training text to sequences that have not been encountered. If an embedding space holds the information that "cat" is similar to "dog" in the particular way that "cat" is, the language model can generalise from a seen sentence "the cat is running" to a new sentence "the dog is running" by assuming that "dog" works in this sequence similarly to "cat".
+    % 
+      n-gram language models treat each word without relations to other words in the vocabulary. The words have no properties other than n-grams they belong to, and the probabilities of those n-grams.
+      % in a set with no other attributes besides an ID. 
+      \citet{bengio2003neural} proposed a method able to take into account the similarity of words, and able to generalise exploiting the similarities. Words can be similar to each other in different ways: "cat" is similar to "dog", and "cat" is similar to "whiskers", but in a different way. Different kinds of similarities can be represented as dimensions in a vector that encodes a word. By this method, words are embedded into a vector space that encodes relations between words. Similarity  of words corresponds to proximity in the embedding space, and can be measured by the cosine similarity of two vectors $\boldsymbol{a}$ and $\boldsymbol{b}$
+      \begin{equation}
+        \cos(\phi) = {\boldsymbol{a} \cdot \boldsymbol{b} \over \|\boldsymbol{a}\| \|\boldsymbol{b}\|} 
+      \end{equation}
+      or some other similarity metric.
+      Being able to measure the similarity of two words allows for generalising from word sequences in the language modelling training text to sequences that have not been encountered. If an embedding space holds the information that "cat" is similar to "dog" in the particular way that "cat" is, the language model can generalise from a seen sentence "the cat is running" to a new sentence "the dog is running" by assuming that "dog" works in this sequence similarly to "cat".
 
-    One of the seminal word embedding models was published by \citet{mikolov2013efficient}, called Word2Vec. The goal of this model is to be able to train word embeddings using large data sets of billions of words and to create embedding spaces that encode multiple degrees of similarity between words. Substructures of the embedding space can be probed by the word analogy task, for example asking which word is closest in the vector space when the word "man" is subtracted from "king", and the word "woman" is added. The intuitive answer "queen" is given by Word2Vec embedding space
-    % whereas LSA embedding space is not able to preserve this kind of information
-    \citep{mikolov2013efficient}. The paper introduced two methods for computing the Word2Vec embeddings. In both methods the idea is to train a shallow feedforward neural network with one hidden layer for a classification task and then use the learned hidden layer weights as the vector representation of the word. The Continuous Bag-of-Words Model (CBOW) learns the embeddings by predicting the current word given a few (e.g. 4) previous words and a few next words. The method uses a bag-of-words, i.e. the order of the words is not taken into account. The continuous Skip-gram model is similar to the CBOW, but instead of predicting the current word given a context, the training task is to predict the context of a given word. Using the negative sampling method \citep{mikolov2013distributed}, a small subset of the words outside the context are sampled. This way the task does not require to classify all the other outside-of-the-context words as "not in the context" but only some sample in the order of 10.
+      One of the seminal word embedding models was published by \citet{mikolov2013efficient}, called Word2Vec. The goal of this model is to be able to train word embeddings using large data sets of billions of words and to create embedding spaces that encode multiple degrees of similarity between words. Substructures of the embedding space can be probed by the word analogy task, for example asking which word is closest in the vector space when the word "man" is subtracted from "king", and the word "woman" is added. The intuitive answer "queen" is given by Word2Vec embedding space
+      % whereas LSA embedding space is not able to preserve this kind of information
+      \citep{mikolov2013efficient}. The paper introduced two methods for computing the Word2Vec embeddings. In both methods the idea is to train a shallow feedforward neural network with one hidden layer for a classification task and then use the learned hidden layer weights as the vector representation of the word. The Continuous Bag-of-Words Model (CBOW) learns the embeddings by predicting the current word given a few (e.g. 4) previous words and a few next words. The method uses a bag-of-words, i.e. the order of the words is not taken into account. The continuous Skip-gram model is similar to the CBOW, but instead of predicting the current word given a context, the training task is to predict the context of a given word. Using the negative sampling method \citep{mikolov2013distributed}, a small subset of the words outside the context are sampled. This way the task does not require to classify all the other outside-of-the-context words as "not in the context" but only some sample in the order of 10.
 
-    Learning to embed words by an affine transform is usually incorporated into modern NNLMs as the first layer or first few layers of the network. The embedding is learned in the same training process as the language modelling task. Initialising the embedding of an NNLM from a pre-trained word embedding model is also possible. 
+      Learning to embed words by an affine transform is usually incorporated into modern NNLMs as the first layer or first few layers of the network. The embedding is learned in the same training process as the language modelling task. Initialising the embedding of an NNLM from a pre-trained word embedding model is also possible. 
       
-
   \subsubsection{Recurrence} \label{sec:rnn} 
 
     Feedforward networks feed the output of a layer to the next layer until the output layer. The network output at time $t$ is therefore dependent only on the input at $t$. In natural languages, each unit of speech or text is strongly connected to the previous units. Both language models and acoustic models ought to capture dependencies across many time steps, and RNNs have been successfully applied to these tasks. In a simple RNN, the output of a layer is fed back to the same layer in the next time step, creating a type of memory of previous states of the network. Other recurrence methods are also possible, but all RNNs are based on some type of cycle between the network connections, creating a dependence of the current output on the previous outputs. This enables modelling dependencies between time steps.
 
     \paragraph*{Long short-term memory}
-    A widely used type of recurrent NN is called a long short-term memory (LSTM) network \citep{hochreiter1997long}. The term "short-term" alludes to the activations of recurrent connections as type of memory, in contrast with "long-term" memory in the form of the weights of the connections that change by learning. The short-term memory is made longer and more expressive than in the usual RNN memory by utilising special gate layers that comprise a memory cell unit. The LSTM cell contains in total four neural network layers that perform different gating functions and interact to jointly learn which information should be memorised, i.e., which of the processed previous inputs contain the relevant \emph{context} that the next output should depend on. The gate layers are called the forget gate, the add gate, the input gate, and the output gate.   Figure \ref{fig:lstm} illustrates the LSTM cell with its four gate layers.
+    A widely used type of recurrent NN is called a long short-term memory (LSTM) network \citep{hochreiter1997long}. The term "short-term" alludes to the activations of recurrent connections as type of memory, in contrast with "long-term" memory in the form of the weights of the connections that change by learning. The short-term memory is made longer and more expressive than in the usual RNN memory by utilising special gate layers that comprise a memory cell unit. The LSTM cell contains in total four neural network layers that perform different gating functions and interact to jointly learn which information should be memorised, i.e., which of the processed previous inputs contain the relevant \emph{context} that the next output should depend on. The gate layers can be called the forget gate, the add gate, the input gate, and the output gate.   Figure \ref{fig:lstm} illustrates the LSTM cell with its four gate layers.
     \begin{figure}[htb]
       \centering
       \includegraphics[width=14cm]{LSTM-cell}
@@ -780,22 +783,22 @@
 
     The forget gate inputs the previous output $h_{t-1}$ and the current input $x_t$ and outputs a vector that decides which elements in the previous context vector (aka cell state) $c_{t-1}$ should be kept in the memory and how completely, on a scale from 0 to 1.
     \begin{align}
-      f_t &= \sigma(U_f h_{t-1} + W_f x_t) \\
+      f_t &= \sigma(U_f h_{t-1} + W_f x_t + b_f) \\
       k_t &=  f_t \circ c_{t-1}
     \end{align}
     where $\circ$ represents the element-wise (also known as Hadamard) product of the vectors. In a first version of the LSTM published by \citet{hochreiter1997long}, there is no forget gate but a self-recurrent connection, which is equivalent to $f$ being always unity. This is called the \emph{constant error carousel} because it retains information from the previous cell states and alleviates the problem of vanishing or exploding gradients. \citet{gers1999learning} introduced the forget gate to avoid problems caused by continual input streams that are not segmented by ends at which the LSTM state could reset. The forget gate incorporates to the LSTM cell learnable parameters whose purpose is to discard information when it becomes useless.
 
     The add gate extracts from  $h_{t-1}$ and $x_t$ a new candidate context vector $\hat{c}_t$ that could be added to the context in lieu of the forgot information. The hyperbolic tangent squishes the values between -1 and 1. The input gate $i_t$ selects from $\hat{c}_t$ the new context that is added to the context.
     \begin{align}
-      \hat{c}_t &= \tanh(U_c h_{t-1} + W_c x_t) \\
-      i_t &= \sigma(U_i h_{t-1} + W_i x_t) \\
+      \hat{c}_t &= \tanh(U_c h_{t-1} + W_c x_t + b_c) \\
+      i_t &= \sigma(U_i h_{t-1} + W_i x_t + b_i) \\
       j_t &= \hat{c}_t \circ i_t \\
       c_t &= k_t + j_t
     \end{align}
 
     The output gate $o_t$ generates the current hidden state $h_t$ from the newly computed current context $c_t$:
     \begin{align}
-      o_t &= \sigma(U_o h_{t-1} + W_o x_t) \\
+      o_t &= \sigma(U_o h_{t-1} + W_o x_t + b_o) \\
       h_t &= o_t \circ \tanh(c_t)
     \end{align}
 
@@ -1493,11 +1496,26 @@
 \clearpage
 \section{Experiments} \label{sec:experiments} 
 
-  % \subsection{Baseline} 
+  % 
 
-  %   The baseline language models and the ASR system is based on the systems developed by \citet{enarvi2017automatic}.
+    %   The baseline language models and the ASR system is based on the systems developed by \citet{enarvi2017automatic}.
 
-  This chapter describes the experiments and presents the results. Statistical significance of differences between two results was assessed using the Wilcoxon Signed Rank \citep{wilcoxon1992individual} for the speaker WER.  
+    This chapter describes the experiments and presents the results. The used evaluation metric is the word error rate (WER), defined as the combined number of errors (substitutions, deletions, and insertions) in the generated transcript divided by the number of words in the correct transcript.
+    Before calculating the WER, words are normalised so that similar words are counted as correct words. For example, the words "nii" and "niin" are both correct if the latter is in the reference transcript. This normalisation method is adopted from \citep{enarvi2017automatic}. Because the words are normalised in this way, character error rate is not used.
+
+    Perplexity is an often used metric for evaluating language models. Perplexity $PP$ measures how improbable the test set $W$ is given the language model \citep{Jurafsky2019}:
+    \begin{equation} \label{eq:ppl}
+        PP(W) = P(w_1,w_2,...,w_N)^{-\frac{1}{N}} =
+        \sqrt[N]{\frac{1}{P(w_1,w_2,...,w_N)}} 
+    \end{equation}
+    and using the chain rule
+    \begin{equation}
+        PP(W) = \sqrt[N]{\prod^N_{i=1}\frac{1}{P(w_i|w_1,w_2,...,w_{i-1})}}
+    \end{equation}
+    Perplexity was used for evaluating some of the language models in the hyperparameter tuning phase. However, perplexity does not necessarily correlate with the speech recognition accuracy which is the ultimate evaluation metric. Moreover, after segmenting the words into subwords, the perplexity of a corpus is not comparable to the perplexity measured with whole words.
+    For these reasons, the perplexity values are omitted from this chapter, and the presented results include only the more relevant WER results.
+
+    Statistical significance of differences between two results was assessed using the Wilcoxon Signed Rank \citep{wilcoxon1992individual} for the speaker WER. When stating that a result is or is not statistically significant in this chapter, this metric has been used.
 
   \subsection{Acoustic modelling experiments}
 
@@ -1641,11 +1659,10 @@
 
         The fact that the pretrained speaker embedding extractors get better results than the embeddings trained on the conversational speech data suggest that the domain of the speech is not as important as the quantity of the speech. The domain means the language as well as the type of speech, since the Voxceleb speech is in English.
 
-    % \subsubsection{Discussion}
-
 
   \subsection{Language modelling experiments} \label{sec:lm_expts} 
 
+    % This section describes the language modelling experiments and presents the results. The 
 
     \subsubsection{Text corpora}
 
@@ -1666,10 +1683,12 @@
         \label{tab:lm_corpora}
       \end{table}
 
+      For the subword-based models, the vocabulary was segmented using the morfessor method. The hyperparameters for the morfessor model were adopted from the best model in \citep{enarvi2017automatic}. The vocabulary size decreased from 2.4M words to 42k words after segmentation.
+
 
     \subsubsection{Decoding with n-gram LM} \label{sec:ngram_expts} 
 
-      The word-based systems use an n-gram LM with $n=4$ for the first-pass decoding and lattice generation. The SRILM \citep{stolcke2002srilm} is used to train KN-discounted n-gram in the ARPA format (see Section \ref{sec:ngram}). The two corpora are interpolated with weights that are optimised on the development data, similarly to \citep{enarvi2017automatic}.
+      The word-based systems use an n-gram LM with $n=4$ for the first-pass decoding and lattice generation. The SRILM \citep{stolcke2002srilm} is used to train  Kneser-Ney-discounted n-gram (see Section \ref{sec:ngram}) in the ARPA format. The two corpora are interpolated with weights that are optimised on the development data, similarly to \citep{enarvi2017automatic}.
 
       The subword-based systems use an n-gram LM with $n=4$ for the first-pass decoding and lattice generation. Different constant and variable values of $n$ were evaluated on the development data to find a suitable value. The VariKN \citep{siivola2007morfessor} tool was used to evaluate variable-order pruned n-grams. 
 
@@ -1827,9 +1846,6 @@
       % \end{table}
 
 
-    % \subsubsection{Discussion}
-
-    
   \subsection{Combined results}
 
     Table \ref{tab:combined} lists the best results from the acoustic and language modelling experiments. 
@@ -1903,14 +1919,18 @@
 \clearpage
 \section{Discussion} \label{sec:discussion}
   
-  The experiments described in the last chapter improved the WER results about 4.9 absolute percetages in total, compared to the previous best results. This chapter aims to analyse the experiments, clarify where the improvements come from, highlight possible limitations and defiencies of the experiments, and propose possible future work on the subject.
+  The experiments described in the last chapter improved the WER results about 4.9 absolute percentages in total, compared to the previous best results. This chapter aims to analyse the experiments, 
+  % clarify where the improvements come from,
+  highlight possible limitations and deficiencies of the experiments, and propose possible future work on the subject.
 
     %   The conventional ASR system includes multiple independent components that each contribute to the accuracy of the transcriptions. Using multiple language models 
 
   \subsection{Acoustic modelling}
-    Th acoustic modelling data set is quite small, less than 37 hours in total. As comparison, the Wall Street Journal speech data set is about 80 hours. The size of the speech data set generally correlates with the accuracy of the ASR system. With more data, a more complex neural acoustic model could be trained, which could learn a more accurate mapping from features to phoneme classes. The reason for the small size of the used data set is simply that this is all the available conversational Finnish speech data. However, it is not clear whether the training speech needs to correspond to the conversational evaluation set so closely. It is plausible that using a larger data set would yield better results even if the speech is more formal and therefore different from the evaluation set. Though more data generally yields better results, a small data set and a small model does have the benefit of learning quicker, thus enabling easier hyperparameter tuning and making it feasible to do more experiments.
+    The acoustic modelling data set is quite small, less than 37 hours in total. As a comparison, the Wall Street Journal speech data set is about 80 hours. The size of the speech data set generally correlates with the accuracy of the ASR system. With more data, a more complex neural acoustic model could be trained, which could learn a more accurate mapping from features to phoneme classes. The reason for the small size of the used data set is simply that this is all the available conversational Finnish speech data. However, it is not clear whether the training speech needs to correspond to the conversational evaluation set so closely. It is plausible that using a larger data set would yield better results even if the speech is more formal and therefore different from the evaluation set. Though more data generally yields better results, a small data set and a small model does have the benefit of learning quicker, thus enabling easier hyperparameter tuning and making it feasible to do more experiments.
 
-    A large improvement on the recognition accuracy was achieved by utilising new Kaldi recipes for training the TDNN acoustic model. Kaldi recipes are tuned for a particular data sets. The recipe for training the TDNN used in this thesis was the Switchboard recipe. However, training the GMM AM was mostly done following the Wall Street Journal recipe. Experiments were also done training the TDNN with the WSJ recipe, but this yielded poorer results. The WSJ TDNN is a smaller model because the data set is  smaller. However, using the larger model seemed to be beneficial even though the data set used in this thesis is even smaller than the WSJ data set.
+    A large improvement on the recognition accuracy was achieved by utilising new Kaldi recipes for training the TDNN acoustic model. Kaldi recipes are tuned for a particular data sets. The recipe for training the TDNN used in this thesis was the Switchboard recipe. However, training the GMM AM was mostly done following the Wall Street Journal recipe. Experiments were also done training the TDNN with the WSJ recipe, but this yielded poorer results. The WSJ TDNN is a smaller model because the data set is  smaller. However, using the larger model seemed to be beneficial even though the data set used in this thesis is even smaller than the WSJ data set.  
+
+
 
   \subsection{Speaker embeddings}
     Although i-vectors and x-vectors achieve roughly equal results, the two methods differ in how they are trained or how they embed speakers or utterances in a vector space. i-vectors are meant to encode both channel and speaker variability, which is why they are also called the total factors. They are often trained on a data set that has been artificially modified to include more speakers than the data actually includes by changing the speaker labels. More speakers helps the extractor to find the relevant differences across channels and speakers. An x-vector extractor, on the other hand, is trained to classify only speakers. The neural network can benefit from more data, unlike the i-vector GMMs, and the data is therefore augmented with noise for x-vector extractor training in the Kaldi recipes. 
@@ -1919,12 +1939,21 @@
 
 
   \subsection{Language modelling}
+    
+     
 
     \subsubsection{Transformer-XL}
-      As noted in Sections \ref{sec:lattice} and \ref{sec:transformer_expts}, the use of n-best list instead of lattices when rescoring with the transformer-XL model limits the hypotheses more. Rescoring the lattices with transformers would be more efficient and probably improve the recognition accuracy, because lattices can generally encode more hypotheses.
+      As noted in Sections \ref{sec:lattice} and \ref{sec:transformer_expts}, the use of n-best list instead of lattices when rescoring with the transformer-XL model limits the hypotheses more. Rescoring the lattices with transformers would be more efficient and probably improve the recognition accuracy, because lattices can generally encode more hypotheses. Furthermore, using multiple neural language models to first rescore lattices with an RNN LM and then rescore n-best lists with a Transformer LM is computationally about twice as costly as rescoring the lattices straight with a Transformer, assuming training the RNN and transformer LMs require equal resources. 
+      It would be interesting to see the benefits of rescoring lattices with a transformer LM in future work.
+
+
     
     \subsubsection{Modelling conversational language}
-      The language modelling methods used in this thesis are not specifically designed for conversational language, although the corpora are selected to correspond to conversational speech. Some conversation-specific methods for ASR have been proposed in recent years. \citet{xiong2018session} proposed a session-level modelling approach, in which the utterances are in kept in the context of the conversation and turns of the speakers are recognised. Because of limitations of the WEBCON corpus, this method was not tried in this work. The WEBCON corpus does not include complete conversations but only sentences with no context. With a text corpus that includes complete conversations and labelled speaker turns this method could be implemented.
+      The language modelling methods used in this thesis are not specifically designed for conversational language, although the corpora are selected to correspond to conversational speech. Some conversation-specific methods for ASR have been proposed in recent years. \citet{xiong2018session} proposed a session-level modelling approach, in which the utterances are in kept in the context of the conversation and turns of the speakers are recognised. Because of limitations of the WEBCON corpus, this method was not tried out in this work. The WEBCON corpus does not include complete conversations but only sentences with no context. With a text corpus that includes complete conversations and labelled speaker turns this method could be implemented.
+
+      Another interesting approach to language modelling is include in it some type of topic recognition. For example, \citet{watanabe2011topic} described a topic tracking language model that adapts the language model based on the previously processed speech. 
+      This method is analogous to the speaker- and channel-aware acoustic modelling discussed in this thesis, which adapts the acoustic modelling features w.r.t. the speaker.
+      Considering how humans recognise speech, topic-aware language model seems an intuitive method to improve the language models and in that way the speech recognition accuracy. However, this method requires labelled text corpus in which the current topics are labelled. The WEBCON corpus includes no such labels, so topic-aware language modelling is left for future work.
 
 
 \clearpage
